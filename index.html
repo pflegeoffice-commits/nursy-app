@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Fürsorge mit Herz</title>
+  <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="/manifest-client.json">
+    <link rel="apple-touch-icon" href="/icon-nursy-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Nursy Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="functions.html">Funktionen</a>
+        <a href="how.html">So funktioniert’s</a>
+        <a href="#login">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero__content">
+        <div class="badge">Standortbasiert · Direkt buchbar · Sicher</div>
+
+        <h1>Flexible Gesundheitsberufe. Schnell. Sicher.</h1>
+        <p>
+          Nursy verbindet Gesundheitsberufe und Klienten in deiner Nähe – mit direkter Buchung,
+          Verfügbarkeitsmanagement und Sicherheitsfunktionen.
+        </p>
+
+        <div class="hero__actions" id="login">
+          <a class="control btn primary" href="register-care.html">Als Pflegekraft arbeiten</a>
+          <a class="control btn" href="register-client.html">Anfrage erstellen</a>
+        </div>
+
+        <div class="hero__search" role="search" aria-label="Standort suchen">
+          <label class="sr-only" for="q">PLZ oder Ort</label>
+          <input id="q" class="control" type="text" placeholder="PLZ / Ort eingeben…" maxlength="10" />
+          <button class="control btn" type="button" id="searchBtn">Suchen</button>
+        </div>
+
+        <div id="searchResult" style="display:none;margin-top:14px;background:#fff;border:1.5px solid rgba(63,111,232,.18);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;" id="searchResultLabel"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;" id="searchResultBadges"></div>
+          <a class="control btn primary" href="register-client.html" style="display:flex;align-items:center;justify-content:center;text-align:center;width:100%;box-sizing:border-box;">Jetzt registrieren und Fachkraft direkt buchen</a>
+        </div>
+      </div>
+
+      <div class="hero__panel">
+        <div class="card">
+          <h3>Öffentlicher Bereich</h3>
+          <p class="muted">Für selbstständige Pflegekräfte und Klienten auf dem Marktplatz.</p>
+
+          <div class="grid2">
+            <a class="control btn primary" href="login-care.html">Pflegekraft anmelden</a>
+            <a class="control btn" href="login-client.html">Klient anmelden</a>
+          </div>
+        </div>
+
+        <div class="card" id="features">
+          <h3>Warum Nursy?</h3>
+          <ul class="list">
+            <li>Standortbasierte Suche</li>
+            <li>Direkte Buchung</li>
+            <li>Verfügbarkeit & Kalender</li>
+            <li>Sicherheits-Features</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin-steuerbare Content-Blöcke -->
+    <section id="content-blocks" style="display:none;margin-bottom:0;">
+      <div id="content-blocks-inner"></div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="section__head">
+        <h2>So funktioniert’s</h2>
+        <p class="muted">Übersichtlich in Karten – Funktionen später bei Bedarf in Tabs.</p>
+      </div>
+
+      <div class="cards3">
+        <div class="card">
+          <h3>1. Profil</h3>
+          <p class="muted">Anmelden, Profil anlegen, Qualifikationen/Bedarf hinterlegen.</p>
+        </div>
+        <div class="card">
+          <h3>2. Finden</h3>
+          <p class="muted">Pflegekräfte in der Nähe suchen oder Anfrage erstellen.</p>
+        </div>
+        <div class="card">
+          <h3>3. Buchen</h3>
+          <p class="muted">Termin wählen, bestätigen, sicher kommunizieren.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mitarbeiter-Portal: dezent am Seitenende -->
+    <section style="padding:18px 0 28px;">
+      <div class="container">
+        <div style="border-top:1px solid #e2e8f0;padding-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Akut Plus Pflegepersonal</div>
+            <div style="font-size:.83rem;color:#94a3b8;">Mitarbeiter-Portal · interner Bereich</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="pflege-portal-login.html" style="font-size:.78rem;font-weight:700;color:#475569;text-decoration:none;padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;">Anmelden</a>
+            <a href="pflege-portal-register.html" style="font-size:.78rem;font-weight:700;color:#475569;text-decoration:none;padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;">Bewerben</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="muted">© Nursy – Fürsorge mit Herz</span>
+      <div class="footer__links">
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  /* ── Content-Blöcke von der Startseite laden ── */
+  (function(){
+    var typColors = {
+      info:    '#3f6fe8',
+      news:    '#0891b2',
+      werbung: '#d97706',
+      wichtig: '#dc2626',
+      bild:    '#7c3aed'
+    };
+    var typLabels = {
+      info:    'Info',
+      news:    'Aktuell',
+      werbung: 'Angebot',
+      wichtig: 'Wichtig',
+      bild:    'Foto'
+    };
+    function esc(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+    fetch('/api/startseite/blocks').then(function(r){ return r.json(); }).then(function(d){
+      var blocks = d.blocks || [];
+      if(!blocks.length) return;
+      var wrap = document.getElementById('content-blocks-inner');
+      var html = blocks.map(function(b){
+        var col = typColors[b.typ] || '#3f6fe8';
+        var lbl = typLabels[b.typ] || b.typ;
+        var imgHtml = b.bild_url
+          ? '<img src="'+esc(b.bild_url)+'" alt="'+esc(b.titel)+'" style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:12px;" onerror="this.style.display=\'none\'">'
+          : '';
+        var btnHtml = (b.link_text && b.link_url)
+          ? '<a href="'+esc(b.link_url)+'" target="_blank" style="display:inline-flex;align-items:center;height:38px;padding:0 18px;border-radius:9px;background:'+col+';color:#fff;font-size:.84rem;font-weight:800;text-decoration:none;margin-top:12px;">'+esc(b.link_text)+' →</a>'
+          : '';
+        return '<div style="background:#fff;border:1.5px solid '+col+'28;border-radius:16px;padding:18px 20px;box-shadow:0 2px 12px rgba(15,26,51,.06);">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(b.titel?'8px':'0')+';">'+
+            '<span style="font-size:.7rem;font-weight:800;padding:2px 9px;border-radius:6px;background:'+col+'15;color:'+col+';border:1px solid '+col+'30;letter-spacing:.03em;">'+lbl+'</span>'+
+            (b.titel?'<span style="font-size:.95rem;font-weight:900;color:#0f1a33;flex:1;min-width:0;">'+esc(b.titel)+'</span>':'')+
+          '</div>'+
+          (b.inhalt?'<p style="font-size:.88rem;color:#374151;line-height:1.6;margin:0;">'+esc(b.inhalt).replace(/\n/g,'<br>')+'</p>':'')+
+          imgHtml+
+          btnHtml+
+        '</div>';
+      }).join('');
+      wrap.innerHTML = '<div style="display:grid;gap:14px;padding:28px 0 8px;">' + html + '</div>';
+      document.getElementById('content-blocks').style.display = 'block';
+    }).catch(function(){});
+  }());
+
+  (function(){
+    document.getElementById('searchBtn').addEventListener('click', function(){
+      var q = document.getElementById('q').value.trim();
+      if(!q){ document.getElementById('q').focus(); return; }
+
+      var btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.textContent = '…';
+
+      fetch('/api/caregivers')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          btn.disabled = false;
+          btn.textContent = 'Suchen';
+
+          var all = data.caregivers || [];
+          var ql = q.toLowerCase().trim();
+
+          // PLZ-Erkennung: österreichische 4-stellige PLZ
+          var isPlz = /^\d{2,4}$/.test(q.trim());
+          // Erste 2 Ziffern der PLZ = grobe Region (~50 km Umkreis in Österreich)
+          var plzPrefix = isPlz ? q.trim().substring(0, 2) : null;
+
+          var matched = all.filter(function(c){
+            // Exakter PLZ-Präfix-Treffer
+            if(c.plz && c.plz.trim().startsWith(q.trim())) return true;
+            // Regionale Nähe: erste 2 PLZ-Ziffern übereinstimmend (~50 km)
+            if(plzPrefix && c.plz && c.plz.trim().startsWith(plzPrefix)) return true;
+            // Ort- oder Bezirk-Name
+            if(c.ort && c.ort.toLowerCase().includes(ql)) return true;
+            if(c.bezirk && c.bezirk.toLowerCase().includes(ql)) return true;
+            return false;
+          });
+
+          var badgesEl = document.getElementById('searchResultBadges');
+          var labelEl  = document.getElementById('searchResultLabel');
+
+          if(matched.length === 0){
+            labelEl.textContent = 'Suchergebnis für „' + q + '":';
+            badgesEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;background:#f3f4f620;border:1.5px solid #d1d5db;font-size:.83rem;font-weight:600;color:#6b7280;">😔\u00a0In Ihrem Gebiet ist noch kein Pfleger registriert.</span>';
+          } else {
+            // Regionsbezeichnung: Ort aus erstem Treffer verwenden falls vorhanden
+            var regionName = matched[0].ort || matched[0].bezirk || q;
+            labelEl.textContent = 'Angemeldete Pflegepersonen im Raum ' + regionName + ':';
+            var color = '#3f6fe8';
+            badgesEl.innerHTML =
+              '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:' + color + '18;border:1.5px solid ' + color + '44;font-size:.82rem;font-weight:700;color:' + color + ';">' +
+              '<strong>' + matched.length + '</strong>\u00a0Pflegeperson' + (matched.length === 1 ? '' : 'en') + ' verfügbar</span>';
+          }
+
+          var el = document.getElementById('searchResult');
+          el.style.display = 'block';
+          el.scrollIntoView({behavior:'smooth', block:'nearest'});
+        })
+        .catch(function(){
+          btn.disabled = false;
+          btn.textContent = 'Suchen';
+        });
+    });
+    document.getElementById('q').addEventListener('keydown', function(e){
+      if(e.key === 'Enter') document.getElementById('searchBtn').click();
+    });
+  }());
+  </script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+</body>
+</html>

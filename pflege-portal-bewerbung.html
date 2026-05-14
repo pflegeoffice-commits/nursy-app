@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Nursy – Bewerbungsformular</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { font-family:ui-sans-serif,system-ui,sans-serif; min-height:100vh; background:linear-gradient(160deg,#1a2744,#243560 60%,#1e3a6e); padding:30px 16px 60px; }
+    .bew-wrap { max-width:540px; margin:0 auto; }
+    .bew-logo { text-align:center; color:#fff; margin-bottom:24px; }
+    .bew-logo h1 { margin:0; font-size:2rem; font-weight:900; letter-spacing:-.5px; }
+    .bew-logo p  { margin:4px 0 0; font-size:.8rem; color:#a8c4e8; }
+    .bew-card { background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden; }
+    .bew-head  { padding:20px 24px 16px; border-bottom:1px solid #f0f4fa; background:#f8faff; }
+    .bew-head h2 { margin:0 0 3px; font-size:1rem; font-weight:800; color:#0f1a33; }
+    .bew-head p  { margin:0; font-size:.75rem; color:#7a8faa; }
+    .bew-body  { padding:22px 24px; }
+    .bew-foot  { padding:14px 24px 20px; border-top:1px solid #f0f4fa; display:flex; justify-content:flex-end; }
+
+    .form-group { margin-bottom:14px; }
+    .form-label { display:block; font-size:.75rem; font-weight:700; color:#374151; margin-bottom:5px; }
+    .form-inp, .form-textarea { width:100%; border-radius:10px; border:1.5px solid #dde6f2; padding:10px 13px; font-size:.85rem; font-family:inherit; box-sizing:border-box; transition:border .15s; }
+    .form-inp    { height:42px; }
+    .form-inp:focus, .form-textarea:focus { outline:none; border-color:#3f6fe8; }
+    .form-textarea { min-height:100px; resize:vertical; }
+
+    .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px 16px; font-size:.78rem; color:#1e3a8a; margin-bottom:18px; line-height:1.5; }
+
+    .btn-submit { background:#3f6fe8; color:#fff; border:none; border-radius:10px; padding:11px 24px; font-size:.9rem; font-weight:800; cursor:pointer; font-family:inherit; transition:background .15s; }
+    .btn-submit:hover { background:#2d5bd4; }
+    .btn-submit:disabled { opacity:.6; cursor:default; }
+
+    .profile-grid { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin-bottom:18px; }
+    .profile-grid dt { font-size:.72rem; color:#9ca3af; font-weight:700; padding-top:2px; }
+    .profile-grid dd { font-size:.83rem; color:#0f1a33; margin:0; }
+
+    .success-box { text-align:center; padding:30px 20px; }
+    .success-box .icon { font-size:3.5rem; }
+    .success-box h2 { margin:12px 0 8px; font-size:1.1rem; font-weight:900; color:#0f1a33; }
+    .success-box p  { font-size:.82rem; color:#6b7280; margin:0; line-height:1.6; }
+
+    .err-box { text-align:center; padding:40px 24px; color:#b91c1c; }
+    .alert-err { background:#fef2f2; border:1px solid #fca5a5; border-radius:9px; padding:10px 14px; font-size:.78rem; color:#b91c1c; margin-bottom:12px; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<div class="bew-wrap">
+  <div class="bew-logo"><h1>Akut Plus</h1><p>Pflegedienste auf höchstem Niveau · Persönliches Bewerbungsformular</p></div>
+
+  <div class="bew-card" id="bewCard">
+    <div class="bew-head"><h2>Bewerbungsformular</h2><p>Wird geladen…</p></div>
+    <div class="bew-body"><div style="text-align:center;padding:30px;color:#9ca3af">⏳ Lade Daten…</div></div>
+  </div>
+</div>
+
+<script>
+const token = new URLSearchParams(location.search).get('token');
+
+async function init() {
+  const card = document.getElementById('bewCard');
+  if (!token) {
+    card.innerHTML = '<div class="bew-head"><h2>Ungültiger Link</h2></div><div class="bew-body"><div class="err-box">⚠️ Kein gültiger Token. Bitte Admin kontaktieren.</div></div>';
+    return;
+  }
+  const r = await fetch(`/api/portal/bewerbung/${token}`);
+  const d = await r.json();
+  if (!d.ok) {
+    card.innerHTML = `<div class="bew-head"><h2>Link ungültig</h2></div><div class="bew-body"><div class="err-box">⚠️ ${d.error||'Ungültiger Bewerbungslink'}.</div></div>`;
+    return;
+  }
+  const b = d.bewerbung;
+  card.innerHTML = `
+    <div class="bew-head">
+      <h2>Bewerbungsformular – ${b.vorname} ${b.nachname}</h2>
+      <p>Bitte füllen Sie dieses Formular vollständig aus. Nach dem Absenden nimmt unser Team Kontakt auf.</p>
+    </div>
+    <div class="bew-body">
+      <div class="info-box">
+        👋 Hallo <strong>${b.vorname}</strong>! Dieser persönliche Link wurde exklusiv für Sie erstellt. 
+        Bitte ergänzen Sie Ihre Angaben. Danach wird ein Termin für das Bewerbungsgespräch vereinbart.
+      </div>
+      <div class="profile-grid">
+        <dt>Name</dt><dd>${b.vorname} ${b.nachname}</dd>
+        <dt>E-Mail</dt><dd>${b.email}</dd>
+        <dt>Qualifikation</dt><dd>${b.qualifikation||'–'}</dd>
+        <dt>Bezirk</dt><dd>${b.bezirk||'–'}</dd>
+      </div>
+      <div id="bewAlert"></div>
+      <div class="form-group">
+        <label class="form-label">Bisherige Berufserfahrung & Arbeitgeber</label>
+        <textarea class="form-textarea" id="erfahrung" placeholder="Bisherige Berufserfahrung &amp; Arbeitgeber"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Warum möchten Sie bei Nursy arbeiten?</label>
+        <textarea class="form-textarea" id="motivation" placeholder="Warum möchten Sie bei Nursy arbeiten?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bevorzugter Gesprächstermin</label>
+        <input type="text" class="form-inp" id="termin" placeholder="Bevorzugter Gesprächstermin" autocomplete="off"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sonstige Anmerkungen</label>
+        <textarea class="form-textarea" id="anmerkungen" placeholder="Sonstige Anmerkungen" style="min-height:72px"></textarea>
+      </div>
+    </div>
+    <div class="bew-foot">
+      <button class="btn-submit" id="submitBtn" onclick="submitBew()">Bewerbung absenden →</button>
+    </div>`;
+}
+
+async function submitBew() {
+  const btn = document.getElementById('submitBtn');
+  const alertEl = document.getElementById('bewAlert');
+  alertEl.innerHTML = '';
+
+  const erfahrung   = document.getElementById('erfahrung').value.trim();
+  const motivation  = document.getElementById('motivation').value.trim();
+  const termin      = document.getElementById('termin').value.trim();
+  const anmerkungen = document.getElementById('anmerkungen').value.trim();
+
+  if (!erfahrung || !motivation) {
+    alertEl.innerHTML = '<div class="alert-err">Bitte Berufserfahrung und Motivation ausfüllen.</div>';
+    return;
+  }
+  btn.disabled=true; btn.textContent='Wird gesendet…';
+  const notizen = `ERFAHRUNG: ${erfahrung}\n\nMOTIVATION: ${motivation}\n\nGESPRÄCHSTERMIN: ${termin}\n\nANMERKUNGEN: ${anmerkungen}`;
+  const r = await fetch(`/api/portal/bewerbung/${token}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({notizen})
+  });
+  const d = await r.json();
+  if (d.ok) {
+    document.getElementById('bewCard').innerHTML = `
+      <div class="bew-head"><h2>Vielen Dank!</h2></div>
+      <div class="bew-body">
+        <div class="success-box">
+          <div class="icon">🎉</div>
+          <h2>Bewerbung erfolgreich eingereicht</h2>
+          <p>Wir haben Ihre Angaben erhalten und werden uns in Kürze bezüglich eines Gesprächstermins melden. Bitte halten Sie Ihre E-Mails im Auge.</p>
+        </div>
+      </div>`;
+  } else {
+    btn.disabled=false; btn.textContent='Bewerbung absenden →';
+    alertEl.innerHTML = `<div class="alert-err">${d.error||'Fehler beim Absenden.'}</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,2216 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Nursy – Verrechnungsstelle</title>
+<style>
+body{visibility:hidden;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f2744;--navy2:#1a3a5c;--blue:#2563eb;--blue-l:#3b82f6;
+  --green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --bg:#f0f4fb;--card:#fff;--text:#0f1a33;--muted:#64748b;
+  --border:rgba(15,26,51,.12);--r:14px;
+}
+html{height:100%;overflow:hidden;max-width:100vw;}
+body{height:100%;overflow:hidden;max-width:100vw;overscroll-behavior-x:none;touch-action:pan-y;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+.b-hdr{
+  background:var(--navy);color:#fff;
+  padding:12px 18px 0;flex-shrink:0;overflow-x:hidden;
+}
+.b-hdr__top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-bottom:12px;
+}
+.b-hdr__logo{display:flex;align-items:center;gap:10px;}
+.b-hdr__mark{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,#2563eb,#60a5fa);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:.85rem;
+}
+.b-hdr__title{font-size:1rem;font-weight:900;}
+.b-hdr__sub{font-size:.65rem;opacity:.55;margin-top:1px;}
+.b-user{
+  display:flex;align-items:center;gap:8px;
+  font-size:.72rem;opacity:.8;
+}
+.b-logout{
+  background:rgba(255,255,255,.12);border:none;border-radius:7px;
+  color:#fff;font-size:.68rem;font-weight:700;padding:5px 10px;cursor:pointer;
+}
+.b-logout:hover{background:rgba(255,255,255,.2);}
+
+/* ── TABS ── */
+.b-tabs{
+  display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.b-tabs::-webkit-scrollbar{display:none;}
+.b-tab{
+  flex-shrink:0;padding:11px 16px;font-size:.76rem;font-weight:700;
+  color:rgba(255,255,255,.55);border:none;background:none;cursor:pointer;
+  border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap;
+}
+.b-tab.active{color:#fff;border-bottom-color:#3b82f6;}
+.b-tab:hover:not(.active){color:rgba(255,255,255,.8);}
+
+/* ── BODY ── */
+.b-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px;}
+.b-page{display:none;}
+.b-page.active{display:block;}
+
+/* ── CARD ── */
+.bc{
+  background:var(--card);border-radius:var(--r);
+  box-shadow:0 1px 6px rgba(0,0,0,.08);margin-bottom:14px;
+}
+.bc__head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.bc__title{font-size:.9rem;font-weight:800;}
+.bc__sub{font-size:.72rem;color:var(--muted);margin-top:1px;}
+.bc__body{padding:14px 16px;}
+
+/* ── STATS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+@media(min-width:600px){.stat-grid{grid-template-columns:repeat(4,1fr);}}
+.stat-card{
+  background:var(--card);border-radius:12px;padding:14px 14px 12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.stat-card__label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.stat-card__val{font-size:1.5rem;font-weight:900;margin-top:4px;}
+.stat-card__unit{font-size:.68rem;color:var(--muted);}
+
+/* ── LEISTUNGSKATALOG ── */
+.lk-grid{display:grid;gap:8px;}
+.lk-row{
+  display:grid;grid-template-columns:1fr auto auto auto;
+  gap:8px;align-items:center;padding:10px 12px;
+  background:var(--card);border-radius:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);
+}
+@media(max-width:500px){.lk-row{grid-template-columns:1fr;}}
+.lk-row__name{font-size:.84rem;font-weight:700;}
+.lk-row__meta{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.lk-badge{
+  font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:999px;
+  background:#f0f4fb;color:var(--muted);white-space:nowrap;flex-shrink:0;
+}
+.lk-preis{font-size:.9rem;font-weight:800;color:var(--navy);flex-shrink:0;white-space:nowrap;}
+.lk-actions{display:flex;gap:5px;flex-shrink:0;}
+.inactive-row{opacity:.45;}
+
+/* ── BUTTONS ── */
+.btn{
+  border:none;border-radius:8px;font-size:.78rem;font-weight:700;
+  padding:7px 13px;cursor:pointer;transition:opacity .15s;
+}
+.btn--primary{background:var(--navy);color:#fff;}
+.btn--primary:hover{opacity:.88;}
+.btn--sm{padding:5px 9px;font-size:.7rem;}
+.btn--danger{background:#fee2e2;color:var(--red);}
+.btn--danger:hover{background:#fecaca;}
+.btn--ghost{background:#f1f5f9;color:var(--text);}
+.btn--ghost:hover{background:#e2e8f0;}
+.btn--green{background:#f0fdf4;color:var(--green);}
+.btn--green:hover{background:#dcfce7;}
+
+/* ── RECHNUNG LIST ── */
+.re-row{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+}
+.re-row:last-child{border-bottom:none;}
+.re-row__num{font-size:.8rem;font-weight:800;white-space:nowrap;min-width:100px;}
+.re-row__info{flex:1;min-width:0;}
+.re-row__name{font-size:.84rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.re-row__meta{font-size:.68rem;color:var(--muted);margin-top:1px;}
+.re-row__right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
+.re-row__brutto{font-size:.95rem;font-weight:800;}
+.status-pill{
+  font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap;
+}
+.status-pill--entwurf{background:#f1f5f9;color:var(--muted);}
+.status-pill--gesendet{background:#fef3c7;color:#92400e;}
+.status-pill--bezahlt{background:#dcfce7;color:var(--green);}
+.status-pill--storniert{background:#fee2e2;color:var(--red);}
+
+/* ── SEARCH / FILTER ── */
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.s-inp{
+  flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:.82rem;font-family:inherit;outline:none;background:#fff;
+}
+.s-inp:focus{border-color:var(--blue);}
+.s-sel{
+  padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:.78rem;font-family:inherit;outline:none;background:#fff;cursor:pointer;
+}
+.s-sel:focus{border-color:var(--blue);}
+
+/* ── MODAL OVERLAY ── */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:1000;overflow:hidden;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(3px);
+  align-items:flex-end;justify-content:center;
+}
+.overlay.show{display:flex;}
+@media(min-width:600px){.overlay{align-items:center;}}
+.modal{
+  background:#fff;border-radius:20px 20px 0 0;
+  width:100%;max-width:600px;max-height:90vh;overflow-y:auto;overflow-x:hidden;
+  padding:22px 20px 32px;
+}
+@media(min-width:600px){.modal{border-radius:20px;}}
+.modal__head{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;
+}
+.modal__title{font-size:1rem;font-weight:900;}
+.modal__close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;}
+.field-lbl{font-size:.76rem;font-weight:700;color:var(--navy);display:block;margin-bottom:4px;}
+.f-inp{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:.85rem;font-family:inherit;outline:none;transition:border-color .15s;
+  box-sizing:border-box;
+}
+.f-inp:focus{border-color:var(--blue);}
+input[type="date"].f-inp,select.f-inp{height:44px;}
+input[type="date"].f-inp,input[type="time"].f-inp{-webkit-appearance:none;appearance:none;width:100%;min-width:0;text-align:center;}
+input[type="date"].f-inp::-webkit-date-and-time-value,input[type="time"].f-inp::-webkit-date-and-time-value{text-align:center;margin:0;}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;min-width:0;}
+@media(max-width:599px){.f-grid{grid-template-columns:1fr;}}
+.f-full{grid-column:1/-1;}
+.f-row{margin-bottom:12px;min-width:0;}
+
+/* ── POSITIONEN ── */
+.pos-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:8px;}
+.pos-table th{
+  text-align:left;padding:5px 6px;font-size:.68rem;font-weight:700;
+  color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);
+}
+.pos-table td{padding:5px 4px;border-bottom:1px solid #f8faff;}
+.pos-table td input,.pos-table td select{
+  width:100%;padding:5px 7px;border:1.5px solid #e2e8f0;border-radius:6px;
+  font-size:.78rem;font-family:inherit;outline:none;
+}
+.pos-table td input:focus,.pos-table td select:focus{border-color:var(--blue);}
+.pos-total{font-size:.82rem;color:var(--muted);background:#f8fafc;border-radius:8px;padding:8px 12px;margin-top:6px;}
+.pos-total table{width:100%;border-collapse:collapse;}
+.pos-total td{padding:2px 4px;white-space:nowrap;}
+.pos-total td:last-child{text-align:right;font-weight:700;color:var(--text);}
+.pos-total tr:last-child td{font-size:.95rem;color:var(--navy);font-weight:900;padding-top:5px;border-top:1px solid #e2e8f0;}
+.pos-rows-wrap{overflow-x:hidden;}
+.pos-row{display:grid;grid-template-columns:minmax(0,3fr) 55px 50px 60px 40px 28px;gap:5px;align-items:center;margin-bottom:5px;}
+@media(max-width:480px){
+  .pos-row{grid-template-columns:1fr 28px;grid-template-rows:auto auto;}
+  .pos-row input:first-child{grid-column:1;grid-row:1;}
+  .pos-row button{grid-column:2;grid-row:1;}
+  .pos-row input:not(:first-child){grid-column:1 / span 2;grid-row:auto;}
+  .pos-row{row-gap:4px;}
+}
+
+/* ── PRINT INVOICE ── */
+.print-overlay{
+  display:none;position:fixed;inset:0;z-index:2000;
+  background:#fff;overflow-y:auto;
+}
+.print-overlay.show{display:block;}
+.print-toolbar{
+  background:var(--navy);color:#fff;
+  padding:10px 18px;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;
+}
+.print-toolbar h3{font-size:.88rem;font-weight:800;}
+.print-actions{display:flex;gap:8px;}
+@media print{
+  .print-toolbar{display:none;}
+  .print-overlay{position:static;}
+}
+
+/* ── EMPTY ── */
+.empty-state{
+  text-align:center;padding:40px 20px;color:var(--muted);font-size:.84rem;
+}
+.empty-state__ico{font-size:2.5rem;margin-bottom:8px;}
+
+/* ── TOAST ── */
+.b-toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(30px);
+  background:var(--navy);color:#fff;border-radius:10px;padding:9px 18px;
+  font-size:.82rem;font-weight:700;opacity:0;pointer-events:none;
+  transition:all .25s;z-index:9999;white-space:nowrap;
+}
+.b-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── INVOICE PRINT LAYOUTS ── */
+.inv-akutplus{font-family:'Helvetica Neue',Arial,sans-serif;max-width:720px;margin:0 auto;padding:20px 30px 40px;}
+.inv-akutplus .inv-hdr{
+  background:#0f2744;color:#fff;padding:28px 30px;border-radius:12px 12px 0 0;
+  display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;
+}
+.inv-akutplus .inv-hdr__brand{font-size:1.4rem;font-weight:900;}
+.inv-akutplus .inv-hdr__sub{font-size:.72rem;opacity:.7;margin-top:3px;}
+.inv-akutplus .inv-hdr__nr{text-align:right;}
+.inv-akutplus .inv-hdr__nr-label{font-size:.65rem;opacity:.7;text-transform:uppercase;letter-spacing:.05em;}
+.inv-akutplus .inv-hdr__nr-val{font-size:1.1rem;font-weight:800;}
+.inv-akutplus .inv-meta{
+  display:grid;grid-template-columns:2fr 1fr;gap:16px;
+  padding:20px 0;border-bottom:1px solid #e2e8f0;margin-bottom:20px;
+}
+.inv-akutplus .inv-meta > div:last-child{text-align:right;}
+.inv-akutplus .inv-meta__label{font-size:.65rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:3px;}
+.inv-akutplus .inv-meta__val{font-size:.84rem;color:#0f1a33;}
+.inv-akutplus table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.82rem;}
+.inv-akutplus table thead{background:#f0f4fb;}
+.inv-akutplus table th{padding:8px 10px;text-align:left;font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;}
+.inv-akutplus table td{padding:9px 10px;border-bottom:1px solid #f1f5f9;}
+.inv-akutplus table tr:last-child td{border-bottom:none;}
+.inv-akutplus .inv-totals{margin-left:auto;width:260px;}
+.inv-akutplus .inv-totals__row{display:flex;justify-content:space-between;padding:5px 0;font-size:.82rem;}
+.inv-akutplus .inv-totals__row span:last-child{white-space:nowrap;text-align:right;}
+.inv-akutplus .inv-totals__row--total{font-weight:900;font-size:1rem;border-top:2px solid #0f2744;margin-top:6px;padding-top:10px;}
+.inv-akutplus .inv-footer{font-size:.68rem;color:#94a3b8;margin-top:30px;border-top:1px solid #e2e8f0;padding-top:14px;line-height:1.6;}
+
+.inv-nursy{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:720px;margin:0 auto;padding:20px 30px 40px;}
+.inv-nursy .inv-hdr{
+  display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;
+  padding-bottom:20px;border-bottom:3px solid #2563eb;margin-bottom:24px;
+}
+.inv-nursy .inv-hdr__brand{font-size:1.6rem;font-weight:900;color:#0f2744;}
+.inv-nursy .inv-hdr__brand span{color:#2563eb;}
+.inv-nursy .inv-hdr__sub{font-size:.72rem;color:#64748b;margin-top:2px;}
+.inv-nursy .inv-hdr__nr-label{font-size:.65rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
+.inv-nursy .inv-hdr__nr-val{font-size:1.1rem;font-weight:800;color:#0f2744;}
+.inv-nursy .inv-meta{
+  display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;
+}
+.inv-nursy .inv-meta > div:last-child{text-align:right;}
+.inv-nursy .inv-meta__label{font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;}
+.inv-nursy .inv-meta__val{font-size:.84rem;color:#0f1a33;}
+.inv-nursy table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.82rem;}
+.inv-nursy table thead{background:#eff6ff;}
+.inv-nursy table th{padding:8px 10px;text-align:left;font-size:.68rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;}
+.inv-nursy table td{padding:9px 10px;border-bottom:1px solid #f1f5f9;}
+.inv-nursy table tr:last-child td{border-bottom:none;}
+.inv-nursy .inv-totals{margin-left:auto;width:260px;}
+.inv-nursy .inv-totals__row{display:flex;justify-content:space-between;padding:5px 0;font-size:.82rem;}
+.inv-nursy .inv-totals__row span:last-child{white-space:nowrap;text-align:right;}
+.inv-nursy .inv-totals__row--total{font-weight:900;font-size:1rem;color:#2563eb;border-top:2px solid #2563eb;margin-top:6px;padding-top:10px;}
+.inv-nursy .inv-footer{font-size:.68rem;color:#94a3b8;margin-top:30px;border-top:1px solid #e2e8f0;padding-top:14px;line-height:1.6;}
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="b-hdr">
+  <div class="b-hdr__top">
+    <div class="b-hdr__logo">
+      <div class="b-hdr__mark">N</div>
+      <div>
+        <div class="b-hdr__title">Verrechnungsstelle</div>
+        <div class="b-hdr__sub" id="bUserSub">Wird geladen…</div>
+      </div>
+    </div>
+    <div class="b-user">
+      <span id="bUserName">–</span>
+      <button class="b-logout" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+  <div class="b-tabs">
+    <button class="b-tab active" data-tab="dashboard">📊 Übersicht</button>
+    <button class="b-tab" data-tab="leistungskatalog">📋 Leistungskatalog</button>
+    <button class="b-tab" data-tab="akutplus">🏥 Akut Plus</button>
+    <button class="b-tab" data-tab="nursy">💻 Nursy Plattform</button>
+    <button class="b-tab" data-tab="pflegerpersonal">👨‍⚕️ Pflegerpersonal</button>
+    <button class="b-tab" data-tab="honorar">📄 Honorarnoten</button>
+    <button class="b-tab" data-tab="vorlagen" id="bTabVorlagen" style="display:none;">📝 Vorlagen</button>
+  </div>
+</header>
+
+<!-- ── BODY ── -->
+<div class="b-body">
+
+  <!-- ÜBERSICHT -->
+  <div class="b-page active" id="page-dashboard">
+    <div class="stat-grid" id="statGrid">
+      <div class="stat-card"><div class="stat-card__label">Akut Plus Rechnungen</div><div class="stat-card__val" id="s-ap">–</div></div>
+      <div class="stat-card"><div class="stat-card__label">Nursy Rechnungen</div><div class="stat-card__val" id="s-nu">–</div></div>
+      <div class="stat-card"><div class="stat-card__label">Offen (gesamt)</div><div class="stat-card__val" id="s-offen" style="color:var(--amber);">–</div><div class="stat-card__unit">EUR</div></div>
+      <div class="stat-card"><div class="stat-card__label">Bezahlt (gesamt)</div><div class="stat-card__val" id="s-bezahlt" style="color:var(--green);">–</div><div class="stat-card__unit">EUR</div></div>
+    </div>
+    <div class="bc">
+      <div class="bc__head">
+        <div><div class="bc__title">Schnellzugriff</div></div>
+      </div>
+      <div class="bc__body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+        <button class="btn btn--primary" onclick="switchTab('akutplus');openNewRechnung('akutplus')">+ Akut Plus Rechnung</button>
+        <button class="btn btn--ghost" onclick="switchTab('nursy');openNewRechnung('nursy')">+ Nursy Rechnung</button>
+        <button class="btn btn--ghost" onclick="switchTab('leistungskatalog')">📋 Leistungskatalog</button>
+        <button class="btn btn--ghost" onclick="billingBackup()" style="color:#1d4ed8;border-color:#93c5fd;">💾 Backup</button>
+      </div>
+    </div>
+    <div class="bc">
+      <div class="bc__head"><div class="bc__title">Letzte Rechnungen</div></div>
+      <div id="dashRecentList"><div class="empty-state"><div class="empty-state__ico">🧾</div>Noch keine Rechnungen.</div></div>
+    </div>
+
+    <!-- Fußzeilen-Einstellungen (Admiral) -->
+    <div class="bc" id="footerSettingsCard" style="display:none;">
+      <div class="bc__head">
+        <div>
+          <div class="bc__title">⚙️ Rechnungs-Fußzeile</div>
+          <div class="bc__sub">Firmen- &amp; Bankdaten auf Rechnungen (nur Admiral)</div>
+        </div>
+      </div>
+      <div class="bc__body">
+        <!-- Tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:14px;">
+          <button id="fsTabAp" class="btn btn--primary btn--sm" onclick="fsSwitch('ap')">🏥 Akut Plus</button>
+          <button id="fsTabNu" class="btn btn--ghost btn--sm" onclick="fsSwitch('nu')">💻 Nursy</button>
+        </div>
+        <!-- Akut Plus fields -->
+        <div id="fsAp">
+          <div class="f-grid">
+            <div class="f-full f-row"><label class="field-lbl">Firmenname</label><input class="f-inp" id="apFirma" placeholder="Akut Plus PFLEGENOTDIENST GmbH"></div>
+            <div class="f-full f-row"><label class="field-lbl">Straße &amp; Hausnummer</label><input class="f-inp" id="apStrasse" placeholder="Musterstraße 1"></div>
+            <div class="f-row"><label class="field-lbl">PLZ &amp; Ort</label><input class="f-inp" id="apPlzort" placeholder="1010 Wien"></div>
+            <div class="f-row"><label class="field-lbl">E-Mail</label><input class="f-inp" id="apEmail" placeholder="office@akutplus.at"></div>
+            <div class="f-row"><label class="field-lbl">Website</label><input class="f-inp" id="apWeb" placeholder="www.akutplus.at"></div>
+            <div class="f-row"><label class="field-lbl">UID-Nummer</label><input class="f-inp" id="apUid" placeholder="ATU12345678"></div>
+            <div class="f-row"><label class="field-lbl">IBAN</label><input class="f-inp" id="apIban" placeholder="AT12 0000 0000 0000 0000"></div>
+            <div class="f-row"><label class="field-lbl">BIC</label><input class="f-inp" id="apBic" placeholder="MUSTRAT"></div>
+          </div>
+          <div style="margin-top:4px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-size:.72rem;color:#64748b;line-height:1.6;border:1px solid #e2e8f0;" id="apFooterPreview"></div>
+          <div class="f-full f-row" style="margin-top:10px;">
+            <label class="field-lbl" style="font-weight:700;">Standard-Rechnungstext (wird bei neuer Rechnung automatisch eingefügt)</label>
+            <textarea class="f-inp" id="apFreitextDefault" rows="3" style="resize:vertical;min-height:64px;" placeholder="z. B. Zahlbar innerhalb von 14 Tagen ohne Abzug. · Vielen Dank für Ihr Vertrauen!"></textarea>
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="saveFooterSettings('ap')" style="margin-top:10px;">💾 Akut Plus Einstellungen speichern</button>
+        </div>
+        <!-- Nursy fields -->
+        <div id="fsNu" style="display:none;">
+          <div class="f-grid">
+            <div class="f-full f-row"><label class="field-lbl">Firmenname</label><input class="f-inp" id="nuFirma" placeholder="Nursy GmbH"></div>
+            <div class="f-full f-row"><label class="field-lbl">Straße &amp; Hausnummer</label><input class="f-inp" id="nuStrasse" placeholder="Plattformstraße 1"></div>
+            <div class="f-row"><label class="field-lbl">PLZ &amp; Ort</label><input class="f-inp" id="nuPlzort" placeholder="1010 Wien"></div>
+            <div class="f-row"><label class="field-lbl">E-Mail</label><input class="f-inp" id="nuEmail" placeholder="office@nursy.at"></div>
+            <div class="f-row"><label class="field-lbl">Website</label><input class="f-inp" id="nuWeb" placeholder="www.nursy.at"></div>
+            <div class="f-row"><label class="field-lbl">UID-Nummer</label><input class="f-inp" id="nuUid" placeholder="ATU87654321"></div>
+            <div class="f-row"><label class="field-lbl">IBAN</label><input class="f-inp" id="nuIban" placeholder="AT98 0000 0000 0000 0001"></div>
+            <div class="f-row"><label class="field-lbl">BIC</label><input class="f-inp" id="nuBic" placeholder="NRSYATW1"></div>
+          </div>
+          <div style="margin-top:4px;padding:8px 10px;background:#f8fafc;border-radius:8px;font-size:.72rem;color:#64748b;line-height:1.6;border:1px solid #e2e8f0;" id="nuFooterPreview"></div>
+          <div class="f-full f-row" style="margin-top:10px;">
+            <label class="field-lbl" style="font-weight:700;">Standard-Rechnungstext (wird bei neuer Rechnung automatisch eingefügt)</label>
+            <textarea class="f-inp" id="nuFreitextDefault" rows="3" style="resize:vertical;min-height:64px;" placeholder="z. B. Zahlbar innerhalb von 14 Tagen. · Vielen Dank für die Nutzung von Nursy."></textarea>
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="saveFooterSettings('nu')" style="margin-top:10px;">💾 Nursy Einstellungen speichern</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VORLAGEN (Admiral only) -->
+  <div class="b-page" id="page-vorlagen">
+    <div class="bc">
+      <div class="bc__head">
+        <div>
+          <div class="bc__title">📝 Rechnungs-Vorlagen</div>
+          <div class="bc__sub">Vordefinierte Texte für Rechnungen — beim Erstellen per Dropdown ladbar</div>
+        </div>
+        <button class="btn btn--primary btn--sm" onclick="openNewVorlage()">+ Neue Vorlage</button>
+      </div>
+      <div class="bc__body" style="padding:0;">
+        <div id="vorlagenList" style="padding:12px 16px;">
+          <div class="empty-state"><div class="empty-state__ico">📝</div>Wird geladen…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEISTUNGSKATALOG -->
+  <div class="b-page" id="page-leistungskatalog">
+    <div class="bc">
+      <div class="bc__head">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img src="/akutplus-logo.png" alt="Akut Plus"
+               style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 1px 5px rgba(0,0,0,.12);">
+          <div>
+            <div class="bc__title">Leistungskatalog</div>
+            <div class="bc__sub">Pflegeleistungen mit Preisen für Akut Plus Abrechnungen</div>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--sm" onclick="openNewLeistung()">+ Neue Leistung</button>
+      </div>
+      <div class="bc__body" style="padding:0;">
+        <div id="lkList" style="padding:12px 16px;"><div class="empty-state"><div class="empty-state__ico">📋</div>Wird geladen…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AKUT PLUS RECHNUNGEN -->
+  <div class="b-page" id="page-akutplus">
+    <div class="bc">
+      <div class="bc__head">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img src="/akutplus-logo.png" alt="Akut Plus"
+               style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 1px 6px rgba(0,0,0,.15);">
+          <div>
+            <div class="bc__title">Akut Plus PFLEGENOTDIENST</div>
+            <div class="bc__sub">Rechnungen auf Basis des Leistungskatalogs</div>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--sm" onclick="openNewRechnung('akutplus')">+ Neue Rechnung</button>
+      </div>
+      <div class="bc__body" style="padding:12px 16px 0;">
+        <div class="filter-bar">
+          <input class="s-inp" type="search" placeholder="Name, Nummer…" id="apSearch" oninput="filterRechnungen('akutplus')">
+          <select class="s-sel" id="apStatus" onchange="filterRechnungen('akutplus')">
+            <option value="">Alle Status</option>
+            <option value="entwurf">Entwurf</option>
+            <option value="gesendet">Gesendet</option>
+            <option value="bezahlt">Bezahlt</option>
+            <option value="storniert">Storniert</option>
+          </select>
+        </div>
+      </div>
+      <div id="apList"><div class="empty-state"><div class="empty-state__ico">🧾</div>Wird geladen…</div></div>
+    </div>
+  </div>
+
+  <!-- NURSY PLATTFORM RECHNUNGEN -->
+  <div class="b-page" id="page-nursy">
+    <div class="bc">
+      <div class="bc__head">
+        <div><div class="bc__title">💻 Nursy Plattform-Rechnungen</div>
+             <div class="bc__sub">Abo-Gebühren (€50/Monat Pfleger) · Buchungsgebühren (€10/Buchung Patient)</div></div>
+        <button class="btn btn--primary btn--sm" onclick="openNewRechnung('nursy')">+ Neue Rechnung</button>
+      </div>
+      <div class="bc__body" style="padding:12px 16px 0;">
+        <div class="filter-bar">
+          <input class="s-inp" type="search" placeholder="Name, Nummer…" id="nuSearch" oninput="filterRechnungen('nursy')">
+          <select class="s-sel" id="nuStatus" onchange="filterRechnungen('nursy')">
+            <option value="">Alle Status</option>
+            <option value="entwurf">Entwurf</option>
+            <option value="gesendet">Gesendet</option>
+            <option value="bezahlt">Bezahlt</option>
+            <option value="storniert">Storniert</option>
+          </select>
+        </div>
+      </div>
+      <div id="nuList"><div class="empty-state"><div class="empty-state__ico">🧾</div>Wird geladen…</div></div>
+    </div>
+  </div>
+
+  <!-- PFLEGERPERSONAL -->
+  <div class="b-page" id="page-pflegerpersonal">
+
+    <!-- Sätze-Karte -->
+    <div class="bc">
+      <div class="bc__head">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img src="/akutplus-logo.png" alt="Akut Plus"
+               style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 1px 5px rgba(0,0,0,.12);">
+          <div>
+            <div class="bc__title">Pflegerpersonal – Abrechnung</div>
+            <div class="bc__sub">Bereitschaftszulage &amp; Einsätze je Pflegeperson (PFLEGENOTDIENST)</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input class="s-inp" type="month" id="ppMonat" style="max-width:150px;">
+          <button class="btn btn--primary btn--sm" onclick="loadPflegerpersonal()">Anzeigen</button>
+        </div>
+      </div>
+      <!-- Sätze-Editor -->
+      <div class="bc__body" style="padding:10px 16px 6px;">
+        <div style="font-size:.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Bereitschaftszulage-Sätze</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="ppSaetzeRow">
+          <div style="display:flex;align-items:center;gap:6px;font-size:.82rem;">
+            <span style="background:#dbeafe;color:#1d4ed8;border-radius:5px;padding:2px 8px;font-weight:700;">Frühdienst</span>
+            <span style="color:var(--muted);">€</span>
+            <input type="number" id="satzFrueh" step="0.5" min="0" style="width:72px;" class="f-inp" value="65">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:.82rem;">
+            <span style="background:#fef3c7;color:#92400e;border-radius:5px;padding:2px 8px;font-weight:700;">Spätdienst</span>
+            <span style="color:var(--muted);">€</span>
+            <input type="number" id="satzSpaet" step="0.5" min="0" style="width:72px;" class="f-inp" value="70">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:.82rem;">
+            <span style="background:#1e293b;color:#e2e8f0;border-radius:5px;padding:2px 8px;font-weight:700;">Nachtdienst</span>
+            <span style="color:var(--muted);">€</span>
+            <input type="number" id="satzNacht" step="0.5" min="0" style="width:72px;" class="f-inp" value="85">
+          </div>
+          <button class="btn btn--ghost btn--sm" onclick="savePpSaetze()">Sätze speichern</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Übersichts-Tabelle -->
+    <div class="bc">
+      <div class="bc__head"><div class="bc__title">Übersicht</div><div id="ppMonatLabel" class="bc__sub"></div></div>
+      <div id="ppSummary" style="padding:0;">
+        <div class="empty-state"><div class="empty-state__ico">👨‍⚕️</div>Monat wählen und „Anzeigen" klicken.</div>
+      </div>
+    </div>
+
+    <!-- Detail-Karte (ausgeklappt) -->
+    <div class="bc" id="ppDetail" style="display:none;">
+      <div class="bc__head">
+        <div>
+          <div class="bc__title" id="ppDetailName">–</div>
+          <div class="bc__sub">Alle Dienste im Monat</div>
+        </div>
+        <button class="btn btn--ghost btn--sm" onclick="closePpDetail()">✕ Schließen</button>
+      </div>
+      <div id="ppDetailBody" style="overflow-x:auto;"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════ HONORARNOTEN ══════ -->
+  <div class="b-page" id="page-honorar">
+
+    <!-- Generator-Karte -->
+    <div class="bc">
+      <div class="bc__head">
+        <div>
+          <div class="bc__title">📄 Honorarnote erstellen</div>
+          <div class="bc__sub">Automatisch aus der Auftragslage generieren</div>
+        </div>
+      </div>
+      <div class="bc__body">
+        <!-- Filter-Zeile -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <div style="flex:1;min-width:140px;">
+            <label class="field-lbl">Datum</label>
+            <input type="date" class="f-inp" id="hnDatum" style="width:100%;">
+          </div>
+          <div style="flex:2;min-width:200px;">
+            <label class="field-lbl">Person (Pfleger / Disponent)</label>
+            <select class="f-inp" id="hnPerson" style="width:100%;">
+              <option value="">– wird geladen –</option>
+            </select>
+          </div>
+        </div>
+        <!-- Sätze -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:.82rem;">
+            <span style="background:#fef9c3;color:#854d0e;border-radius:6px;padding:3px 10px;font-weight:700;">Bereitschaft pauschal</span>
+            <span style="color:var(--muted);">€</span>
+            <input type="number" id="hnSatzBer" class="f-inp" value="100" min="0" step="0.5" style="width:80px;">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:.82rem;">
+            <span style="background:#dcfce7;color:#166534;border-radius:6px;padding:3px 10px;font-weight:700;">Pro Patient</span>
+            <span style="color:var(--muted);">€</span>
+            <input type="number" id="hnSatzPat" class="f-inp" value="50" min="0" step="0.5" style="width:80px;">
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="loadHonorarVorschau()" style="align-self:flex-end;">
+            ⚡ Aus Auftragslage laden
+          </button>
+        </div>
+
+        <!-- Vorschau-Bereich -->
+        <div id="hnVorschau" style="display:none;">
+          <!-- Info-Banner -->
+          <div id="hnInfoBanner" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:.82rem;"></div>
+
+          <!-- Empfänger -->
+          <div style="font-weight:800;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">Empfänger</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <input class="f-inp" id="hnEmpfName" placeholder="Name Pfleger / Disponent" style="flex:2;min-width:180px;">
+            <input class="f-inp" id="hnEmpfAdr" placeholder="Adresse" style="flex:2;min-width:180px;">
+            <input class="f-inp" id="hnEmpfEmail" placeholder="E-Mail" type="email" style="flex:1;min-width:140px;">
+          </div>
+
+          <!-- Positions-Tabelle (editierbar) -->
+          <div style="font-weight:800;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">
+            Positionen
+            <button onclick="hnAddPos()" class="btn btn--ghost btn--sm" style="margin-left:8px;font-size:.7rem;">+ Position</button>
+          </div>
+          <div style="overflow-x:auto;margin-bottom:12px;">
+            <table class="pos-table" id="hnPosTable" style="min-width:520px;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;width:45%;">Bezeichnung</th>
+                  <th style="text-align:center;width:10%;">Menge</th>
+                  <th style="text-align:left;width:12%;">Einheit</th>
+                  <th style="text-align:right;width:12%;">Preis €</th>
+                  <th style="text-align:right;width:12%;">Gesamt €</th>
+                  <th style="width:9%;"></th>
+                </tr>
+              </thead>
+              <tbody id="hnPosBody"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4" style="text-align:right;font-weight:800;padding:8px 4px;font-size:.9rem;">Gesamt netto:</td>
+                  <td style="text-align:right;font-weight:900;font-size:1rem;color:var(--navy);padding:8px 4px;" id="hnTotal">€ 0,00</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Notiz + Fällig -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="flex:2;min-width:200px;">
+              <label class="field-lbl">Notiz / Bemerkung</label>
+              <input class="f-inp" id="hnNotiz" placeholder="z.B. Dienst W-02, Bezirk 2">
+            </div>
+            <div style="flex:1;min-width:130px;">
+              <label class="field-lbl">Fällig am</label>
+              <input type="date" class="f-inp" id="hnFaellig">
+            </div>
+          </div>
+
+          <!-- Speichern + Drucken -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn--primary" onclick="saveHonorarNote()" style="flex:1;">
+              💾 Honorarnote speichern
+            </button>
+            <button class="btn btn--ghost" onclick="printHonorarVorschau()" style="flex:1;">
+              🖨️ Vorschau drucken
+            </button>
+          </div>
+          <div id="hnSaveMsg" style="font-size:.78rem;margin-top:8px;min-height:18px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste gespeicherter Honorarnoten -->
+    <div class="bc">
+      <div class="bc__head">
+        <div class="bc__title">Gespeicherte Honorarnoten</div>
+        <button class="btn btn--ghost btn--sm" onclick="loadHonorarnoten()">↻ Aktualisieren</button>
+      </div>
+      <div id="hnList" style="padding:0;">
+        <div class="empty-state"><div class="empty-state__ico">📄</div>Noch keine Honorarnoten erstellt.</div>
+      </div>
+    </div>
+
+  </div><!-- /page-honorar -->
+
+</div><!-- /b-body -->
+
+<!-- ══════ LEISTUNG MODAL ══════ -->
+<div class="overlay" id="lkModal">
+  <div class="modal">
+    <div class="modal__head">
+      <span class="modal__title" id="lkModalTitle">Leistung bearbeiten</span>
+      <button class="modal__close" onclick="closeLkModal()">×</button>
+    </div>
+    <input type="hidden" id="lkId">
+    <div class="f-grid">
+      <div class="f-full f-row"><label class="field-lbl">Bezeichnung *</label><input class="f-inp" id="lkName" placeholder="z. B. Grundpflege"></div>
+      <div class="f-row"><label class="field-lbl">Kategorie</label>
+        <select class="f-inp" id="lkKat">
+          <option>Pflegeeinsatz</option><option>Palliativ</option>
+          <option>Telemedizin</option><option>Notdienst</option>
+          <option>Grundpflege</option><option>Behandlungspflege</option>
+          <option>Diagnostik</option><option>Fahrtkosten</option><option>Verwaltung</option><option>Allgemein</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="field-lbl">Einheit</label>
+        <select class="f-inp" id="lkEinheit">
+          <option>Einsatz</option><option>Visite</option><option>Stunde</option>
+          <option>Einheit</option><option>Besuch</option><option>km</option><option>einmalig</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="field-lbl">Preis (€) *</label><input class="f-inp" id="lkPreis" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="f-row"><label class="field-lbl">MwSt (%)</label><input class="f-inp" id="lkMwst" type="number" min="0" max="25" step="0.1" value="0" placeholder="0"></div>
+    </div>
+    <div class="f-full f-row"><label class="field-lbl">Beschreibung</label><input class="f-inp" id="lkBeschr" placeholder="Optional – erscheint auf der Rechnung"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+      <input type="checkbox" id="lkAktiv" checked style="width:16px;height:16px;cursor:pointer;">
+      <label for="lkAktiv" style="font-size:.82rem;cursor:pointer;">Aktiv (im Leistungskatalog sichtbar)</label>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn--ghost" style="flex:1;" onclick="closeLkModal()">Abbrechen</button>
+      <button class="btn btn--primary" style="flex:2;" onclick="saveLkModal()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ RECHNUNG ERSTELLEN/BEARBEITEN MODAL ══════ -->
+<div class="overlay" id="reModal">
+  <div class="modal" style="max-width:660px;">
+    <div class="modal__head">
+      <span class="modal__title" id="reModalTitle">Neue Rechnung</span>
+      <button class="modal__close" onclick="closeReModal()">×</button>
+    </div>
+    <input type="hidden" id="reId">
+    <input type="hidden" id="reLayout">
+
+    <!-- Empfänger -->
+    <div style="font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Empfänger</div>
+    <div class="f-grid">
+      <div class="f-full f-row"><label class="field-lbl">Name / Firma *</label><input class="f-inp" id="reEmpfName" placeholder="Max Mustermann"></div>
+      <div class="f-full f-row"><label class="field-lbl">Straße &amp; Hausnummer</label><input class="f-inp" id="reEmpfAdr" placeholder="Musterstraße 1"></div>
+      <div class="f-row"><label class="field-lbl">PLZ</label><input class="f-inp" id="reEmpfPlz" placeholder="1010"></div>
+      <div class="f-row"><label class="field-lbl">Ort</label><input class="f-inp" id="reEmpfOrt" placeholder="Wien"></div>
+      <div class="f-full f-row"><label class="field-lbl">E-Mail</label><input class="f-inp" id="reEmpfEmail" type="email" placeholder="kunde@email.at"></div>
+    </div>
+
+    <!-- Einsatz verknüpfen (nur bei Akut Plus) -->
+    <div id="reEinsatzSection" style="margin-bottom:12px;display:none;">
+      <label class="field-lbl">Einsatz verknüpfen (optional)</label>
+      <select class="f-inp" id="reEinsatz" onchange="onEinsatzSelect()">
+        <option value="">– Manuell eingeben –</option>
+      </select>
+    </div>
+
+    <!-- Positionen -->
+    <div style="font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 8px;">Positionen</div>
+
+    <!-- Quick-add from Leistungskatalog (Akut Plus only) -->
+    <div id="reLkSelect" style="display:flex;gap:8px;margin-bottom:8px;display:none;">
+      <select class="f-inp" id="reLkDropdown" style="flex:1;">
+        <option value="">Aus Leistungskatalog hinzufügen…</option>
+      </select>
+      <button class="btn btn--ghost btn--sm" onclick="addFromLk()">+ Hinzufügen</button>
+    </div>
+
+    <div class="pos-rows-wrap"><div id="rePosRows"></div></div>
+    <button class="btn btn--ghost btn--sm" onclick="addPosRow()" style="margin-bottom:12px;">+ Weitere Position</button>
+
+    <div class="pos-total" id="rePosTotal">Gesamt: <strong>€ 0,00</strong></div>
+
+    <!-- Vorlage laden -->
+    <div id="reVorlagePicker" style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+      <select class="f-inp" id="reVorlageSelect" style="flex:1;font-size:.78rem;">
+        <option value="">📋 Vorlage laden…</option>
+      </select>
+      <button class="btn btn--ghost btn--sm" onclick="applyVorlage()" style="flex-shrink:0;white-space:nowrap;">Laden</button>
+    </div>
+    <!-- Individueller Rechnungstext -->
+    <div class="f-row" style="margin-top:8px;">
+      <label class="field-lbl">Text auf der Rechnung (erscheint unter den Positionen)</label>
+      <textarea class="f-inp" id="reFreitext" rows="4" style="resize:vertical;min-height:80px;"></textarea>
+    </div>
+
+    <!-- Fälligkeit & Status -->
+    <div style="margin-top:4px;">
+      <div class="f-row"><label class="field-lbl">Fällig am</label><input class="f-inp" id="reFaellig" type="date"></div>
+      <div class="f-row"><label class="field-lbl">Status</label>
+        <select class="f-inp" id="reStatus">
+          <option value="entwurf">Entwurf</option>
+          <option value="gesendet">Gesendet</option>
+          <option value="bezahlt">Bezahlt</option>
+          <option value="storniert">Storniert</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="field-lbl">Notiz (intern)</label><input class="f-inp" id="reNotiz" placeholder="Interne Anmerkungen"></div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;">
+      <button class="btn btn--ghost" style="flex:1;min-width:120px;" onclick="closeReModal()">Abbrechen</button>
+      <button class="btn btn--primary" style="flex:2;min-width:160px;" onclick="saveReModal()">Rechnung speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ VORLAGEN MODAL ══════ -->
+<div class="overlay" id="vlModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal__head">
+      <span class="modal__title" id="vlModalTitle">Neue Vorlage</span>
+      <button class="modal__close" onclick="closeVlModal()">×</button>
+    </div>
+    <input type="hidden" id="vlId">
+    <div class="f-row"><label class="field-lbl">Name der Vorlage *</label><input class="f-inp" id="vlName" placeholder="z.B. Standard Akut Plus"></div>
+    <div class="f-row"><label class="field-lbl">Gilt für</label>
+      <select class="f-inp" id="vlTyp">
+        <option value="beide">Beide (Akut Plus &amp; Nursy)</option>
+        <option value="akutplus">Nur Akut Plus</option>
+        <option value="nursy">Nur Nursy</option>
+      </select>
+    </div>
+    <div class="f-row"><label class="field-lbl">Betreff / Titel (optional, als Hinweis)</label><input class="f-inp" id="vlBetreff" placeholder="z.B. Rechnung für Pflegeleistungen Mai 2026"></div>
+    <div class="f-row"><label class="field-lbl">Rechnungstext (erscheint unter den Positionen)</label>
+      <textarea class="f-inp" id="vlFreitext" rows="6" style="resize:vertical;min-height:110px;" placeholder="Zahlbar innerhalb von 14 Tagen ohne Abzug.&#10;&#10;Vielen Dank für Ihr Vertrauen!"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn--ghost" style="flex:1;" onclick="closeVlModal()">Abbrechen</button>
+      <button class="btn btn--primary" style="flex:2;" onclick="saveVlModal()">Vorlage speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PRINT OVERLAY ══════ -->
+<div id="printOverlay" class="print-overlay">
+  <div class="print-toolbar">
+    <h3>Rechnung drucken / PDF</h3>
+    <div class="print-actions">
+      <button class="btn btn--ghost btn--sm" onclick="window.print()">🖨️ Drucken / PDF</button>
+      <button class="btn btn--danger btn--sm" onclick="closePrint()">Schließen</button>
+    </div>
+  </div>
+  <div id="printContent" style="padding:16px 8px;"></div>
+</div>
+
+<!-- TOAST -->
+<div class="b-toast" id="bToast"></div>
+
+<script>
+'use strict';
+
+/* ── Block horizontal swipe on iOS ── */
+(function(){
+  var sx=0,sy=0;
+  document.addEventListener('touchstart',function(e){
+    sx=e.touches[0].pageX; sy=e.touches[0].pageY;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    var dx=Math.abs(e.touches[0].pageX-sx);
+    var dy=Math.abs(e.touches[0].pageY-sy);
+    if(dx>dy) e.preventDefault();
+  },{passive:false});
+})();
+
+/* ── Utils ── */
+function esc(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+function fmt(n){ return Number(n||0).toFixed(2).replace('.',','); }
+function toast(msg,dur=2500){
+  const t=document.getElementById('bToast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+/* ── Auth guard ── */
+if(!sessionStorage.getItem('nursy_billing_auth')){ window.location.replace('billing-login.html'); }
+else { document.body.style.visibility = 'visible'; }
+fetch('/api/billing/me',{credentials:'same-origin'}).then(r=>{
+  if(r.status===401) { window.location.href='billing-login.html'; return; }
+  return r.json();
+}).then(d=>{
+  if(!d||!d.ok) return;
+  const u=d.user||{};
+  document.getElementById('bUserName').textContent = u.name||u.rolle||'Benutzer';
+  document.getElementById('bUserSub').textContent  = u.rolle==='admiral'?'Admiral · Verrechnungsstelle':(u.email||'Verrechnungsstelle');
+  _isAdmiral = (u.rolle==='admiral'||u.id==='admin'||u.name==='Admiral');
+  if(_isAdmiral){
+    document.getElementById('footerSettingsCard').style.display='';
+    document.getElementById('bTabVorlagen').style.display='';
+  }
+}).catch(()=>{});
+
+function doLogout(){
+  fetch('/api/billing/logout',{method:'POST',credentials:'same-origin'})
+    .finally(()=>{ sessionStorage.removeItem('nursy_billing_auth'); window.location.href='billing-login.html'; });
+}
+
+/* ── Tabs ── */
+function switchTab(tab){
+  document.querySelectorAll('.b-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.b-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('[data-tab="'+tab+'"]').forEach(b=>b.classList.add('active'));
+  if(tab==='dashboard')       loadDashboard();
+  if(tab==='leistungskatalog')loadLeistungskatalog();
+  if(tab==='akutplus')        loadRechnungen('akutplus');
+  if(tab==='nursy')           loadRechnungen('nursy');
+  if(tab==='pflegerpersonal') initPflegerpersonal();
+  if(tab==='honorar')         initHonorar();
+  if(tab==='vorlagen')        loadVorlagen();
+}
+document.querySelectorAll('.b-tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+/* ══════════════════════
+   DASHBOARD
+══════════════════════ */
+function loadDashboard(){
+  fetch('/api/billing/stats',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    const s=d.stats;
+    document.getElementById('s-ap').textContent     = s.total_ap;
+    document.getElementById('s-nu').textContent     = s.total_nu;
+    document.getElementById('s-offen').textContent  = '€ '+fmt(s.offen_ap+s.offen_nu);
+    document.getElementById('s-bezahlt').textContent= '€ '+fmt(s.bezahlt);
+  });
+  fetch('/api/billing/rechnungen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    const list=(d.rechnungen||[]).slice(0,6);
+    const el=document.getElementById('dashRecentList');
+    if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-state__ico">🧾</div>Noch keine Rechnungen.</div>'; return; }
+    el.innerHTML=list.map(r=>reRowHtml(r,false)).join('');
+  });
+}
+loadDashboard();
+
+/* ══════════════════════
+   LEISTUNGSKATALOG
+══════════════════════ */
+let allLK=[];
+
+function loadLeistungskatalog(){
+  fetch('/api/billing/leistungskatalog',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    allLK=d.leistungen||[];
+    renderLK();
+    populateLkDropdown();
+  });
+}
+
+const KAT_ICONS = {
+  'Pflegeeinsatz':'🏠','Palliativ':'🕊️','Telemedizin':'💻',
+  'Notdienst':'🚨','Verwaltung':'📋','Fahrtkosten':'🚗','Behandlungspflege':'💉','Grundpflege':'🛁','Diagnostik':'🩺'
+};
+
+function renderLK(){
+  const el=document.getElementById('lkList');
+  if(!allLK.length){ el.innerHTML='<div class="empty-state"><div class="empty-state__ico">📋</div>Noch keine Leistungen definiert.</div>'; return; }
+  const byKat={};
+  allLK.forEach(l=>{ if(!byKat[l.kategorie]) byKat[l.kategorie]=[]; byKat[l.kategorie].push(l); });
+  let html='';
+  Object.keys(byKat).sort().forEach(kat=>{
+    const ico=KAT_ICONS[kat]||'📌';
+    html+=`<div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">${ico} ${esc(kat)}</div>`;
+    html+='<div class="lk-grid">';
+    byKat[kat].forEach(l=>{
+      const mwstTxt=l.mwst_prozent>0?`+ ${l.mwst_prozent}% MwSt`:'exkl. MwSt';
+      html+=`<div class="lk-row${l.aktiv?'':' inactive-row'}">
+        <div>
+          <div class="lk-row__name">${esc(l.name)}</div>
+          <div class="lk-row__meta">${esc(l.beschreibung||'')} ${esc(mwstTxt)}</div>
+        </div>
+        <span class="lk-badge">${esc(l.einheit)}</span>
+        <span class="lk-preis">€ ${fmt(l.preis)}</span>
+        <div class="lk-actions">
+          <button class="btn btn--ghost btn--sm" onclick="editLk('${l.id}')">✏️</button>
+          <button class="btn btn--danger btn--sm" onclick="deleteLk('${l.id}','${esc(l.name)}')">🗑</button>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function populateLkDropdown(){
+  const sel=document.getElementById('reLkDropdown');
+  const active=allLK.filter(l=>l.aktiv);
+  sel.innerHTML='<option value="">Aus Leistungskatalog hinzufügen…</option>'+
+    active.map(l=>`<option value="${l.id}" data-preis="${l.preis}" data-mwst="${l.mwst_prozent}" data-einheit="${esc(l.einheit)}">${esc(l.name)} — € ${fmt(l.preis)}/${l.einheit}</option>`).join('');
+}
+
+/* Leistung Modal */
+function openNewLeistung(){
+  document.getElementById('lkId').value='';
+  document.getElementById('lkName').value='';
+  document.getElementById('lkBeschr').value='';
+  document.getElementById('lkPreis').value='';
+  document.getElementById('lkMwst').value='0';
+  document.getElementById('lkAktiv').checked=true;
+  document.getElementById('lkModalTitle').textContent='Neue Leistung';
+  document.getElementById('lkModal').classList.add('show');
+}
+function editLk(id){
+  const l=allLK.find(x=>x.id===id); if(!l) return;
+  document.getElementById('lkId').value=l.id;
+  document.getElementById('lkName').value=l.name;
+  document.getElementById('lkKat').value=l.kategorie;
+  document.getElementById('lkEinheit').value=l.einheit;
+  document.getElementById('lkPreis').value=l.preis;
+  document.getElementById('lkMwst').value=l.mwst_prozent;
+  document.getElementById('lkBeschr').value=l.beschreibung||'';
+  document.getElementById('lkAktiv').checked=!!l.aktiv;
+  document.getElementById('lkModalTitle').textContent='Leistung bearbeiten';
+  document.getElementById('lkModal').classList.add('show');
+}
+function closeLkModal(){ document.getElementById('lkModal').classList.remove('show'); }
+function saveLkModal(){
+  const id=document.getElementById('lkId').value;
+  const body={
+    name:document.getElementById('lkName').value.trim(),
+    beschreibung:document.getElementById('lkBeschr').value.trim(),
+    kategorie:document.getElementById('lkKat').value,
+    einheit:document.getElementById('lkEinheit').value,
+    preis:parseFloat(document.getElementById('lkPreis').value)||0,
+    mwst_prozent:parseFloat(document.getElementById('lkMwst').value)||0,
+    aktiv:document.getElementById('lkAktiv').checked?1:0
+  };
+  if(!body.name){ toast('Bezeichnung eingeben'); return; }
+  const url=id?'/api/billing/leistungskatalog/'+id:'/api/billing/leistungskatalog';
+  const method=id?'PUT':'POST';
+  fetch(url,{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ closeLkModal(); toast('Gespeichert'); loadLeistungskatalog(); }
+      else toast('Fehler: '+(d.error||''));
+    });
+}
+function deleteLk(id,name){
+  if(!confirm('Leistung "'+name+'" löschen?')) return;
+  fetch('/api/billing/leistungskatalog/'+id,{method:'DELETE',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ toast('Gelöscht'); loadLeistungskatalog(); } });
+}
+
+/* ══════════════════════
+   RECHNUNGEN
+══════════════════════ */
+let allRE={akutplus:[],nursy:[]};
+
+const statusLabels={entwurf:'Entwurf',gesendet:'Gesendet',bezahlt:'Bezahlt',storniert:'Storniert'};
+
+function reRowHtml(r,showActions=true){
+  const stClass='status-pill--'+(r.status||'entwurf');
+  const stLbl=statusLabels[r.status]||r.status;
+  const actions=showActions?`
+    <div style="display:flex;gap:5px;margin-top:6px;justify-content:flex-end;">
+      <button class="btn btn--sm btn--ghost" onclick="printRechnung('${r.id}')">🖨️</button>
+      <button class="btn btn--sm btn--ghost" onclick="editRechnung('${r.id}')">✏️</button>
+      <button class="btn btn--sm btn--${r.status==='bezahlt'?'ghost':'green'}" onclick="markStatus('${r.id}','${r.status==='bezahlt'?'gesendet':'bezahlt'}')">
+        ${r.status==='bezahlt'?'↩ Offen':'✓ Bezahlt'}
+      </button>
+      <button class="btn btn--sm btn--danger" onclick="deleteRechnung('${r.id}')">🗑</button>
+    </div>`:'';
+  return `<div class="re-row">
+    <div class="re-row__num">${esc(r.nummer)}<br><span style="font-size:.62rem;color:var(--muted);">${(r.created_at||'').slice(0,10)}</span></div>
+    <div class="re-row__info">
+      <div class="re-row__name">${esc(r.empfaenger_name||'–')}</div>
+      <div class="re-row__meta">${esc(r.empfaenger_ort||'')}${r.faellig_am?' · Fällig: '+r.faellig_am:''}</div>
+      ${actions}
+    </div>
+    <div class="re-row__right">
+      <div class="re-row__brutto">€ ${fmt(r.brutto)}</div>
+      <span class="status-pill ${stClass}">${esc(stLbl)}</span>
+    </div>
+  </div>`;
+}
+
+function loadRechnungen(layout){
+  fetch('/api/billing/rechnungen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    const all=d.rechnungen||[];
+    allRE.akutplus=all.filter(r=>r.layout==='akutplus');
+    allRE.nursy   =all.filter(r=>r.layout==='nursy');
+    renderRechnungenList('akutplus');
+    renderRechnungenList('nursy');
+  });
+}
+
+function renderRechnungenList(layout){
+  const elId=layout==='akutplus'?'apList':'nuList';
+  const el=document.getElementById(elId); if(!el) return;
+  let list=[...allRE[layout]];
+  const q=(document.getElementById(layout==='akutplus'?'apSearch':'nuSearch')?.value||'').toLowerCase();
+  const st=document.getElementById(layout==='akutplus'?'apStatus':'nuStatus')?.value||'';
+  if(q) list=list.filter(r=>(r.nummer+r.empfaenger_name+r.empfaenger_ort).toLowerCase().includes(q));
+  if(st) list=list.filter(r=>r.status===st);
+  if(!list.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-state__ico">🧾</div>Keine Rechnungen gefunden.</div>';
+    return;
+  }
+  el.innerHTML=list.map(r=>reRowHtml(r,true)).join('');
+}
+
+function filterRechnungen(layout){ renderRechnungenList(layout); }
+
+/* ── Rechnung erstellen ── */
+let _posRowCount=0;
+let _editingRe=null;
+let _isAdmiral=false;
+let _allVorlagen=[];
+
+function openNewRechnung(layout){
+  _editingRe=null;
+  document.getElementById('reId').value='';
+  document.getElementById('reLayout').value=layout;
+  document.getElementById('reModalTitle').textContent='Neue '+(layout==='akutplus'?'Akut Plus':'Nursy')+' Rechnung';
+  document.getElementById('reEmpfName').value='';
+  document.getElementById('reEmpfAdr').value='';
+  document.getElementById('reEmpfPlz').value='';
+  document.getElementById('reEmpfOrt').value='';
+  document.getElementById('reEmpfEmail').value='';
+  document.getElementById('reFaellig').value=new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+  document.getElementById('reStatus').value='entwurf';
+  document.getElementById('reNotiz').value='';
+  const prefix=layout==='akutplus'?'ap':'nu';
+  document.getElementById('reFreitext').value=_bSettings[prefix+'_freitext_default']||'';
+  document.getElementById('rePosRows').innerHTML='';
+  _posRowCount=0;
+  updatePosTotal();
+  _populateVorlageDropdown(layout);
+
+  /* Akut Plus: show Leistungskatalog dropdown & Einsatz selector */
+  const isAP=layout==='akutplus';
+  document.getElementById('reEinsatzSection').style.display=isAP?'block':'none';
+  document.getElementById('reLkSelect').style.display=isAP?'flex':'none';
+
+  if(isAP){
+    populateLkDropdown();
+    loadEinsaetzeDropdown();
+    /* Offer Nursy default positions */
+  } else {
+    addNursyDefaultPositionen();
+  }
+  addPosRow();
+  document.getElementById('reModal').classList.add('show');
+}
+
+function addNursyDefaultPositionen(){
+  addPosRowWithData('Nursy Pflegekraft-Abo (Monatsbeitrag)','Monat',1,50,0);
+  addPosRowWithData('Patienten Buchung','Buchung',1,10,0);
+}
+
+function editRechnung(id){
+  const all=[...allRE.akutplus,...allRE.nursy];
+  const r=all.find(x=>x.id===id); if(!r) return;
+  _editingRe=r;
+  document.getElementById('reId').value=r.id;
+  document.getElementById('reLayout').value=r.layout;
+  document.getElementById('reModalTitle').textContent='Rechnung '+r.nummer+' bearbeiten';
+  document.getElementById('reEmpfName').value=r.empfaenger_name||'';
+  document.getElementById('reEmpfAdr').value=r.empfaenger_adresse||'';
+  document.getElementById('reEmpfPlz').value=r.empfaenger_plz||'';
+  document.getElementById('reEmpfOrt').value=r.empfaenger_ort||'';
+  document.getElementById('reEmpfEmail').value=r.empfaenger_email||'';
+  document.getElementById('reFaellig').value=r.faellig_am||'';
+  document.getElementById('reStatus').value=r.status||'entwurf';
+  document.getElementById('reNotiz').value=r.notiz||'';
+  document.getElementById('reFreitext').value=r.freitext||'';
+  document.getElementById('rePosRows').innerHTML='';
+  _posRowCount=0;
+  const isAP=r.layout==='akutplus';
+  document.getElementById('reEinsatzSection').style.display=isAP?'block':'none';
+  document.getElementById('reLkSelect').style.display=isAP?'flex':'none';
+  _populateVorlageDropdown(r.layout);
+  if(isAP){ populateLkDropdown(); }
+  let positionen=[];
+  try{ positionen=JSON.parse(r.positionen||'[]'); }catch(e){}
+  positionen.forEach(p=>addPosRowWithData(p.bezeichnung||p.name||'',p.einheit||'Einheit',p.menge||1,p.preis||0,p.mwst_prozent||0));
+  if(!positionen.length) addPosRow();
+  document.getElementById('reModal').classList.add('show');
+}
+
+function closeReModal(){ document.getElementById('reModal').classList.remove('show'); }
+
+function addPosRow(){ addPosRowWithData('','Einheit',1,'',0); }
+
+function addPosRowWithData(name,einheit,menge,preis,mwst){
+  const i=_posRowCount++;
+  const row=document.createElement('div');
+  row.className='pos-row';
+  row.id='posRow'+i;
+  row.innerHTML=`
+    <input class="f-inp" style="padding:7px 9px;font-size:.78rem;" placeholder="Bezeichnung" value="${esc(name)}" oninput="updatePosTotal()">
+    <input class="f-inp" style="padding:7px 9px;font-size:.78rem;" placeholder="Einheit" value="${esc(einheit)}" oninput="updatePosTotal()">
+    <input class="f-inp" style="padding:7px 9px;font-size:.78rem;text-align:right;" type="number" min="0" step="0.01" placeholder="Menge" value="${menge}" oninput="updatePosTotal()">
+    <input class="f-inp" style="padding:7px 9px;font-size:.78rem;text-align:right;" type="number" min="0" step="0.01" placeholder="€ Preis" value="${preis}" oninput="updatePosTotal()">
+    <input class="f-inp" style="padding:7px 9px;font-size:.78rem;text-align:right;" type="number" min="0" max="25" step="0.1" placeholder="%" value="${mwst}" title="MwSt %" oninput="updatePosTotal()">
+    <button style="background:#fee2e2;border:none;border-radius:7px;padding:7px;cursor:pointer;font-size:.8rem;" onclick="this.closest('div').remove();updatePosTotal()">✕</button>`;
+  document.getElementById('rePosRows').appendChild(row);
+  updatePosTotal();
+}
+
+function addFromLk(){
+  const sel=document.getElementById('reLkDropdown');
+  const opt=sel.options[sel.selectedIndex];
+  if(!opt||!opt.value) return;
+  const l=allLK.find(x=>x.id===opt.value); if(!l) return;
+  addPosRowWithData(l.name, l.einheit, 1, l.preis, l.mwst_prozent);
+  sel.selectedIndex=0;
+}
+
+function getPosRows(){
+  const rows=[];
+  document.querySelectorAll('#rePosRows > div').forEach(row=>{
+    const inputs=row.querySelectorAll('input');
+    if(inputs.length<5) return;
+    const bez=inputs[0].value.trim();
+    const ein=inputs[1].value.trim()||'Einheit';
+    const menge=parseFloat(inputs[2].value)||0;
+    const preis=parseFloat(inputs[3].value)||0;
+    const mwst=parseFloat(inputs[4].value)||0;
+    if(!bez&&!preis) return;
+    rows.push({bezeichnung:bez,einheit:ein,menge,preis,mwst_prozent:mwst});
+  });
+  return rows;
+}
+
+function updatePosTotal(){
+  const rows=getPosRows();
+  const netto=rows.reduce((s,p)=>s+p.menge*p.preis,0);
+  const mwst =rows.reduce((s,p)=>s+p.menge*p.preis*p.mwst_prozent/100,0);
+  const brutto=netto+mwst;
+  document.getElementById('rePosTotal').innerHTML=
+    `<table><tr><td>Netto</td><td>€ ${fmt(netto)}</td></tr><tr><td>MwSt</td><td>€ ${fmt(mwst)}</td></tr><tr><td>Brutto</td><td>€ ${fmt(brutto)}</td></tr></table>`;
+}
+
+function saveReModal(){
+  const id=document.getElementById('reId').value;
+  const layout=document.getElementById('reLayout').value;
+  const body={
+    typ:layout==='akutplus'?'notdienst':'plattform',
+    layout,
+    empfaenger_name:document.getElementById('reEmpfName').value.trim(),
+    empfaenger_adresse:document.getElementById('reEmpfAdr').value.trim(),
+    empfaenger_plz:document.getElementById('reEmpfPlz').value.trim(),
+    empfaenger_ort:document.getElementById('reEmpfOrt').value.trim(),
+    empfaenger_email:document.getElementById('reEmpfEmail').value.trim(),
+    einsatz_id:document.getElementById('reEinsatz')?.value||'',
+    positionen:getPosRows(),
+    faellig_am:document.getElementById('reFaellig').value,
+    status:document.getElementById('reStatus').value,
+    notiz:document.getElementById('reNotiz').value.trim(),
+    freitext:document.getElementById('reFreitext').value.trim()
+  };
+  if(!body.empfaenger_name){ toast('Empfängername eingeben'); return; }
+  if(!body.positionen.length){ toast('Mindestens eine Position eingeben'); return; }
+  const url=id?'/api/billing/rechnungen/'+id:'/api/billing/rechnungen';
+  const method=id?'PUT':'POST';
+  fetch(url,{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){
+        closeReModal();
+        toast(id?'Gespeichert':'Rechnung erstellt: '+d.nummer);
+        loadRechnungen(layout);
+        loadDashboard();
+      } else toast('Fehler: '+(d.error||''));
+    });
+}
+
+function markStatus(id,status){
+  fetch('/api/billing/rechnungen/'+id+'/status',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Status: '+statusLabels[status]); loadRechnungen(); loadDashboard(); }
+  });
+}
+
+function deleteRechnung(id){
+  if(!confirm('Rechnung löschen?')) return;
+  fetch('/api/billing/rechnungen/'+id,{method:'DELETE',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ toast('Gelöscht'); loadRechnungen(); loadDashboard(); } });
+}
+
+/* ── Einsätze für Akut Plus ── */
+let _einsaetzeMap = {}; // id → einsatz object
+
+function loadEinsaetzeDropdown(){
+  fetch('/api/billing/einsaetze-abgeschlossen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    const sel=document.getElementById('reEinsatz');
+    const rows=d.einsaetze||[];
+    _einsaetzeMap={};
+    rows.forEach(e=>{ _einsaetzeMap[e.id]=e; });
+    sel.innerHTML='<option value="">– Manuell eingeben –</option>'+rows.map(e=>{
+      const already=e.rechnung_nummer?` ✓ ${e.rechnung_nummer}`:'';
+      return `<option value="${e.id}">${esc(e.nummer||e.id)} · ${esc(e.patient_name||'–')} · ${e.datum||''} ${already}</option>`;
+    }).join('');
+  }).catch(()=>{});
+}
+
+function onEinsatzSelect(){
+  const eid = document.getElementById('reEinsatz').value;
+  if(!eid) return;
+  const e = _einsaetzeMap[eid];
+  if(!e) return;
+  /* Auto-fill Empfänger aus Patientendaten */
+  const nameEl  = document.getElementById('reEmpfName');
+  const adrEl   = document.getElementById('reEmpfAdr');
+  const plzEl   = document.getElementById('reEmpfPlz');
+  const ortEl   = document.getElementById('reEmpfOrt');
+  const mailEl  = document.getElementById('reEmpfEmail');
+  /* Nur befüllen wenn noch leer */
+  if(!nameEl.value) nameEl.value = e.patient_name||'';
+  if(!adrEl.value)  adrEl.value  = e.pat_adresse||e.patient_address||'';
+  if(!plzEl.value)  plzEl.value  = e.pat_plz||e.patient_plz||'';
+  if(!ortEl.value)  ortEl.value  = e.pat_ort||e.patient_ort||'';
+  if(!mailEl.value) mailEl.value = e.pat_email||'';
+  /* Immer überschreiben mit einem Hinweis-Toast */
+  if(e.patient_name){
+    toast('📋 Patientendaten übernommen: '+e.patient_name);
+    nameEl.value = e.patient_name||'';
+    adrEl.value  = e.pat_adresse||e.patient_address||'';
+    plzEl.value  = e.pat_plz||e.patient_plz||'';
+    ortEl.value  = e.pat_ort||e.patient_ort||'';
+    mailEl.value = e.pat_email||'';
+  }
+}
+
+/* ══════════════════════
+   PRINT / INVOICE RENDER
+══════════════════════ */
+function printRechnung(id){
+  const all=[...allRE.akutplus,...allRE.nursy];
+  let r=all.find(x=>x.id===id);
+  if(!r){
+    /* Fetch from API if not in local cache */
+    fetch('/api/billing/rechnungen/'+id,{credentials:'same-origin'}).then(res=>res.json()).then(d=>{
+      if(d.ok) renderAndPrint(d.rechnung);
+    });
+    return;
+  }
+  renderAndPrint(r);
+}
+
+function renderAndPrint(r){
+  let positionen=[];
+  try{ positionen=JSON.parse(r.positionen||'[]'); }catch(e){}
+  const today=new Date().toLocaleDateString('de-AT');
+  const faellig=r.faellig_am||'–';
+  const html = r.layout==='nursy' ? renderNursyLayout(r,positionen,today,faellig) : renderAkutPlusLayout(r,positionen,today,faellig);
+  document.getElementById('printContent').innerHTML=html;
+  document.getElementById('printOverlay').classList.add('show');
+}
+
+function closePrint(){ document.getElementById('printOverlay').classList.remove('show'); }
+
+function renderAkutPlusLayout(r,pos,today,faellig){
+  const rows=pos.map(p=>{
+    const gesamt=p.menge*(p.preis||0);
+    const mwstBetrag=gesamt*(p.mwst_prozent||0)/100;
+    return `<tr>
+      <td>${esc(p.bezeichnung||p.name||'–')}</td>
+      <td style="text-align:center;">${esc(String(p.menge||1))}</td>
+      <td style="text-align:center;">${esc(p.einheit||'Einheit')}</td>
+      <td style="text-align:right;">€ ${fmt(p.preis||0)}</td>
+      <td style="text-align:right;">${p.mwst_prozent||0}%</td>
+      <td style="text-align:right;font-weight:700;">€ ${fmt(gesamt+mwstBetrag)}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="inv-akutplus">
+    <div class="inv-hdr">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <img src="/akutplus-logo-nobg.png" alt="Akut Plus PFLEGENOTDIENST"
+             style="width:80px;height:80px;object-fit:contain;flex-shrink:0;">
+        <div>
+          <div class="inv-hdr__brand">Akut Plus PFLEGENOTDIENST</div>
+          <div class="inv-hdr__sub">Zu Hause bestens versorgt. · Wien und Umgebung</div>
+        </div>
+      </div>
+      <div class="inv-hdr__nr">
+        <div class="inv-hdr__nr-label">Rechnungsnummer</div>
+        <div class="inv-hdr__nr-val">${esc(r.nummer)}</div>
+      </div>
+    </div>
+    <div class="inv-meta">
+      <div>
+        <div class="inv-meta__label">Rechnungsempfänger</div>
+        <div class="inv-meta__val"><strong>${esc(r.empfaenger_name||'–')}</strong><br>
+          ${r.empfaenger_adresse?esc(r.empfaenger_adresse)+'<br>':''}
+          ${r.empfaenger_plz||''} ${r.empfaenger_ort||''}
+        </div>
+      </div>
+      <div>
+        <div class="inv-meta__label">Rechnungsdatum</div>
+        <div class="inv-meta__val">${today}</div>
+        <div class="inv-meta__label" style="margin-top:10px;">Fällig am</div>
+        <div class="inv-meta__val">${faellig}</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Leistung</th><th style="text-align:center;">Menge</th>
+        <th style="text-align:center;">Einheit</th><th style="text-align:right;">Einzelpreis</th>
+        <th style="text-align:right;">MwSt</th><th style="text-align:right;">Betrag</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${r.freitext?`<p style="margin-top:14px;font-size:.82rem;color:#374151;white-space:pre-wrap;">${esc(r.freitext)}</p>`:''}
+    <div class="inv-totals">
+      <div class="inv-totals__row"><span>Nettobetrag</span><span>€ ${fmt(r.netto)}</span></div>
+      <div class="inv-totals__row"><span>MwSt</span><span>€ ${fmt(r.mwst)}</span></div>
+      <div class="inv-totals__row inv-totals__row--total"><span>Gesamtbetrag</span><span>€ ${fmt(r.brutto)}</span></div>
+    </div>
+    ${r.notiz?`<p style="margin-top:20px;font-size:.78rem;color:#64748b;">Hinweis: ${esc(r.notiz)}</p>`:''}
+    <div class="inv-footer">${_footerHtml('ap')}</div>
+  </div>`;
+}
+
+function renderNursyLayout(r,pos,today,faellig){
+  const rows=pos.map(p=>{
+    const gesamt=p.menge*(p.preis||0);
+    return `<tr>
+      <td>${esc(p.bezeichnung||p.name||'–')}</td>
+      <td style="text-align:center;">${esc(String(p.menge||1))}</td>
+      <td style="text-align:center;">${esc(p.einheit||'Einheit')}</td>
+      <td style="text-align:right;">€ ${fmt(p.preis||0)}</td>
+      <td style="text-align:right;font-weight:700;">€ ${fmt(gesamt)}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="inv-nursy">
+    <div class="inv-hdr">
+      <div>
+        <div class="inv-hdr__brand">Nursy<span>.</span></div>
+        <div class="inv-hdr__sub">Digitale Pflegeplattform · www.nursy.at</div>
+      </div>
+      <div>
+        <div class="inv-hdr__nr-label">Rechnungsnummer</div>
+        <div class="inv-hdr__nr-val">${esc(r.nummer)}</div>
+      </div>
+    </div>
+    <div class="inv-meta">
+      <div>
+        <div class="inv-meta__label">Rechnungsempfänger</div>
+        <div class="inv-meta__val"><strong>${esc(r.empfaenger_name||'–')}</strong><br>
+          ${r.empfaenger_adresse?esc(r.empfaenger_adresse)+'<br>':''}
+          ${r.empfaenger_plz||''} ${r.empfaenger_ort||''}
+        </div>
+      </div>
+      <div>
+        <div class="inv-meta__label">Rechnungsdatum</div>
+        <div class="inv-meta__val">${today}</div>
+        <div class="inv-meta__label" style="margin-top:10px;">Fällig am</div>
+        <div class="inv-meta__val">${faellig}</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Leistung / Produkt</th><th style="text-align:center;">Menge</th>
+        <th style="text-align:center;">Einheit</th><th style="text-align:right;">Preis</th>
+        <th style="text-align:right;">Betrag</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${r.freitext?`<p style="margin-top:14px;font-size:.82rem;color:#374151;white-space:pre-wrap;">${esc(r.freitext)}</p>`:''}
+    <div class="inv-totals">
+      <div class="inv-totals__row"><span>Betrag</span><span>€ ${fmt(r.netto)}</span></div>
+      <div class="inv-totals__row inv-totals__row--total"><span>Gesamt</span><span>€ ${fmt(r.brutto)}</span></div>
+    </div>
+    ${r.notiz?`<p style="margin-top:20px;font-size:.78rem;color:#64748b;">Hinweis: ${esc(r.notiz)}</p>`:''}
+    <div class="inv-footer">${_footerHtml('nu')}</div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════
+   BILLING SETTINGS – FUSSZEILE
+══════════════════════════════════════════════ */
+let _bSettings = {};
+
+function _footerHtml(prefix){
+  const s = _bSettings;
+  const firma   = esc(s[prefix+'_firma']   || (prefix==='ap'?'Akut Plus PFLEGENOTDIENST GmbH':'Nursy GmbH'));
+  const strasse = esc(s[prefix+'_strasse'] || '');
+  const plzort  = esc(s[prefix+'_plzort']  || '1010 Wien');
+  const email   = esc(s[prefix+'_email']   || '');
+  const web     = esc(s[prefix+'_web']     || '');
+  const uid     = esc(s[prefix+'_uid']     || '');
+  const iban    = esc(s[prefix+'_iban']    || '');
+  const bic     = esc(s[prefix+'_bic']     || '');
+  const line1Parts = [firma, strasse?strasse+', '+plzort:plzort, email, web].filter(Boolean);
+  const line2Parts = [uid?'UID: '+uid:'', iban?'IBAN: '+iban:'', bic?'BIC: '+bic:''].filter(Boolean);
+  return line1Parts.join(' &nbsp;·&nbsp; ') + (line2Parts.length?'<br>'+line2Parts.join(' &nbsp;·&nbsp; '):'');
+}
+
+function loadBillingSettings(){
+  fetch('/api/billing/settings',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    _bSettings = d.settings||{};
+    _populateSettingsFields();
+  }).catch(()=>{});
+}
+
+function _populateSettingsFields(){
+  const s=_bSettings;
+  const flds={
+    apFirma:'ap_firma', apStrasse:'ap_strasse', apPlzort:'ap_plzort',
+    apEmail:'ap_email', apWeb:'ap_web', apUid:'ap_uid', apIban:'ap_iban', apBic:'ap_bic',
+    apFreitextDefault:'ap_freitext_default',
+    nuFirma:'nu_firma', nuStrasse:'nu_strasse', nuPlzort:'nu_plzort',
+    nuEmail:'nu_email', nuWeb:'nu_web', nuUid:'nu_uid', nuIban:'nu_iban', nuBic:'nu_bic',
+    nuFreitextDefault:'nu_freitext_default',
+  };
+  Object.entries(flds).forEach(([elId,key])=>{
+    const el=document.getElementById(elId);
+    if(el && s[key]!==undefined) el.value=s[key];
+  });
+  _updateFooterPreview('ap');
+  _updateFooterPreview('nu');
+}
+
+function _updateFooterPreview(prefix){
+  const el = document.getElementById(prefix+'FooterPreview');
+  if(!el) return;
+  // Read from input fields
+  const tmp = {};
+  ['firma','strasse','plzort','email','web','uid','iban','bic'].forEach(k=>{
+    const inp = document.getElementById((prefix==='ap'?'ap':'nu')+k.charAt(0).toUpperCase()+k.slice(1));
+    if(inp) tmp[prefix+'_'+k] = inp.value;
+  });
+  const saved = _bSettings;
+  _bSettings = Object.assign({}, saved, tmp);
+  el.innerHTML = _footerHtml(prefix);
+  _bSettings = saved;
+}
+
+function saveFooterSettings(prefix){
+  const fields = ['firma','strasse','plzort','email','web','uid','iban','bic'];
+  const body = {};
+  fields.forEach(k=>{
+    const elId = (prefix==='ap'?'ap':'nu')+k.charAt(0).toUpperCase()+k.slice(1);
+    const el = document.getElementById(elId);
+    if(el) body[prefix+'_'+k] = el.value.trim();
+  });
+  const ftEl = document.getElementById(prefix+'FreitextDefault');
+  if(ftEl) body[prefix+'_freitext_default'] = ftEl.value;
+  fetch('/api/billing/settings',{
+    method:'PUT', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      Object.assign(_bSettings, body);
+      _updateFooterPreview(prefix);
+      toast('✅ '+(prefix==='ap'?'Akut Plus':'Nursy')+' Fußzeile gespeichert');
+    } else {
+      toast('⚠️ '+(d.error||'Fehler beim Speichern'));
+    }
+  });
+}
+
+function fsSwitch(tab){
+  document.getElementById('fsAp').style.display = tab==='ap'?'':'none';
+  document.getElementById('fsNu').style.display  = tab==='nu'?'':'none';
+  document.getElementById('fsTabAp').className = 'btn btn--sm '+(tab==='ap'?'btn--primary':'btn--ghost');
+  document.getElementById('fsTabNu').className  = 'btn btn--sm '+(tab==='nu'?'btn--primary':'btn--ghost');
+}
+
+/* Update preview on input change */
+['apFirma','apStrasse','apPlzort','apEmail','apWeb','apUid','apIban','apBic'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input',()=>_updateFooterPreview('ap'));
+});
+['nuFirma','nuStrasse','nuPlzort','nuEmail','nuWeb','nuUid','nuIban','nuBic'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input',()=>_updateFooterPreview('nu'));
+});
+
+/* ── Init ── */
+loadLeistungskatalog();
+loadBillingSettings();
+
+/* ══════════════════════════════════════════════
+   RECHNUNGS-VORLAGEN
+══════════════════════════════════════════════ */
+
+function loadVorlagen(){
+  fetch('/api/billing/vorlagen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    _allVorlagen=d.vorlagen||[];
+    renderVorlagenList();
+  }).catch(()=>{});
+}
+
+function renderVorlagenList(){
+  const el=document.getElementById('vorlagenList'); if(!el) return;
+  if(!_allVorlagen.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-state__ico">📝</div>Noch keine Vorlagen angelegt.</div>';
+    return;
+  }
+  const typLabel={'beide':'Akut Plus &amp; Nursy','akutplus':'Akut Plus','nursy':'Nursy'};
+  const typColor={'beide':'#6366f1','akutplus':'#0f2744','nursy':'#2563eb'};
+  el.innerHTML=_allVorlagen.map(v=>`
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:800;font-size:.9rem;">${esc(v.name)}</div>
+        ${v.betreff?`<div style="font-size:.78rem;color:var(--muted);margin-top:2px;">${esc(v.betreff)}</div>`:''}
+        ${v.freitext?`<div style="margin-top:6px;font-size:.76rem;color:#374151;white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:7px 10px;max-height:80px;overflow:hidden;">${esc(v.freitext)}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+        <span style="background:${typColor[v.typ]||'#6366f1'};color:#fff;border-radius:5px;padding:2px 8px;font-size:.68rem;font-weight:700;">${typLabel[v.typ]||v.typ}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn--ghost btn--sm" onclick="editVorlage('${v.id}')">✏️ Bearbeiten</button>
+          <button class="btn btn--danger btn--sm" onclick="deleteVorlage('${v.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function _populateVorlageDropdown(layout){
+  const sel=document.getElementById('reVorlageSelect'); if(!sel) return;
+  const filtered=_allVorlagen.filter(v=>v.typ==='beide'||v.typ===layout);
+  sel.innerHTML='<option value="">📋 Vorlage laden…</option>'+
+    filtered.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');
+}
+
+function applyVorlage(){
+  const sel=document.getElementById('reVorlageSelect'); if(!sel||!sel.value) return;
+  const v=_allVorlagen.find(x=>x.id===sel.value); if(!v) return;
+  document.getElementById('reFreitext').value=v.freitext||'';
+  sel.value='';
+  toast('📋 Vorlage geladen: '+v.name);
+}
+
+function openNewVorlage(){
+  document.getElementById('vlId').value='';
+  document.getElementById('vlModalTitle').textContent='Neue Vorlage';
+  document.getElementById('vlName').value='';
+  document.getElementById('vlTyp').value='beide';
+  document.getElementById('vlBetreff').value='';
+  document.getElementById('vlFreitext').value='';
+  document.getElementById('vlModal').classList.add('show');
+}
+
+function editVorlage(id){
+  const v=_allVorlagen.find(x=>x.id===id); if(!v) return;
+  document.getElementById('vlId').value=v.id;
+  document.getElementById('vlModalTitle').textContent='Vorlage bearbeiten';
+  document.getElementById('vlName').value=v.name||'';
+  document.getElementById('vlTyp').value=v.typ||'beide';
+  document.getElementById('vlBetreff').value=v.betreff||'';
+  document.getElementById('vlFreitext').value=v.freitext||'';
+  document.getElementById('vlModal').classList.add('show');
+}
+
+function closeVlModal(){ document.getElementById('vlModal').classList.remove('show'); }
+
+function saveVlModal(){
+  const id=document.getElementById('vlId').value;
+  const body={
+    name:document.getElementById('vlName').value.trim(),
+    typ:document.getElementById('vlTyp').value,
+    betreff:document.getElementById('vlBetreff').value.trim(),
+    freitext:document.getElementById('vlFreitext').value
+  };
+  if(!body.name){ toast('Name der Vorlage eingeben'); return; }
+  const url=id?'/api/billing/vorlagen/'+id:'/api/billing/vorlagen';
+  const method=id?'PUT':'POST';
+  fetch(url,{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ closeVlModal(); toast(id?'Vorlage aktualisiert':'Vorlage erstellt'); loadVorlagen(); }
+      else toast('Fehler: '+(d.error||''));
+    });
+}
+
+function deleteVorlage(id){
+  if(!confirm('Vorlage löschen?')) return;
+  fetch('/api/billing/vorlagen/'+id,{method:'DELETE',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ toast('Vorlage gelöscht'); loadVorlagen(); } });
+}
+
+/* ══════════════════════════════════════════════
+   PFLEGERPERSONAL-ABRECHNUNG
+══════════════════════════════════════════════ */
+let ppLoaded = false;
+let ppData = [];
+
+function initPflegerpersonal(){
+  // set default month if empty
+  const mi = document.getElementById('ppMonat');
+  if(!mi.value){
+    const now = new Date();
+    mi.value = now.toISOString().slice(0,7);
+  }
+  // load rates
+  fetch('/api/billing/pflegerpersonal/saetze',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    d.saetze.forEach(s=>{
+      if(s.art==='Frühdienst')  document.getElementById('satzFrueh').value = s.satz_eur;
+      if(s.art==='Spätdienst')  document.getElementById('satzSpaet').value = s.satz_eur;
+      if(s.art==='Nachtdienst') document.getElementById('satzNacht').value = s.satz_eur;
+    });
+  }).catch(()=>{});
+  if(!ppLoaded) loadPflegerpersonal();
+}
+
+function savePpSaetze(){
+  const body = {
+    'Frühdienst':  parseFloat(document.getElementById('satzFrueh').value)||0,
+    'Spätdienst':  parseFloat(document.getElementById('satzSpaet').value)||0,
+    'Nachtdienst': parseFloat(document.getElementById('satzNacht').value)||0,
+  };
+  fetch('/api/billing/pflegerpersonal/saetze',{
+    method:'PUT',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Sätze gespeichert'); loadPflegerpersonal(); }
+  });
+}
+
+function loadPflegerpersonal(){
+  const monat = document.getElementById('ppMonat').value;
+  if(!monat) return;
+  ppLoaded = true;
+  document.getElementById('ppMonatLabel').textContent = monat;
+  document.getElementById('ppSummary').innerHTML = '<div class="empty-state"><div class="empty-state__ico">⏳</div>Wird geladen…</div>';
+  closePpDetail();
+  // pass current rates as override
+  const frueh  = parseFloat(document.getElementById('satzFrueh').value)||65;
+  const spaet  = parseFloat(document.getElementById('satzSpaet').value)||70;
+  const nacht  = parseFloat(document.getElementById('satzNacht').value)||85;
+  fetch(`/api/billing/pflegerpersonal?monat=${monat}&frueh=${frueh}&spaet=${spaet}&nacht=${nacht}`,
+    {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    if(!d.ok){ document.getElementById('ppSummary').innerHTML='<div class="empty-state"><div class="empty-state__ico">⚠️</div>Fehler beim Laden.</div>'; return; }
+    renderPpSummary(d.pflegepersonal, monat);
+  });
+}
+
+function renderPpSummary(list, monat){
+  ppData = list;
+  const el = document.getElementById('ppSummary');
+  if(!list||!list.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-state__ico">📭</div>Keine Dienste im Monat '+esc(monat)+'.</div>';
+    return;
+  }
+  // totals
+  let totD=0,totE=0,totBZ=0,totEV=0,totG=0;
+  list.forEach(p=>{ totD+=p.frueh+p.spaet+p.nacht; totE+=p.einsaetze; totBZ+=p.bereitschaftszulage; totEV+=p.einsatzverguetung; totG+=p.gesamt; });
+
+  el.innerHTML=`<div style="overflow-x:auto;">
+<table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+  <thead>
+    <tr style="background:var(--bg);">
+      <th style="padding:10px 14px;text-align:left;font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Pflegeperson</th>
+      <th style="padding:10px 8px;text-align:center;font-size:.72rem;font-weight:800;color:#1d4ed8;text-transform:uppercase;border-bottom:1px solid var(--border);">Früh</th>
+      <th style="padding:10px 8px;text-align:center;font-size:.72rem;font-weight:800;color:#92400e;text-transform:uppercase;border-bottom:1px solid var(--border);">Spät</th>
+      <th style="padding:10px 8px;text-align:center;font-size:.72rem;font-weight:800;color:#4b5563;text-transform:uppercase;border-bottom:1px solid var(--border);">Nacht</th>
+      <th style="padding:10px 8px;text-align:center;font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Einsätze</th>
+      <th style="padding:10px 10px;text-align:right;font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Bereitschaft</th>
+      <th style="padding:10px 10px;text-align:right;font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Einsatzverg.</th>
+      <th style="padding:10px 14px;text-align:right;font-size:.72rem;font-weight:800;color:var(--text);text-transform:uppercase;border-bottom:1px solid var(--border);">Gesamt</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${list.map((p,i)=>`
+    <tr onclick="openPpDetail(${i})" style="cursor:pointer;border-bottom:1px solid var(--border);">
+      <td style="padding:11px 14px;font-weight:700;">${esc(p.user_name)}</td>
+      <td style="padding:11px 8px;text-align:center;"><span style="background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:2px 7px;font-weight:700;">${p.frueh||0}</span></td>
+      <td style="padding:11px 8px;text-align:center;"><span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 7px;font-weight:700;">${p.spaet||0}</span></td>
+      <td style="padding:11px 8px;text-align:center;"><span style="background:#1e293b;color:#e2e8f0;border-radius:4px;padding:2px 7px;font-weight:700;">${p.nacht||0}</span></td>
+      <td style="padding:11px 8px;text-align:center;font-weight:600;">${p.einsaetze||0}</td>
+      <td style="padding:11px 10px;text-align:right;color:var(--green);font-weight:700;">€ ${fmt(p.bereitschaftszulage)}</td>
+      <td style="padding:11px 10px;text-align:right;color:var(--blue);font-weight:700;">€ ${fmt(p.einsatzverguetung)}</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;font-size:.9rem;">€ ${fmt(p.gesamt)}</td>
+    </tr>`).join('')}
+  </tbody>
+  <tfoot>
+    <tr style="background:var(--bg);border-top:2px solid var(--border);">
+      <td style="padding:10px 14px;font-weight:900;font-size:.82rem;">Gesamt</td>
+      <td colspan="3" style="padding:10px 8px;text-align:center;font-size:.78rem;color:var(--muted);">${totD} Dienste</td>
+      <td style="padding:10px 8px;text-align:center;font-weight:700;">${totE}</td>
+      <td style="padding:10px 10px;text-align:right;color:var(--green);font-weight:900;">€ ${fmt(totBZ)}</td>
+      <td style="padding:10px 10px;text-align:right;color:var(--blue);font-weight:900;">€ ${fmt(totEV)}</td>
+      <td style="padding:10px 14px;text-align:right;font-weight:900;color:var(--navy);">€ ${fmt(totG)}</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+<div style="padding:8px 14px 10px;font-size:.72rem;color:var(--muted);">👆 Auf eine Zeile klicken für Detailansicht</div>`;
+}
+
+function openPpDetail(i){
+  const p = ppData[i];
+  document.getElementById('ppDetailName').textContent = p.user_name;
+  document.getElementById('ppDetail').style.display='block';
+  // scroll to detail
+  document.getElementById('ppDetail').scrollIntoView({behavior:'smooth',block:'start'});
+
+  const artLabel = {
+    'Frühdienst': '<span style="background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:2px 8px;font-weight:700;font-size:.78rem;">Frühdienst</span>',
+    'Spätdienst': '<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 8px;font-weight:700;font-size:.78rem;">Spätdienst</span>',
+    'Nachtdienst':'<span style="background:#1e293b;color:#e2e8f0;border-radius:4px;padding:2px 8px;font-weight:700;font-size:.78rem;">Nachtdienst</span>',
+  };
+
+  const rows = (p.dienste||[]).map(d=>`
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 14px;font-weight:600;">${esc(d.datum)}</td>
+      <td style="padding:10px 10px;">${artLabel[d.art]||esc(d.art)}</td>
+      <td style="padding:10px 10px;font-size:.8rem;color:var(--muted);">${esc(d.von||'–')} – ${esc(d.bis||'–')}</td>
+      <td style="padding:10px 10px;font-weight:600;">${esc(d.fahrzeug||'–')}</td>
+      <td style="padding:10px 10px;font-size:.8rem;">${esc(d.bezirk||'–')}</td>
+      <td style="padding:10px 8px;text-align:center;">
+        <span style="background:${d.einsaetze>0?'#dcfce7':'#f1f5f9'};color:${d.einsaetze>0?'#166534':'#64748b'};border-radius:6px;padding:3px 10px;font-weight:700;">${d.einsaetze}</span>
+      </td>
+      <td style="padding:10px 12px;text-align:right;color:var(--green);font-weight:700;">€ ${fmt(d.bereitschaftszulage)}</td>
+    </tr>`).join('');
+
+  document.getElementById('ppDetailBody').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+  <thead>
+    <tr style="background:var(--bg);">
+      <th style="padding:9px 14px;text-align:left;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Datum</th>
+      <th style="padding:9px 10px;text-align:left;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Dienstart</th>
+      <th style="padding:9px 10px;text-align:left;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Zeit</th>
+      <th style="padding:9px 10px;text-align:left;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Fahrzeug</th>
+      <th style="padding:9px 10px;text-align:left;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Bezirk</th>
+      <th style="padding:9px 8px;text-align:center;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Einsätze</th>
+      <th style="padding:9px 12px;text-align:right;font-size:.7rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">Zulage</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+  <tfoot>
+    <tr style="background:var(--bg);border-top:2px solid var(--border);">
+      <td colspan="5" style="padding:10px 14px;font-weight:900;">Summe</td>
+      <td style="padding:10px 8px;text-align:center;font-weight:900;">${p.einsaetze}</td>
+      <td style="padding:10px 12px;text-align:right;color:var(--green);font-weight:900;">€ ${fmt(p.bereitschaftszulage)}</td>
+    </tr>
+  </tfoot>
+</table>`;
+}
+
+function closePpDetail(){
+  document.getElementById('ppDetail').style.display='none';
+}
+
+/* ══════════════════════════════════════════════
+   HONORARNOTEN
+══════════════════════════════════════════════ */
+var _hnPersonal = [];
+var _hnVorschauData = null;
+
+function initHonorar(){
+  /* Datum auf heute setzen */
+  var today = new Date();
+  var ymd = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  document.getElementById('hnDatum').value = ymd;
+  /* Fälligkeitsdatum: 14 Tage */
+  var fae = new Date(today.getTime() + 14*24*60*60*1000);
+  document.getElementById('hnFaellig').value = fae.getFullYear()+'-'+String(fae.getMonth()+1).padStart(2,'0')+'-'+String(fae.getDate()).padStart(2,'0');
+
+  loadHonorarPersonal();
+  loadHonorarnoten();
+}
+
+function loadHonorarPersonal(){
+  fetch('/api/billing/honorar/personal',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      _hnPersonal = d.personal || [];
+      var sel = document.getElementById('hnPerson');
+      sel.innerHTML = '<option value="">– Person wählen –</option>';
+      var pfleger = _hnPersonal.filter(function(p){ return p.typ==='pfleger'; });
+      var andere  = _hnPersonal.filter(function(p){ return p.typ!=='pfleger'; });
+      if(pfleger.length){
+        sel.innerHTML += '<optgroup label="👩‍⚕️ Pflegekräfte">' +
+          pfleger.map(function(p){
+            return '<option value="'+esc(p.id)+'" data-typ="pfleger">'+esc(p.name)+(p.dienstnummer?' (DN '+esc(p.dienstnummer)+')':'')+'</option>';
+          }).join('') + '</optgroup>';
+      }
+      if(andere.length){
+        sel.innerHTML += '<optgroup label="🖥️ Leitstelle / Verwaltung">' +
+          andere.map(function(p){
+            return '<option value="'+esc(p.id)+'" data-typ="'+esc(p.typ)+'">'+esc(p.name)+(p.dienstnummer?' ('+esc(p.dienstnummer)+')':'')+'</option>';
+          }).join('') + '</optgroup>';
+      }
+    })
+    .catch(function(){});
+}
+
+function loadHonorarVorschau(){
+  var datum   = document.getElementById('hnDatum').value;
+  var sel     = document.getElementById('hnPerson');
+  var userId  = sel.value;
+  var opt     = sel.options[sel.selectedIndex];
+  var userTyp = opt ? (opt.dataset.typ || 'pfleger') : 'pfleger';
+  var satzBer = parseFloat(document.getElementById('hnSatzBer').value) || 100;
+  var satzPat = parseFloat(document.getElementById('hnSatzPat').value) || 50;
+
+  if(!datum || !userId){
+    alert('Bitte Datum und Person wählen.');
+    return;
+  }
+  var url = '/api/billing/honorar/vorschau?datum='+encodeURIComponent(datum)
+    +'&user_id='+encodeURIComponent(userId)
+    +'&user_typ='+encodeURIComponent(userTyp)
+    +'&satz_ber='+satzBer
+    +'&satz_pat='+satzPat;
+
+  fetch(url,{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d.ok){ alert('Fehler beim Laden'); return; }
+      _hnVorschauData = d;
+      /* Banner */
+      var banner = '';
+      banner += '<strong>'+esc(d.name)+'</strong>';
+      if(d.dienstnummer) banner += ' &nbsp;·&nbsp; DN: '+esc(d.dienstnummer);
+      banner += ' &nbsp;·&nbsp; <strong>'+esc(datum)+'</strong>';
+      if(d.fahrzeug)  banner += ' &nbsp;·&nbsp; 🚗 Fahrzeug: <strong>'+esc(d.fahrzeug)+'</strong>';
+      if(d.bezirk)    banner += ' &nbsp;·&nbsp; 📍 '+esc(d.bezirk)+'. Bezirk';
+      if(d.diensttyp) banner += ' &nbsp;·&nbsp; ⏱️ '+esc(d.diensttyp);
+      if(d.von||d.bis) banner += ' ('+esc(d.von||'')+'–'+esc(d.bis||'')+')';
+      banner += ' &nbsp;·&nbsp; <span style="color:#15803d;font-weight:700;">'+d.ez_count+' Einsatz/Einsätze</span>';
+      document.getElementById('hnInfoBanner').innerHTML = banner;
+      /* Empfänger */
+      document.getElementById('hnEmpfName').value = d.name;
+      /* Positionen */
+      hnRenderPositionen(d.positionen);
+      /* Notiz */
+      var notiz = '';
+      if(d.fahrzeug)  notiz += 'Fahrzeug: '+d.fahrzeug;
+      if(d.bezirk)    notiz += (notiz?', ':'')+'Bezirk '+d.bezirk;
+      if(d.diensttyp) notiz += (notiz?', ':'')+d.diensttyp;
+      document.getElementById('hnNotiz').value = notiz;
+      /* Vorschau einblenden */
+      document.getElementById('hnVorschau').style.display = '';
+      document.getElementById('hnSaveMsg').textContent = '';
+    })
+    .catch(function(e){ alert('Netzwerkfehler: '+e.message); });
+}
+
+function hnRenderPositionen(positionen){
+  var tbody = document.getElementById('hnPosBody');
+  tbody.innerHTML = '';
+  (positionen || []).forEach(function(p, i){
+    tbody.appendChild(hnPosRow(p, i));
+  });
+  hnCalcTotal();
+}
+
+function hnPosRow(p, idx){
+  var tr = document.createElement('tr');
+  tr.dataset.idx = idx;
+  tr.innerHTML =
+    '<td><input class="f-inp" style="font-size:.78rem;padding:4px 6px;" value="'+esc(p.bezeichnung||'')+'" onchange="hnCalcTotal()"></td>'+
+    '<td style="text-align:center;"><input class="f-inp" type="number" min="0" step="0.5" style="width:60px;font-size:.78rem;padding:4px 6px;text-align:center;" value="'+parseFloat(p.menge||1)+'" onchange="hnCalcTotal()"></td>'+
+    '<td><select class="f-inp" style="font-size:.78rem;padding:4px 6px;">'+
+      ['einmalig','Einsatz','Stunde','Besuch','km'].map(function(e){ return '<option'+(e===(p.einheit||'einmalig')?' selected':'')+'>'+e+'</option>'; }).join('')+
+    '</select></td>'+
+    '<td style="text-align:right;"><input class="f-inp" type="number" min="0" step="0.5" style="width:72px;font-size:.78rem;padding:4px 6px;text-align:right;" value="'+parseFloat(p.preis||0)+'" onchange="hnCalcTotal()"></td>'+
+    '<td style="text-align:right;font-weight:700;font-size:.82rem;padding:6px 4px;" class="hn-gesamt">€ '+fmt(parseFloat(p.menge||1)*parseFloat(p.preis||0))+'</td>'+
+    '<td style="text-align:center;"><button onclick="this.closest(\'tr\').remove();hnCalcTotal();" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1rem;padding:2px 6px;">✕</button></td>';
+  return tr;
+}
+
+function hnAddPos(){
+  var tbody = document.getElementById('hnPosBody');
+  var idx = tbody.rows.length;
+  tbody.appendChild(hnPosRow({bezeichnung:'', menge:1, preis:0, einheit:'Einsatz'}, idx));
+}
+
+function hnCalcTotal(){
+  var rows = document.querySelectorAll('#hnPosBody tr');
+  var total = 0;
+  rows.forEach(function(tr){
+    var inputs = tr.querySelectorAll('input[type="number"]');
+    if(inputs.length >= 2){
+      var menge = parseFloat(inputs[0].value) || 0;
+      var preis = parseFloat(inputs[1].value) || 0;
+      var g = menge * preis;
+      total += g;
+      var cell = tr.querySelector('.hn-gesamt');
+      if(cell) cell.textContent = '€ '+fmt(g);
+    }
+  });
+  document.getElementById('hnTotal').textContent = '€ '+fmt(total);
+}
+
+function hnGetPositionen(){
+  var rows = document.querySelectorAll('#hnPosBody tr');
+  var pos = [];
+  rows.forEach(function(tr){
+    var inputs  = tr.querySelectorAll('input');
+    var selects = tr.querySelectorAll('select');
+    var bez   = inputs[0] ? inputs[0].value.trim() : '';
+    var menge = parseFloat(inputs[1] ? inputs[1].value : 1) || 1;
+    var preis = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
+    var einh  = selects[0] ? selects[0].value : 'einmalig';
+    if(bez || preis) pos.push({bezeichnung:bez, menge:menge, preis:preis, einheit:einh});
+  });
+  return pos;
+}
+
+function saveHonorarNote(){
+  var pos = hnGetPositionen();
+  if(!pos.length){ alert('Keine Positionen vorhanden.'); return; }
+  var name = document.getElementById('hnEmpfName').value.trim();
+  if(!name){ alert('Bitte Empfänger-Name eingeben.'); return; }
+  var payload = {
+    empfaenger_name:    name,
+    empfaenger_adresse: document.getElementById('hnEmpfAdr').value.trim(),
+    empfaenger_email:   document.getElementById('hnEmpfEmail').value.trim(),
+    positionen: pos,
+    notiz:      document.getElementById('hnNotiz').value.trim(),
+    faellig_am: document.getElementById('hnFaellig').value,
+    referenz:   document.getElementById('hnDatum').value,
+    freitext:   _hnVorschauData ? ('Fahrzeug: '+(_hnVorschauData.fahrzeug||'–')+' | Bezirk: '+(_hnVorschauData.bezirk||'–')+' | '+(_hnVorschauData.diensttyp||'')) : '',
+  };
+  fetch('/api/billing/honorarnoten',{
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var msg = document.getElementById('hnSaveMsg');
+    if(d.ok){
+      msg.innerHTML = '<span style="color:#15803d;">✓ Honorarnote <strong>'+esc(d.nummer)+'</strong> gespeichert (€ '+fmt(d.netto)+')</span>';
+      loadHonorarnoten();
+    } else {
+      msg.innerHTML = '<span style="color:#dc2626;">✗ '+esc(d.error||'Fehler')+'</span>';
+    }
+  })
+  .catch(function(e){
+    document.getElementById('hnSaveMsg').innerHTML = '<span style="color:#dc2626;">✗ '+e.message+'</span>';
+  });
+}
+
+function loadHonorarnoten(){
+  fetch('/api/billing/honorarnoten',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var list = d.honorarnoten || [];
+      var el = document.getElementById('hnList');
+      if(!list.length){
+        el.innerHTML = '<div class="empty-state"><div class="empty-state__ico">📄</div>Noch keine Honorarnoten erstellt.</div>';
+        return;
+      }
+      var STATUS_COLORS = {
+        entwurf:  {bg:'#f1f5f9', color:'#475569'},
+        gestellt: {bg:'#dbeafe', color:'#1d4ed8'},
+        bezahlt:  {bg:'#dcfce7', color:'#15803d'},
+        storniert:{bg:'#fee2e2', color:'#dc2626'},
+      };
+      el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">'
+        +'<thead><tr style="border-bottom:2px solid #e8edf5;">'
+        +'<th style="padding:8px 12px;text-align:left;font-size:.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;">Nr.</th>'
+        +'<th style="padding:8px 8px;text-align:left;">Empfänger</th>'
+        +'<th style="padding:8px 8px;text-align:left;">Datum</th>'
+        +'<th style="padding:8px 8px;text-align:left;">Fahrzeug / Info</th>'
+        +'<th style="padding:8px 8px;text-align:right;">Betrag</th>'
+        +'<th style="padding:8px 8px;text-align:center;">Status</th>'
+        +'<th style="padding:8px 8px;"></th>'
+        +'</tr></thead><tbody>'
+        + list.map(function(h){
+          var sc = STATUS_COLORS[h.status] || STATUS_COLORS.entwurf;
+          var statusBadge = '<span style="background:'+sc.bg+';color:'+sc.color+';border-radius:5px;padding:2px 8px;font-size:.68rem;font-weight:700;">'+esc(h.status)+'</span>';
+          var info = h.freitext || h.notiz || '–';
+          return '<tr style="border-bottom:1px solid #f1f5f9;">'
+            +'<td style="padding:8px 12px;font-weight:800;color:var(--navy);">'+esc(h.nummer)+'</td>'
+            +'<td style="padding:8px 8px;">'+esc(h.empfaenger_name)+'</td>'
+            +'<td style="padding:8px 8px;color:var(--muted);">'+esc(h.einsatz_id||h.created_at||'')+'</td>'
+            +'<td style="padding:8px 8px;color:var(--muted);font-size:.75rem;">'+esc(info.substring(0,40))+'</td>'
+            +'<td style="padding:8px 8px;text-align:right;font-weight:800;color:var(--navy);">€ '+fmt(h.brutto)+'</td>'
+            +'<td style="padding:8px 8px;text-align:center;">'+statusBadge+'</td>'
+            +'<td style="padding:8px 8px;white-space:nowrap;">'
+              +'<button onclick="printHonorarNote(\''+h.id+'\')" class="btn btn--ghost btn--sm" style="font-size:.65rem;padding:3px 8px;">🖨️</button>'
+              +' <select onchange="hnChangeStatus(\''+h.id+'\',this.value)" class="f-inp" style="font-size:.68rem;padding:3px 6px;width:auto;display:inline-block;">'
+              +['entwurf','gestellt','bezahlt','storniert'].map(function(s){ return '<option'+(s===h.status?' selected':'')+'>'+s+'</option>'; }).join('')
+              +'</select>'
+              +' <button onclick="hnDelete(\''+h.id+'\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:.9rem;padding:2px 6px;">✕</button>'
+            +'</td></tr>';
+        }).join('')
+        +'</tbody></table>';
+    });
+}
+
+function hnChangeStatus(id, status){
+  fetch('/api/billing/honorarnoten/'+id+'/status',{
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status:status})
+  }).then(function(r){ return r.json(); }).then(function(){ loadHonorarnoten(); });
+}
+
+function hnDelete(id){
+  if(!confirm('Honorarnote wirklich löschen?')) return;
+  fetch('/api/billing/honorarnoten/'+id,{method:'DELETE',credentials:'same-origin'})
+    .then(function(){ loadHonorarnoten(); });
+}
+
+function printHonorarVorschau(){
+  var pos = hnGetPositionen();
+  var name = document.getElementById('hnEmpfName').value || '–';
+  var datum = document.getElementById('hnDatum').value || '–';
+  var notiz = document.getElementById('hnNotiz').value || '';
+  var faellig = document.getElementById('hnFaellig').value || '';
+  var total = 0;
+  pos.forEach(function(p){ total += p.menge * p.preis; });
+  hnOpenPrint({nummer:'VORSCHAU', empfaenger_name:name, einsatz_id:datum, positionen:JSON.stringify(pos), brutto:total, notiz:notiz, faellig_am:faellig, freitext:(_hnVorschauData?'Fahrzeug: '+(_hnVorschauData.fahrzeug||'–')+' | '+(_hnVorschauData.diensttyp||''):'')});
+}
+
+function printHonorarNote(id){
+  fetch('/api/billing/honorarnoten',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var h = (d.honorarnoten||[]).find(function(x){ return x.id===id; });
+      if(h) hnOpenPrint(h);
+    });
+}
+
+function hnOpenPrint(h){
+  var pos = [];
+  try{ pos = JSON.parse(h.positionen||'[]'); } catch(e){ pos = []; }
+  var total = h.brutto || pos.reduce(function(s,p){ return s+p.menge*p.preis; },0);
+  var datum = h.einsatz_id || '';
+  var info  = h.freitext || h.notiz || '';
+  var html = '<!doctype html><html lang="de"><head><meta charset="utf-8">'
+    +'<title>Honorarnote '+esc(h.nummer)+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13px;color:#0f1a33;padding:28px 36px;max-width:720px;margin:0 auto;}'
+    +'.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:14px;border-bottom:2px solid #0f2744;}'
+    +'.logo-mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#60a5fa);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem;}'
+    +'.co-name{font-size:1.15rem;font-weight:900;color:#0f2744;}'
+    +'.co-sub{font-size:.72rem;color:#64748b;margin-top:2px;}'
+    +'.hn-title{font-size:1.5rem;font-weight:900;color:#0f2744;margin:0 0 6px;}'
+    +'.hn-nr{font-size:.82rem;color:#64748b;}'
+    +'.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0;}'
+    +'.meta-label{font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;font-weight:700;}'
+    +'.meta-val{font-size:.9rem;font-weight:600;}'
+    +'.info-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;font-size:.82rem;margin-bottom:20px;}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:20px;}'
+    +'thead{background:#0f2744;color:#fff;}'
+    +'thead th{padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;}'
+    +'tbody td{padding:9px 10px;border-bottom:1px solid #f1f5f9;}'
+    +'tfoot td{padding:10px;border-top:2px solid #0f2744;font-weight:800;}'
+    +'.total-row td{background:#f8faff;}'
+    +'.sig-row{display:flex;gap:40px;margin-top:32px;}'
+    +'.sig-box{flex:1;border-top:1px solid #cbd5e1;padding-top:8px;font-size:.72rem;color:#64748b;}'
+    +'@media print{body{padding:0;}}'
+    +'</style>'
+    +'<script>window.onload=function(){window.print();}<\/script>'
+    +'</head><body>'
+    +'<div class="logo-row">'
+    +'<div class="logo-mark">AP</div>'
+    +'<div><div class="co-name">Akut Plus Pflegeservice GmbH</div><div class="co-sub">Verrechnungsstelle · Wien, Österreich</div></div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">'
+    +'<div><div class="hn-title">Honorarnote</div><div class="hn-nr">Nr. '+esc(h.nummer)+'</div></div>'
+    +'<div style="text-align:right;font-size:.82rem;color:#64748b;">'
+    +(datum?'<div>Datum: <strong>'+esc(datum)+'</strong></div>':'')
+    +(h.faellig_am?'<div>Fällig: <strong>'+esc(h.faellig_am)+'</strong></div>':'')
+    +'</div>'
+    +'</div>'
+    +'<div class="meta-grid">'
+    +'<div><div class="meta-label">Empfänger</div><div class="meta-val">'+esc(h.empfaenger_name)+'</div>'
+    +(h.empfaenger_adresse?'<div style="font-size:.78rem;color:#64748b;">'+esc(h.empfaenger_adresse)+'</div>':'')
+    +(h.empfaenger_email?'<div style="font-size:.78rem;color:#64748b;">'+esc(h.empfaenger_email)+'</div>':'')
+    +'</div>'
+    +'<div><div class="meta-label">Dienst-Info</div><div style="font-size:.82rem;">'+esc(info||'–')+'</div></div>'
+    +'</div>'
+    +(h.notiz?'<div class="info-box">'+esc(h.notiz)+'</div>':'')
+    +'<table>'
+    +'<thead><tr><th style="width:50%;">Bezeichnung</th><th style="text-align:center;width:10%;">Menge</th><th style="width:12%;">Einheit</th><th style="text-align:right;">Preis €</th><th style="text-align:right;">Gesamt €</th></tr></thead>'
+    +'<tbody>'
+    + pos.map(function(p){
+        return '<tr><td>'+esc(p.bezeichnung||'')+'</td>'
+          +'<td style="text-align:center;">'+parseFloat(p.menge||1)+'</td>'
+          +'<td>'+esc(p.einheit||'')+'</td>'
+          +'<td style="text-align:right;">'+fmt(p.preis||0)+'</td>'
+          +'<td style="text-align:right;font-weight:700;">'+fmt((p.menge||1)*(p.preis||0))+'</td></tr>';
+      }).join('')
+    +'</tbody>'
+    +'<tfoot><tr class="total-row">'
+    +'<td colspan="3"></td>'
+    +'<td style="text-align:right;">Gesamtbetrag netto</td>'
+    +'<td style="text-align:right;font-size:1.1rem;color:#0f2744;">€ '+fmt(total)+'</td>'
+    +'</tr></tfoot>'
+    +'</table>'
+    +'<div class="sig-row">'
+    +'<div class="sig-box">Datum, Unterschrift Pfleger/Disponent</div>'
+    +'<div class="sig-box">Datum, Stempel Akut Plus</div>'
+    +'</div>'
+    +'</body></html>';
+
+  var w = window.open('','_blank','width=800,height=900');
+  if(w){ w.document.write(html); w.document.close(); }
+}
+
+/* ── Backup ── */
+function billingBackup(){
+  window.location.href='/api/billing/backup';
+}
+</script>
+</body>
+</html>

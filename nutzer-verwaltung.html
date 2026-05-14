@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Benutzerverwaltung</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { visibility: hidden; }
+    :root {
+      --admiral: #7c3aed;
+      --admiral-light: rgba(124,58,237,.08);
+      --admiral-border: rgba(124,58,237,.20);
+    }
+
+    body { background: var(--panel2); min-height: 100vh; }
+
+    /* ── Header ── */
+    .nv-header {
+      position: sticky; top: 0; z-index: 50;
+      background: linear-gradient(180deg,#fff,#f5f0ff);
+      border-bottom: 1px solid var(--admiral-border);
+      padding: 0 20px;
+    }
+    .nv-header__inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; gap: 12px;
+      height: 54px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      height: 34px; padding: 0 14px; border-radius: 9px;
+      font-size: .8rem; font-weight: 700; color: var(--muted);
+      background: none; border: 1px solid rgba(15,26,51,.12);
+      cursor: pointer; font-family: inherit; text-decoration: none;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .back-btn:hover { background: rgba(15,26,51,.04); color: var(--text); }
+    .nv-title { font-size: 1rem; font-weight: 900; color: var(--text); flex: 1; }
+    .nv-sub   { font-size: .72rem; color: var(--muted); }
+    .admin-badge {
+      height: 28px; padding: 0 12px; border-radius: 8px;
+      background: var(--admiral-light); border: 1px solid var(--admiral-border);
+      color: var(--admiral); font-size: .72rem; font-weight: 800;
+      display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+    }
+
+    /* ── Body ── */
+    .nv-body { max-width: 960px; margin: 0 auto; padding: 28px 20px 80px; }
+    @media(max-width:480px){ .nv-body { padding: 16px 14px 80px; } }
+
+    /* ── Section heads ── */
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 12px; margin-top: 28px;
+    }
+    .section-head:first-child { margin-top: 0; }
+    .section-title { font-size: .95rem; font-weight: 800; color: var(--text); }
+    .section-count {
+      height: 22px; min-width: 22px; padding: 0 7px;
+      border-radius: 7px; background: var(--panel2);
+      border: var(--border); color: var(--muted);
+      font-size: .7rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .add-btn {
+      height: 34px; padding: 0 14px; border-radius: 9px;
+      background: var(--admiral); color: #fff;
+      border: none; font-size: .8rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; gap: 6px;
+      transition: filter .15s;
+    }
+    .add-btn:hover { filter: brightness(.88); }
+
+    /* ── User card ── */
+    .user-card {
+      background: #fff; border: 1px solid rgba(15,26,51,.10);
+      border-radius: 14px; margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(15,26,51,.05);
+      overflow: hidden; transition: box-shadow .15s;
+    }
+    .user-card:hover { box-shadow: 0 4px 16px rgba(15,26,51,.10); }
+    .user-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px; cursor: pointer;
+    }
+    .u-av {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: #fff;
+      background: var(--admiral);
+    }
+    .u-av--billing { background: #1d4ed8; }
+    .u-av--inactive { background: #94a3b8; }
+    .u-info { flex: 1; min-width: 0; }
+    .u-name { font-size: .88rem; font-weight: 800; color: var(--text); }
+    .u-email { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .u-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 5px; }
+    .role-badge {
+      height: 20px; padding: 0 8px; border-radius: 6px;
+      font-size: .67rem; font-weight: 800; letter-spacing: .3px;
+      display: inline-flex; align-items: center; white-space: nowrap;
+    }
+    .page-pill {
+      height: 20px; padding: 0 7px; border-radius: 6px;
+      font-size: .65rem; font-weight: 700;
+      background: rgba(124,58,237,.06); border: 1px solid rgba(124,58,237,.15);
+      color: var(--admiral); display: inline-flex; align-items: center; gap: 3px;
+      white-space: nowrap;
+    }
+    .page-pill--all { background: rgba(5,150,105,.06); border-color: rgba(5,150,105,.2); color: #065f46; }
+    .inactive-lbl {
+      height: 20px; padding: 0 8px; border-radius: 6px;
+      font-size: .67rem; font-weight: 700;
+      background: rgba(220,38,38,.06); border: 1px solid rgba(220,38,38,.15); color: #b91c1c;
+      display: inline-flex; align-items: center;
+    }
+    .u-chevron { color: var(--muted); font-size: .8rem; flex-shrink: 0; transition: transform .2s; }
+    .user-card.open .u-chevron { transform: rotate(90deg); }
+
+    /* ── Edit panel ── */
+    .edit-panel {
+      display: none; border-top: 1px solid rgba(15,26,51,.08);
+      padding: 20px 18px 18px;
+    }
+    .user-card.open .edit-panel { display: block; }
+
+    .ep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(max-width:520px){ .ep-grid { grid-template-columns: 1fr; } }
+    .ep-full { grid-column: 1/-1; }
+
+    .ep-label { font-size: .72rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+    .ep-inp, .ep-sel, .ep-ta {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid rgba(15,26,51,.14); border-radius: 9px;
+      padding: 8px 12px; font-size: .82rem; font-family: inherit;
+      background: var(--panel2); color: var(--text);
+      outline: none; transition: border-color .15s;
+    }
+    .ep-inp:focus, .ep-sel:focus, .ep-ta:focus { border-color: var(--admiral); }
+    .ep-ta { resize: vertical; min-height: 56px; }
+
+    /* Permission matrix */
+    .perm-box {
+      background: var(--panel2); border: 1px solid rgba(15,26,51,.10);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .perm-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+    }
+    .perm-title { font-size: .78rem; font-weight: 800; color: var(--text); }
+    .preset-row { display: flex; gap: 5px; flex-wrap: wrap; }
+    .preset-btn {
+      height: 24px; padding: 0 9px; border-radius: 7px;
+      font-size: .68rem; font-weight: 700; cursor: pointer;
+      border: 1px solid transparent; font-family: inherit;
+      transition: all .12s;
+    }
+    .preset-btn:hover { filter: brightness(.9); }
+
+    .perm-grid { display: flex; flex-direction: column; gap: 6px; }
+    .perm-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 10px; background: #fff; border-radius: 8px;
+      border: 1px solid rgba(15,26,51,.08);
+      cursor: pointer; user-select: none;
+    }
+    .perm-row:hover { border-color: rgba(124,58,237,.25); background: rgba(124,58,237,.02); }
+    .perm-check {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+      border: 2px solid rgba(15,26,51,.20); background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .perm-check.checked { background: var(--admiral); border-color: var(--admiral); }
+    .perm-check.checked::after { content: '✓'; color: #fff; font-size: .65rem; font-weight: 900; }
+    .perm-icon { font-size: .9rem; }
+    .perm-lbl { flex: 1; font-size: .8rem; font-weight: 700; color: var(--text); }
+    .perm-desc { font-size: .67rem; color: var(--muted); }
+
+    /* Toggle */
+    .toggle-row { display: flex; align-items: center; gap: 10px; }
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; border-radius: 11px;
+      background: rgba(15,26,51,.15); cursor: pointer; transition: .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 16px; height: 16px; border-radius: 50%;
+      left: 3px; top: 3px; background: #fff;
+      transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .toggle input:checked + .toggle-slider { background: #10b981; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+    .toggle-lbl { font-size: .82rem; font-weight: 700; color: var(--text); }
+
+    /* Action buttons */
+    .ep-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(15,26,51,.08); }
+    .ep-btn {
+      height: 36px; padding: 0 16px; border-radius: 10px;
+      font-size: .82rem; font-weight: 800; cursor: pointer;
+      font-family: inherit; border: none; transition: all .15s;
+    }
+    .ep-btn--save { background: var(--admiral); color: #fff; }
+    .ep-btn--save:hover { filter: brightness(.88); }
+    .ep-btn--danger { background: rgba(220,38,38,.08); color: #b91c1c; border: 1px solid rgba(220,38,38,.18); }
+    .ep-btn--danger:hover { background: rgba(220,38,38,.16); }
+    .ep-btn--ghost { background: var(--panel2); color: var(--muted); border: 1px solid rgba(15,26,51,.12); }
+    .ep-btn--ghost:hover { background: rgba(15,26,51,.06); color: var(--text); }
+    .ep-err { font-size: .75rem; color: #b91c1c; margin-top: 6px; display: none; }
+
+    /* ── New user modal ── */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(15,26,51,.45);
+      backdrop-filter: blur(3px); z-index: 200;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    @media(min-width:520px){ .modal-bg { align-items: center; } }
+    .modal-box {
+      background: #fff; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
+      padding: 24px 22px 28px;
+      animation: slideUp .22s ease;
+    }
+    @media(min-width:520px){ .modal-box { border-radius: 20px; } }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .modal-title { font-size: 1rem; font-weight: 900; color: var(--text); }
+    .modal-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--panel2); border: var(--border);
+      cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .modal-tab {
+      flex: 1; height: 36px; border-radius: 9px; font-size: .8rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; border: 1px solid rgba(15,26,51,.12);
+      background: var(--panel2); color: var(--muted); transition: all .15s;
+    }
+    .modal-tab.active { background: var(--admiral); color: #fff; border-color: var(--admiral); }
+
+    /* Toast */
+    .nv-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #1e293b; color: #fff; border-radius: 12px;
+      padding: 10px 20px; font-size: .83rem; font-weight: 600;
+      white-space: nowrap; z-index: 999;
+      transition: transform .25s, opacity .25s; opacity: 0; pointer-events: none;
+    }
+    .nv-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    .empty-state { padding: 32px; text-align: center; color: var(--muted); font-size: .85rem; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<!-- Header -->
+<header class="nv-header">
+  <div class="nv-header__inner">
+    <a href="admin.html" class="back-btn">← Admin</a>
+    <div style="flex:1">
+      <div class="nv-title">🔐 Benutzerverwaltung</div>
+      <div class="nv-sub">Interne Benutzer · Rollen &amp; Seitenzugriff</div>
+    </div>
+    <div class="admin-badge">🔐 Admiral</div>
+  </div>
+</header>
+
+<div class="nv-body">
+
+  <!-- Leitstelle section -->
+  <div class="section-head">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="section-title">🚑 Leitstelle &amp; Interne</span>
+      <span class="section-count" id="lsCount">–</span>
+    </div>
+    <button class="add-btn" onclick="openNewModal('leitstelle')">+ Neuer Benutzer</button>
+  </div>
+  <div id="lsList"><div class="empty-state">Wird geladen…</div></div>
+
+  <!-- Billing section -->
+  <div class="section-head">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="section-title">💰 Verrechnungsstelle</span>
+      <span class="section-count" id="buCount">–</span>
+    </div>
+    <button class="add-btn" onclick="openNewModal('billing')">+ Neuer Benutzer</button>
+  </div>
+  <div id="buList"><div class="empty-state">Wird geladen…</div></div>
+
+  <!-- App Klienten section (care_accepted_patients) -->
+  <div class="section-head" style="margin-top:28px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="section-title">📱 App Klienten</span>
+      <span class="section-count" id="appKlCount">–</span>
+    </div>
+    <input id="appKlSearchNV" type="search" placeholder="Name oder Pfleger…"
+      style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.82rem;outline:none;width:180px;" />
+  </div>
+  <div id="appKlListNV"><div class="empty-state">Wird geladen…</div></div>
+
+  <!-- Public portal clients section -->
+  <div class="section-head" style="margin-top:28px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="section-title">🌐 Portal-Klienten</span>
+      <span class="section-count" id="klCount">–</span>
+    </div>
+    <input id="klSearchNV" type="search" placeholder="Name oder E-Mail…"
+      style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.82rem;outline:none;width:180px;" />
+  </div>
+  <div id="klListNV"><div class="empty-state">Wird geladen…</div></div>
+
+</div>
+
+<!-- New user modal -->
+<div class="modal-bg" id="newModal" style="display:none;" onclick="if(event.target===this)closeNewModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">Neuer Benutzer</div>
+      <button class="modal-close" onclick="closeNewModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="mTabLs" onclick="switchNewType('leitstelle')">🚑 Leitstelle</button>
+      <button class="modal-tab" id="mTabBu" onclick="switchNewType('billing')">💰 Verrechnung</button>
+    </div>
+    <!-- Leitstelle fields -->
+    <div id="mLsFields">
+      <div class="ep-grid">
+        <div><div class="ep-label">Vorname *</div><input class="ep-inp" id="mVorname" placeholder="Max"></div>
+        <div><div class="ep-label">Nachname *</div><input class="ep-inp" id="mNachname" placeholder="Mustermann"></div>
+        <div class="ep-full"><div class="ep-label">E-Mail *</div><input class="ep-inp" id="mEmailLs" type="email" placeholder="max@akutplus.at"></div>
+        <div><div class="ep-label">Passwort * (min. 8)</div><input class="ep-inp" id="mPwLs" type="password" placeholder="••••••••"></div>
+        <div><div class="ep-label">Rolle</div>
+          <select class="ep-sel" id="mRolleLs" onchange="applyNewPreset('leitstelle')">
+            <option value="disponent">Disponent</option>
+            <option value="protokollant">Protokollant</option>
+            <option value="admiral">Admiral</option>
+            <option value="leitstelle">Leitstelle</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Billing fields -->
+    <div id="mBuFields" style="display:none;">
+      <div class="ep-grid">
+        <div class="ep-full"><div class="ep-label">Name *</div><input class="ep-inp" id="mNameBu" placeholder="Maria Muster"></div>
+        <div class="ep-full"><div class="ep-label">E-Mail *</div><input class="ep-inp" id="mEmailBu" type="email" placeholder="maria@akutplus.at"></div>
+        <div><div class="ep-label">Passwort * (min. 8)</div><input class="ep-inp" id="mPwBu" type="password" placeholder="••••••••"></div>
+        <div><div class="ep-label">Rolle</div>
+          <select class="ep-sel" id="mRolleBu" onchange="applyNewPreset('billing')">
+            <option value="verrechnungsstelle">Verrechnungsstelle</option>
+            <option value="admiral">Admiral</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Permission matrix for new user -->
+    <div style="margin-top:14px;">
+      <div class="ep-label" style="margin-bottom:6px;">Seitenzugriff</div>
+      <div class="perm-box">
+        <div class="perm-grid" id="mPermGrid"></div>
+      </div>
+    </div>
+    <div class="ep-err" id="mErr"></div>
+    <div class="ep-actions">
+      <button class="ep-btn ep-btn--save" onclick="createNutzer()">✓ Erstellen</button>
+      <button class="ep-btn ep-btn--ghost" onclick="closeNewModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div class="nv-toast" id="nvToast"></div>
+
+<script src="nursy-auth.js"></script>
+<script>
+/* ── Config ── */
+const SEITEN = [
+  { key: 'leitstelle',   label: 'Leitstelle',          icon: '🚑', desc: 'Leitstellen-Dashboard & Disponierung' },
+  { key: 'auftragslage', label: 'Auftragslage',         icon: '📋', desc: 'Aktive Einsätze & Auftragsverwaltung' },
+  { key: 'einsatzakte',  label: 'Einsatzakte',          icon: '📁', desc: 'Einsatz-Details & Patientenakte' },
+  { key: 'pfleger_app',  label: 'Pfleger-App',          icon: '📱', desc: 'Mobile App für Pflegekräfte' },
+  { key: 'portal_admin', label: 'Portal-Verwaltung',    icon: '🏥', desc: 'Akut Plus Pflegeportal Admin' },
+  { key: 'billing',      label: 'Verrechnungsstelle',   icon: '💰', desc: 'Rechnungen & Leistungskatalog' },
+  { key: 'admin',        label: 'Admin-Dashboard',      icon: '⚙️', desc: 'Systemeinstellungen & Benutzer' },
+];
+
+const ROLLEN = {
+  admiral:            { label: 'Admiral',            color: '#7c3aed', bg: 'rgba(124,58,237,.08)', seiten: ['leitstelle','auftragslage','einsatzakte','pfleger_app','portal_admin','billing','admin'] },
+  disponent:          { label: 'Disponent',          color: '#2563eb', bg: 'rgba(37,99,235,.08)',  seiten: ['leitstelle','auftragslage','einsatzakte'] },
+  protokollant:       { label: 'Protokollant',       color: '#0891b2', bg: 'rgba(8,145,178,.08)',  seiten: ['auftragslage','einsatzakte'] },
+  leitstelle:         { label: 'Leitstelle',         color: '#475569', bg: 'rgba(71,85,105,.08)',  seiten: ['leitstelle','auftragslage','einsatzakte'] },
+  verrechnungsstelle: { label: 'Verrechnungsstelle', color: '#d97706', bg: 'rgba(217,119,6,.08)',  seiten: ['billing'] },
+  portal_admin:       { label: 'Portal-Admin',       color: '#059669', bg: 'rgba(5,150,105,.08)',  seiten: ['portal_admin'] },
+};
+
+function rolleStyle(rolle) {
+  const r = ROLLEN[rolle] || { color: '#64748b', bg: 'rgba(100,116,139,.08)' };
+  return `style="color:${r.color};background:${r.bg};border:1px solid ${r.color}22;"`;
+}
+function rolleLabel(rolle) { return (ROLLEN[rolle]||{label:rolle}).label; }
+
+function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+
+/* ── Toast ── */
+function toast(msg, dur=2800){
+  const t=document.getElementById('nvToast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+/* ── Load users ── */
+let _users = { leitstelle: [], billing: [] };
+
+function loadNutzer(){
+  fetch('/api/admin/nutzer',{credentials:'same-origin'}).then(r=>{
+    if(r.status===403||r.status===401){ window.location.href='admin.html'; return null; }
+    return r.json();
+  }).then(d=>{
+    if(!d||!d.ok) return;
+    _users.leitstelle = d.leitstelle||[];
+    _users.billing    = d.billing||[];
+    renderSection('leitstelle');
+    renderSection('billing');
+  });
+}
+
+function renderSection(typ){
+  const users = _users[typ];
+  const listEl = document.getElementById(typ==='leitstelle'?'lsList':'buList');
+  const countEl= document.getElementById(typ==='leitstelle'?'lsCount':'buCount');
+  countEl.textContent = users.length;
+  if(!users.length){
+    listEl.innerHTML='<div class="empty-state">Noch keine Benutzer.</div>';
+    return;
+  }
+  listEl.innerHTML = users.map(u=>renderUserCard(u)).join('');
+}
+
+function renderUserCard(u){
+  const initials = u.name.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+  const avClass  = u.aktiv ? (u.typ==='billing'?'u-av u-av--billing':'u-av') : 'u-av u-av--inactive';
+  const sz = u.seiten_zugriff||[];
+  const allPages = sz.length === SEITEN.length;
+  const pageHtml = allPages
+    ? '<span class="page-pill page-pill--all">✓ Vollzugriff</span>'
+    : sz.length===0
+      ? '<span style="font-size:.67rem;color:var(--muted);">Rolle bestimmt Zugriff</span>'
+      : sz.map(k=>{ const s=SEITEN.find(x=>x.key===k); return s?`<span class="page-pill">${s.icon} ${s.label}</span>`:''; }).join('');
+
+  const rolleR = ROLLEN[u.rolle] || {};
+  const notizHtml = u.notizen ? `<span style="font-size:.67rem;color:var(--muted);">📝 ${esc(u.notizen.slice(0,40))}…</span>` : '';
+
+  return `<div class="user-card" id="uc-${u.id}" onclick="toggleCard('${u.id}')">
+    <div class="user-row">
+      <div class="${avClass}">${initials}</div>
+      <div class="u-info">
+        <div class="u-name">${esc(u.name)}</div>
+        <div class="u-email">${esc(u.email)}</div>
+        <div class="u-meta">
+          <span class="role-badge" ${rolleStyle(u.rolle)}>${rolleLabel(u.rolle)}</span>
+          ${!u.aktiv?'<span class="inactive-lbl">⛔ Gesperrt</span>':''}
+          ${u.must_change_pw?'<span class="inactive-lbl" style="background:#fffbeb;border-color:#fbbf24;color:#92400e;">🔒 PW-Änderung ausstehend</span>':''}
+          ${pageHtml}
+          ${notizHtml}
+        </div>
+      </div>
+      <span class="u-chevron">›</span>
+    </div>
+    <div class="edit-panel" onclick="event.stopPropagation()">
+      ${renderEditPanel(u)}
+    </div>
+  </div>`;
+}
+
+function renderEditPanel(u){
+  const sz = u.seiten_zugriff||[];
+  const permRows = SEITEN.map(s=>{
+    const checked = sz.includes(s.key);
+    return `<div class="perm-row" onclick="togglePerm('${u.id}','${s.key}')">
+      <div class="perm-check ${checked?'checked':''}" id="pc-${u.id}-${s.key}"></div>
+      <span class="perm-icon">${s.icon}</span>
+      <div style="flex:1">
+        <div class="perm-lbl">${s.label}</div>
+        <div class="perm-desc">${s.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const presets = Object.entries(ROLLEN).map(([k,r])=>
+    `<button class="preset-btn" style="background:${r.bg};color:${r.color};border-color:${r.color}33;"
+      onclick="applyPreset('${u.id}','${k}',event)">${r.label}</button>`
+  ).join('');
+
+  const rolleOpts = ['admiral','disponent','protokollant','leitstelle','verrechnungsstelle','portal_admin']
+    .map(r=>`<option value="${r}" ${u.rolle===r?'selected':''}>${rolleLabel(r)}</option>`).join('');
+
+  return `
+    <div class="ep-grid">
+      <div>
+        <div class="ep-label">Rolle</div>
+        <select class="ep-sel" id="er-${u.id}" onchange="onRolleChange('${u.id}')">
+          ${rolleOpts}
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:2px;">
+        <div class="toggle-row">
+          <label class="toggle"><input type="checkbox" id="ea-${u.id}" ${u.aktiv?'checked':''}><span class="toggle-slider"></span></label>
+          <span class="toggle-lbl">Konto aktiv</span>
+        </div>
+      </div>
+      <div class="ep-full">
+        <div class="ep-label">Seitenzugriff</div>
+        <div class="perm-box">
+          <div class="perm-head">
+            <span class="perm-title">Erlaubte Seiten (leer = nur Rolle zählt)</span>
+            <div class="preset-row">${presets}</div>
+          </div>
+          <div class="perm-grid">${permRows}</div>
+        </div>
+      </div>
+      <div>
+        <div class="ep-label">Neues Passwort (optional)</div>
+        <input class="ep-inp" id="epw-${u.id}" type="password" placeholder="Leer lassen = unverändert">
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <label class="toggle" style="flex-shrink:0;"><input type="checkbox" id="emcp-${u.id}" ${u.must_change_pw?'checked':''}><span class="toggle-slider"></span></label>
+          <span style="font-size:.75rem;color:var(--muted);">Passwort-Änderung bei nächster Anmeldung verlangen</span>
+        </div>
+      </div>
+      <div>
+        <div class="ep-label">Interne Notizen</div>
+        <textarea class="ep-ta" id="enot-${u.id}" rows="2">${esc(u.notizen||'')}</textarea>
+      </div>
+    </div>
+    <div class="ep-err" id="eerr-${u.id}"></div>
+    <div class="ep-actions">
+      <button class="ep-btn ep-btn--save" onclick="saveNutzer('${u.id}','${u.typ}')">💾 Speichern</button>
+      <button class="ep-btn ep-btn--danger" onclick="deleteNutzer('${u.id}','${u.typ}',event)">🗑 Löschen</button>
+    </div>`;
+}
+
+/* ── Card toggle ── */
+function toggleCard(id){
+  const card = document.getElementById('uc-'+id);
+  const wasOpen = card.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.user-card.open').forEach(c=>c.classList.remove('open'));
+  if(!wasOpen) card.classList.add('open');
+}
+
+/* ── Permissions ── */
+let _pendingPerms = {}; // id → Set of keys
+
+function getPerms(uid){
+  if(!_pendingPerms[uid]){
+    const u = [..._users.leitstelle, ..._users.billing].find(x=>x.id===uid);
+    _pendingPerms[uid] = new Set(u ? (u.seiten_zugriff||[]) : []);
+  }
+  return _pendingPerms[uid];
+}
+
+function togglePerm(uid, key){
+  const perms = getPerms(uid);
+  if(perms.has(key)) perms.delete(key); else perms.add(key);
+  const el = document.getElementById(`pc-${uid}-${key}`);
+  if(el) el.className = 'perm-check '+(perms.has(key)?'checked':'');
+}
+
+function applyPreset(uid, rolleKey, evt){
+  evt && evt.stopPropagation();
+  const preset = ROLLEN[rolleKey];
+  if(!preset) return;
+  _pendingPerms[uid] = new Set(preset.seiten);
+  SEITEN.forEach(s=>{
+    const el = document.getElementById(`pc-${uid}-${s.key}`);
+    if(el) el.className = 'perm-check '+(_pendingPerms[uid].has(s.key)?'checked':'');
+  });
+  const rolSel = document.getElementById('er-'+uid);
+  if(rolSel && ROLLEN[rolleKey]) rolSel.value = rolleKey;
+}
+
+function onRolleChange(uid){
+  const rolle = document.getElementById('er-'+uid)?.value;
+  if(ROLLEN[rolle]) applyPreset(uid, rolle, null);
+}
+
+/* ── Save ── */
+function saveNutzer(uid, typ){
+  const perms = getPerms(uid);
+  const rolle = document.getElementById('er-'+uid)?.value || '';
+  const aktiv = document.getElementById('ea-'+uid)?.checked;
+  const pw    = document.getElementById('epw-'+uid)?.value || '';
+  const not   = document.getElementById('enot-'+uid)?.value || '';
+  const errEl = document.getElementById('eerr-'+uid);
+
+  const mcp  = document.getElementById('emcp-'+uid)?.checked ?? false;
+  const body = { rolle, aktiv, seiten_zugriff: [...perms], notizen: not, must_change_pw: mcp };
+  if(pw) body.password = pw;
+
+  fetch(`/api/admin/nutzer/${typ}/${uid}`, {
+    method: 'PUT', credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      toast('✅ Gespeichert');
+      delete _pendingPerms[uid];
+      loadNutzer();
+    } else {
+      if(errEl){ errEl.textContent=d.error||'Fehler'; errEl.style.display='block'; }
+    }
+  });
+}
+
+/* ── Delete ── */
+function deleteNutzer(uid, typ, evt){
+  evt && evt.stopPropagation();
+  const u = [..._users.leitstelle, ..._users.billing].find(x=>x.id===uid);
+  if(!confirm(`Benutzer "${u?.name||uid}" wirklich löschen?`)) return;
+  fetch(`/api/admin/nutzer/${typ}/${uid}`, {
+    method: 'DELETE', credentials: 'same-origin'
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('🗑 Gelöscht'); loadNutzer(); }
+  });
+}
+
+/* ── New user modal ── */
+let _newType = 'leitstelle';
+let _newPerms = new Set();
+
+function openNewModal(typ){
+  _newType = typ;
+  _newPerms = new Set(ROLLEN[typ==='billing'?'verrechnungsstelle':'disponent']?.seiten||[]);
+  switchNewType(typ);
+  renderNewPermGrid();
+  document.getElementById('newModal').style.display='flex';
+}
+function closeNewModal(){ document.getElementById('newModal').style.display='none'; }
+
+function switchNewType(typ){
+  _newType = typ;
+  document.getElementById('mLsFields').style.display = typ==='leitstelle'?'':'none';
+  document.getElementById('mBuFields').style.display = typ==='billing'?'':'none';
+  document.getElementById('mTabLs').className = 'modal-tab'+(typ==='leitstelle'?' active':'');
+  document.getElementById('mTabBu').className = 'modal-tab'+(typ==='billing'?' active':'');
+  applyNewPreset(typ);
+}
+
+function applyNewPreset(typ){
+  const rolle = typ==='leitstelle'
+    ? document.getElementById('mRolleLs')?.value
+    : document.getElementById('mRolleBu')?.value;
+  const preset = ROLLEN[rolle];
+  if(preset) _newPerms = new Set(preset.seiten);
+  renderNewPermGrid();
+}
+
+function renderNewPermGrid(){
+  document.getElementById('mPermGrid').innerHTML = SEITEN.map(s=>`
+    <div class="perm-row" onclick="toggleNewPerm('${s.key}')">
+      <div class="perm-check ${_newPerms.has(s.key)?'checked':''}" id="npc-${s.key}"></div>
+      <span class="perm-icon">${s.icon}</span>
+      <div style="flex:1">
+        <div class="perm-lbl">${s.label}</div>
+        <div class="perm-desc">${s.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleNewPerm(key){
+  if(_newPerms.has(key)) _newPerms.delete(key); else _newPerms.add(key);
+  const el = document.getElementById('npc-'+key);
+  if(el) el.className = 'perm-check '+(_newPerms.has(key)?'checked':'');
+}
+
+function createNutzer(){
+  const errEl = document.getElementById('mErr');
+  errEl.style.display='none';
+  let body;
+  if(_newType==='leitstelle'){
+    body = {
+      vorname: document.getElementById('mVorname').value.trim(),
+      nachname: document.getElementById('mNachname').value.trim(),
+      email:    document.getElementById('mEmailLs').value.trim(),
+      password: document.getElementById('mPwLs').value,
+      rolle:    document.getElementById('mRolleLs').value,
+      seiten_zugriff: [..._newPerms]
+    };
+  } else {
+    body = {
+      name:     document.getElementById('mNameBu').value.trim(),
+      email:    document.getElementById('mEmailBu').value.trim(),
+      password: document.getElementById('mPwBu').value,
+      rolle:    document.getElementById('mRolleBu').value,
+      seiten_zugriff: [..._newPerms]
+    };
+  }
+  fetch(`/api/admin/nutzer/${_newType}`, {
+    method: 'POST', credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      toast('✅ Benutzer erstellt');
+      closeNewModal();
+      loadNutzer();
+    } else {
+      errEl.textContent = d.error||'Fehler beim Erstellen';
+      errEl.style.display='block';
+    }
+  });
+}
+
+/* ── App Klienten (care_accepted_patients) ── */
+let _allAppKlienten = [];
+
+function renderAppKlListNV(list){
+  const el = document.getElementById('appKlListNV');
+  document.getElementById('appKlCount').textContent = _allAppKlienten.length;
+  if(!list.length){ el.innerHTML='<div class="empty-state">Keine App-Klienten gefunden.</div>'; return; }
+  el.innerHTML = list.map(k=>{
+    const patName = esc2(k.pat_name||'–');
+    const cgName  = esc2(k.cg_name.trim()||'–');
+    const cgDnr   = k.cg_dienstnummer ? ` · ${esc2(k.cg_dienstnummer)}` : '';
+    const addr    = k.pat_address ? `<span style="font-size:.67rem;color:var(--muted);">📍 ${esc2(k.pat_address)}</span>` : '';
+    const hg      = k.pat_hauptgrund ? `<span style="font-size:.67rem;color:var(--muted);">· ${esc2(k.pat_hauptgrund)}</span>` : '';
+    const seit    = (k.accepted_at||'').slice(0,10);
+    const ini     = (patName[0]||'?').toUpperCase();
+    return `<div class="user-card">
+      <div class="user-row" style="cursor:default;">
+        <div class="u-av" style="background:#0f766e;font-size:15px;">${ini}</div>
+        <div class="u-info">
+          <div class="u-name">${patName}</div>
+          <div class="u-email">👤 Pfleger: ${cgName}${cgDnr}</div>
+          <div class="u-email" style="font-family:monospace;font-size:.68rem;color:#94a3b8;">ID: ${esc2(k.patient_id||k.id)}</div>
+          <div class="u-meta" style="margin-top:4px;">${addr}${hg}
+            <span style="font-size:.67rem;color:var(--muted);">Seit: ${seit}</span>
+          </div>
+        </div>
+        <button onclick="deleteAppKlientNV('${esc2(k.id)}','${patName}')"
+          style="flex-shrink:0;background:none;border:1.5px solid #fecaca;color:#b91c1c;border-radius:8px;padding:5px 12px;font-size:.75rem;font-weight:700;cursor:pointer;">
+          Entfernen
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadAppKlientenNV(){
+  fetch('/api/admin/app-klienten',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    _allAppKlienten = d.klienten||[];
+    renderAppKlListNV(_allAppKlienten);
+  }).catch(()=>{ document.getElementById('appKlListNV').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
+}
+
+document.getElementById('appKlSearchNV').addEventListener('input', function(){
+  const q = this.value.toLowerCase();
+  renderAppKlListNV(q ? _allAppKlienten.filter(k=>(
+    (k.pat_name+' '+k.cg_name).toLowerCase().includes(q)
+  )) : _allAppKlienten);
+});
+
+function deleteAppKlientNV(id, name){
+  if(!confirm('Klient "'+name+'" aus der Pfleger-App entfernen?\nDer Klient wird beim nächsten Sync aus der App ausgeblendet.')) return;
+  fetch('/api/admin/app-klienten/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast('Klient entfernt'); loadAppKlientenNV(); }
+      else toast('Fehler: '+(d.error||''));
+    });
+}
+
+/* ── Portal-Klienten (patients-Tabelle) ── */
+let _allKlienten = [];
+
+function esc2(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function klInitials(v,n){
+  return ((v||'')[0]||'').toUpperCase() + ((n||'')[0]||'').toUpperCase();
+}
+
+function renderKlListNV(list){
+  const el = document.getElementById('klListNV');
+  document.getElementById('klCount').textContent = _allKlienten.length;
+  if(!list.length){ el.innerHTML='<div class="empty-state">Keine Klienten registriert.</div>'; return; }
+  el.innerHTML = list.map(k=>{
+    const name = esc2((k.vorname||'') + ' ' + (k.nachname||''));
+    const email = esc2(k.email||'–');
+    const seit  = (k.created_at||'').slice(0,10);
+    const ini   = klInitials(k.vorname, k.nachname);
+    const mvBadge = k.matching_verbindung
+      ? `<span style="background:#dcfce7;color:#15803d;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:6px;">🔗 Verbunden</span>`
+      : k.matching_anfrage
+        ? `<span style="background:#fef9c3;color:#92400e;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:6px;">📋 Anfrage aktiv</span>`
+        : '';
+    return `<div class="user-card">
+      <div class="user-row" style="cursor:default;">
+        <div class="u-av" style="background:#4338ca;font-size:13px;">${ini}</div>
+        <div class="u-info">
+          <div class="u-name">${name}</div>
+          <div class="u-email">${email}</div>
+          <div class="u-meta" style="margin-top:4px;">${mvBadge}
+            <span style="font-size:.67rem;color:var(--muted);">Registriert: ${seit}</span>
+          </div>
+        </div>
+        <button onclick="deleteKlientNV('${esc2(k.id)}','${name}')"
+          style="flex-shrink:0;background:none;border:1.5px solid #fecaca;color:#b91c1c;border-radius:8px;padding:5px 12px;font-size:.75rem;font-weight:700;cursor:pointer;">
+          Löschen
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadKlientenNV(){
+  fetch('/api/admin/klienten',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    _allKlienten = d.klienten||[];
+    renderKlListNV(_allKlienten);
+  }).catch(()=>{ document.getElementById('klListNV').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
+}
+
+document.getElementById('klSearchNV').addEventListener('input', function(){
+  const q = this.value.toLowerCase();
+  renderKlListNV(q ? _allKlienten.filter(k=>(
+    (k.vorname+' '+k.nachname+' '+(k.email||'')).toLowerCase().includes(q)
+  )) : _allKlienten);
+});
+
+function deleteKlientNV(id, name){
+  if(!confirm('Klient "'+name+'" vollständig löschen?\nDadurch werden auch alle Pflege-Anfragen und Verbindungen entfernt.\nDiese Aktion ist nicht rückgängig.')) return;
+  fetch('/api/admin/klienten/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast('Klient gelöscht'); loadKlientenNV(); }
+      else toast('Fehler: '+(d.error||''));
+    });
+}
+
+/* ── Auth guard ── */
+if(!NursyAuth.get('admin')){ window.location.replace('admin-login.html'); }
+else { document.body.style.visibility = 'visible'; }
+
+fetch('/api/admin/me',{credentials:'same-origin'}).then(r=>{
+  if(r.status===401||r.status===403){ window.location.href='admin-login.html'; return null; }
+  return r.json();
+}).then(d=>{ if(d&&!d.ok){ window.location.href='admin-login.html'; } })
+.catch(()=>{ window.location.href='admin-login.html'; });
+
+loadNutzer();
+loadAppKlientenNV();
+loadKlientenNV();
+</script>
+</body>
+</html>

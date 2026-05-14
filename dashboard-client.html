@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Dashboard Klient</title>
+  <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="/manifest-client.json">
+    <link rel="apple-touch-icon" href="/icon-nursy-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert's</a>
+      <a href="index.html#login">Login</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="section">
+    <div class="section__head">
+      <h2>Dashboard</h2>
+      <p class="muted">Willkommen zurück – dein Überblick.</p>
+    </div>
+
+    <div class="dash-top">
+      <div class="card dash-profile">
+        <div class="dash-profile__inner">
+          <div style="position:relative;flex-shrink:0;">
+            <div class="avatar" id="dashAvatarClient" aria-label="Profilfoto">
+              <span id="dashAvatarInitials">?</span>
+            </div>
+            <label for="clientPhotoInput" style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:#3f6fe8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2);" title="Foto ändern">&#9998;</label>
+            <input id="clientPhotoInput" type="file" accept="image/*" style="display:none;" />
+          </div>
+
+          <div class="dash-profile__meta">
+            <h3 class="dash-profile__title">Mein Profil</h3>
+            <div class="dash-profile__lines">
+              <div><strong>Name:</strong> <span id="dashName">–</span></div>
+              <div><strong>Adresse:</strong> <span id="dashAddress">–</span></div>
+              <div id="dashEmailRow" style="display:none"><strong>E-Mail:</strong> <span id="dashEmail">–</span></div>
+              <div><strong>Pflegebedarf:</strong> <span id="dashNeed">–</span></div>
+              <div><strong>Status:</strong> <span id="dashStatus">Registriert</span></div>
+            </div>
+
+            <div class="dash-profile__actions">
+              <a class="control btn" href="register-client-need.html">Pflegebedarf bearbeiten</a>
+              <a class="btn btn--soft" href="register-client.html" style="margin-left:10px;">Stammdaten bearbeiten</a>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="btnLogoutClient" class="btn btn--soft" style="font-size:.82rem;">Abmelden</button>
+              <button id="btnDeleteClient" style="padding:7px 14px;border-radius:9px;border:1.5px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:600;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">Account löschen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card dash-enroute" id="enrouteCard">
+        <div class="dash-enroute__icon" id="enrouteIcon">🚗</div>
+        <div class="dash-enroute__body">
+          <h3 class="dash-enroute__title" id="enrouteTitle">Kein Pfleger unterwegs</h3>
+          <p class="dash-enroute__sub muted" id="enrouteSub">Sobald Ihre Pflegekraft die Tour startet, erhalten Sie hier automatisch eine Benachrichtigung.</p>
+          <div class="dash-enroute__badge" id="enrouteBadge" style="display:none;">
+            <span class="badge-dot"></span>
+            <span id="enrouteBadgeText">Anna Müller ist auf dem Weg zu Ihnen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card dash-today">
+      <div class="dash-rowhead">
+        <h3>Meine nächsten Termine</h3>
+        <a class="control btn" href="anfragen-client.html">Neue Anfrage</a>
+      </div>
+
+      <div class="today-list" id="termineList">
+        <div class="mp-empty" style="padding:28px 20px;text-align:center;color:#94a3b8;">
+          <div style="font-size:32px;margin-bottom:8px;">📅</div>
+          <p style="font-weight:700;color:#64748b;margin:0 0 4px;font-size:.9rem;">Noch keine Termine</p>
+          <p style="font-size:.82rem;margin:0;">Sobald eine Pflegekraft bestätigt ist, erscheinen hier Ihre Termine.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-sections">
+
+      <!-- ── Pflegekraft finden & Anfrage stellen (inline) ── -->
+      <div class="card dash-section" id="matchingClientSection" style="border:1.5px solid #3f6fe8;background:linear-gradient(135deg,#eff2fd 0%,#fff 100%);display:block;padding-bottom:8px;">
+        <div class="dash-row" style="margin-bottom:12px;">
+          <div>
+            <h3 style="color:#3f6fe8;">🤝 Anfrage &amp; Pflegekraft finden</h3>
+            <p class="muted" style="margin:0;" id="matchStatusSub">Wird geladen …</p>
+          </div>
+          <a class="control btn primary" href="matching-patient.html" style="flex-shrink:0;">Vollansicht</a>
+        </div>
+
+        <!-- Status-Banner (kompakt) -->
+        <div id="dashMatchBanner" style="display:none;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.85rem;font-weight:600;border:1.5px solid;"></div>
+
+        <!-- Wenn verbunden: Pflegekraft anzeigen -->
+        <div id="dashMatchVerbunden" style="display:none;"></div>
+
+        <!-- Wenn keine Anfrage: Mini-Formular -->
+        <div id="dashMatchForm" style="display:none;">
+          <div style="margin-bottom:10px;">
+            <p style="font-size:.72rem;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;">Pflegebedarf (kurz beschreiben)</p>
+            <textarea id="dashAnfPf" rows="2" placeholder="z.B. Unterstützung bei Körperpflege, Medikamentengabe …" style="display:block;width:100%;border:1.5px solid #dbe2f0;border-radius:10px;padding:9px 12px;font-size:.85rem;font-family:inherit;box-sizing:border-box;resize:vertical;outline:none;"></textarea>
+          </div>
+          <div style="margin-bottom:10px;">
+            <p style="font-size:.72rem;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;">Bezirk / Region</p>
+            <input id="dashAnfBz" placeholder="z.B. 1020 Wien" style="display:block;width:100%;border:1.5px solid #dbe2f0;border-radius:10px;padding:9px 12px;font-size:.85rem;font-family:inherit;box-sizing:border-box;outline:none;" />
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="btn primary" id="dashBtnSpeichern" style="font-size:.82rem;">Anfrage speichern</button>
+          </div>
+          <!-- Pfleger-Vorschläge -->
+          <p style="font-size:.72rem;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">Oder direkt eine Pflegekraft wählen</p>
+          <div id="dashPflegerLoading" class="muted" style="font-size:.8rem;">Wird geladen …</div>
+          <div id="dashPflegerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:4px;"></div>
+          <div id="dashPflegerEmpty" style="display:none;font-size:.82rem;color:#94a3b8;padding:8px 0;">Keine Pflegekräfte gefunden.</div>
+        </div>
+
+        <!-- Wenn Anfrage aktiv: Optionen -->
+        <div id="dashMatchAktiv" style="display:none;">
+          <div id="dashMatchDetail" style="font-size:.84rem;margin-bottom:12px;padding:10px 12px;background:#fff;border-radius:10px;border:1.5px solid #e2e8f0;"></div>
+          <div id="dashMatchOptionen" style="display:none;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn primary" id="dashBtnFreistellen" style="font-size:.82rem;">🌐 Für alle freistellen</button>
+              <button class="btn btn--soft" id="dashBtnZeigeSuche" style="font-size:.82rem;">🔍 Gezielt wählen</button>
+            </div>
+            <div id="dashGezielt" style="display:none;margin-top:12px;">
+              <div id="dashPflegerGridAktiv" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;"></div>
+            </div>
+          </div>
+          <button class="btn btn--soft" id="dashBtnZurueck" style="font-size:.78rem;margin-top:10px;">Anfrage zurückziehen</button>
+        </div>
+
+        <div id="dashMatchErr" style="display:none;font-size:.82rem;color:#dc2626;padding:6px 0;"></div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Meine Pflegekräfte</h3>
+            <p class="muted">Übersicht deiner aktiven Pflegekräfte und Kontaktdaten.</p>
+          </div>
+          <a class="control btn" href="caregivers-client.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Vitalzeichen</h3>
+            <p class="muted">Messwerte einsehen und eigene Werte eintragen.</p>
+          </div>
+          <a class="control btn" href="vitalzeichen-client.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Mein Pflegeplan</h3>
+            <p class="muted">Ziele, Maßnahmen und Termine deiner Betreuung einsehen.</p>
+          </div>
+          <a class="control btn" href="careplan-client.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Durchführungsnachweis</h3>
+            <p class="muted">Erbrachte Leistungen und Maßnahmen einsehen.</p>
+          </div>
+          <a class="control btn" href="durchfuehrungsnachweis-client.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Dokumentation</h3>
+            <p class="muted">Tägliche Pflegedokumentation deiner Pflegekräfte.</p>
+          </div>
+          <a class="control btn" href="documentation-client.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Meine Rechnungen</h3>
+            <p class="muted">Rechnungen einsehen, herunterladen und Status prüfen.</p>
+          </div>
+          <a class="control btn" href="invoices-client.html">Öffnen</a>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+(function(){
+  /* ── Patienten-ID (synchron aus localStorage) → isolierte Keys ── */
+  var _pid = 'default';
+  try{ _pid = localStorage.getItem('nursy_current_patient_id') || localStorage.getItem('nursy_pending_patient_id') || 'default'; }catch(e){}
+  var CLIENT_PHOTO_KEY = 'nursy_profile_photo_client_v1_' + _pid;
+  var _K = {
+    regData:  'nursy_registration_data_v1_' + _pid,
+    profile:  'nursy_profile_client_v1_'    + _pid,
+    anamnese: 'nursy_anamnese_v1_'          + _pid,
+    need:     'nursy_client_need_v1_'       + _pid,
+    enroute:  'nursy_enroute_status_v1_'    + _pid,
+  };
+
+  function safeParse(raw){ try{ return JSON.parse(raw); }catch(e){ return null; } }
+
+  function initials(name){
+    var parts = (name || '').trim().split(/\s+/);
+    if(parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+    return (parts[0] || '?')[0].toUpperCase();
+  }
+
+  function resizeImage(dataUrl, maxPx, quality, cb){
+    var img = new Image();
+    img.onload = function(){
+      var w = img.width, h = img.height;
+      var ratio = Math.min(maxPx/w, maxPx/h, 1);
+      var cw = Math.round(w*ratio), ch = Math.round(h*ratio);
+      var canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+      cb(canvas.toDataURL('image/jpeg', quality || 0.82));
+    };
+    img.onerror = function(){ cb(dataUrl); };
+    img.src = dataUrl;
+  }
+
+  function applyPhoto(el, dataUrl, fallbackInitials){
+    if(!el) return;
+    if(dataUrl){
+      el.innerHTML = '';
+      el.style.setProperty('background-image',    'url(' + dataUrl + ')', 'important');
+      el.style.setProperty('background-size',     'cover',               'important');
+      el.style.setProperty('background-position', 'center',              'important');
+      el.style.setProperty('background-repeat',   'no-repeat',           'important');
+      el.style.setProperty('background-color',    'transparent',         'important');
+      el.style.color = 'transparent';
+    } else {
+      el.style.removeProperty('background-image');
+      el.style.removeProperty('background-size');
+      el.style.removeProperty('background-position');
+      el.style.removeProperty('background-repeat');
+      el.style.removeProperty('background-color');
+      el.style.color = '';
+      el.innerHTML = '<span>' + (fallbackInitials || '?') + '</span>';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    /* ── Daten aus localStorage lesen (keyed + Fallback auf ungekey-te Einträge) ── */
+    var regData  = safeParse(localStorage.getItem(_K.regData))  || safeParse(localStorage.getItem('nursy_registration_data_v1')) || {};
+    var profile  = safeParse(localStorage.getItem(_K.profile))  || safeParse(localStorage.getItem('nursy_profile_client_v1'))    || {};
+    var f = profile.fields || profile || {};
+
+    /* Name: bevorzugt nursy_registration_data_v1 */
+    var first = regData.vorname || f.firstName || '';
+    var last  = regData.nachname || f.lastName  || '';
+    /* Fallback: nursy_pending_patient_name */
+    if (!first && !last) {
+      var pendingName = localStorage.getItem('nursy_pending_patient_name') || '';
+      var parts = pendingName.trim().split(/\s+/);
+      first = parts[0] || '';
+      last  = parts.slice(1).join(' ') || '';
+    }
+    var name = (first + ' ' + last).trim() || 'Klient';
+
+    /* Adresse */
+    var street   = regData.address || f.street || '';
+    var plz      = regData.plz     || f.zip    || '';
+    var ort      = regData.ort     || f.city   || '';
+    var addrParts = [];
+    if(street) addrParts.push(street);
+    var cityLine = [plz, ort].filter(Boolean).join(' ');
+    if(cityLine) addrParts.push(cityLine);
+    var address = addrParts.join(', ') || '–';
+
+    /* E-Mail */
+    var email = regData.email || f.email || '';
+
+    var nameEl    = document.getElementById('dashName');
+    var addrEl    = document.getElementById('dashAddress');
+    var emailEl   = document.getElementById('dashEmail');
+    var emailRow  = document.getElementById('dashEmailRow');
+    var avatarEl  = document.getElementById('dashAvatarClient');
+    var ini       = initials(name);
+
+    if(nameEl) nameEl.textContent = name;
+    if(addrEl) addrEl.textContent = address;
+    if(emailEl && email) { emailEl.textContent = email; if(emailRow) emailRow.style.display = ''; }
+
+    /* ── Profil vom Backend laden (Patient-ID aus isolierter Variable) ── */
+    var patId = _pid !== 'default' ? _pid : '';
+    if(patId){
+      fetch('/api/patient/data/' + patId)
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          if(!d || !d.ok || !d.patient) return;
+          var p = d.patient;
+          var apiName = ((p.vorname||'') + ' ' + (p.nachname||'')).trim();
+          var apiAddr = [p.address, (p.plz||'') + ' ' + (p.ort||'')].filter(function(s){ return s.trim(); }).join(', ');
+          if(nameEl && apiName) nameEl.textContent = apiName;
+          if(addrEl && apiAddr.trim()) addrEl.textContent = apiAddr.trim();
+          if(emailEl && p.email){ emailEl.textContent = p.email; if(emailRow) emailRow.style.display = ''; }
+          var apiIni = initials(apiName || name);
+          var storedPhoto = localStorage.getItem(CLIENT_PHOTO_KEY);
+          applyPhoto(avatarEl, storedPhoto, apiIni);
+          /* Lokale Daten aktualisieren (keyed) */
+          try{
+            var fresh = { vorname: p.vorname, nachname: p.nachname, email: p.email, gender: p.gender, address: p.address, plz: p.plz, ort: p.ort, bezirk: p.bezirk };
+            localStorage.setItem(_K.regData, JSON.stringify(fresh));
+            localStorage.setItem(_K.profile, JSON.stringify({ firstName: p.vorname, lastName: p.nachname, street: p.address, zip: p.plz, city: p.ort, email: p.email }));
+          }catch(ex){}
+        })
+        .catch(function(){});
+    }
+
+    var storedPhoto = localStorage.getItem(CLIENT_PHOTO_KEY);
+    applyPhoto(avatarEl, storedPhoto, ini);
+
+    /* ── Pflegebedarf ── */
+    var anamnese = safeParse(localStorage.getItem(_K.anamnese)) || safeParse(localStorage.getItem('nursy_anamnese_v1')) || {};
+    var need = safeParse(localStorage.getItem(_K.need)) || safeParse(localStorage.getItem('nursy_client_need_v1')) || {};
+    var needEl = document.getElementById('dashNeed');
+    if(needEl){
+      var pflegestufe = anamnese.pflegestufe || '';
+      var mob         = anamnese.mobilisation || need.mobility || need.mobilisation || '';
+      var bits = [];
+      if(pflegestufe) bits.push('Pflegestufe ' + pflegestufe);
+      if(mob)         bits.push('Mobilität: ' + mob);
+      if(bits.length) needEl.textContent = bits.join(' · ');
+      else if(need.problem) needEl.textContent = need.problem;
+    }
+
+    var photoInput = document.getElementById('clientPhotoInput');
+    if(photoInput){
+      photoInput.addEventListener('change', function(){
+        var file = photoInput.files && photoInput.files[0];
+        if(!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev){
+          resizeImage(ev.target.result, 400, 0.82, function(resized){
+            try{ localStorage.setItem(CLIENT_PHOTO_KEY, resized); }catch(e){}
+            applyPhoto(avatarEl, resized, ini);
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.querySelectorAll('[data-action="contact"]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        alert('Demo: Kontakt zur Pflegekraft wird hier geöffnet.');
+      });
+    });
+
+    // ── Pfleger-unterwegs Benachrichtigung ──────────────────────────────
+    (function checkEnroute(){
+      var KEY = _K.enroute;
+      var card   = document.getElementById('enrouteCard');
+      var icon   = document.getElementById('enrouteIcon');
+      var title  = document.getElementById('enrouteTitle');
+      var sub    = document.getElementById('enrouteSub');
+      var badge  = document.getElementById('enrouteBadge');
+      var badgeTxt = document.getElementById('enrouteBadgeText');
+      if(!card) return;
+
+      function refresh(){
+        var raw = null;
+        try{ raw = localStorage.getItem(KEY); }catch(e){}
+        var status = raw ? JSON.parse(raw) : null;
+        if(status && status.active){
+          card.classList.add('is-active');
+          icon.textContent = '🚗';
+          title.textContent = 'Ihr Pfleger ist unterwegs';
+          sub.textContent = 'Ihre Pflegekraft hat die Tour gestartet und ist gerade auf dem Weg zu Ihnen.';
+          badge.style.display = 'flex';
+          if(status.name) badgeTxt.textContent = status.name + ' ist auf dem Weg zu Ihnen';
+        } else {
+          card.classList.remove('is-active');
+          icon.textContent = '🕐';
+          title.textContent = 'Kein Pfleger unterwegs';
+          sub.textContent = 'Sobald Ihre Pflegekraft die Tour startet, erhalten Sie hier automatisch eine Benachrichtigung.';
+          badge.style.display = 'none';
+        }
+      }
+
+      refresh();
+      // Alle 30 Sekunden aktualisieren (Live-Demo)
+      setInterval(refresh, 30000);
+      window.addEventListener('storage', function(e){
+        if(e.key === KEY) refresh();
+      });
+    }());
+  });
+})();
+</script>
+<script>
+/* ── Matching inline: Anfrage stellen & Pfleger finden ── */
+(function(){
+  var _status = null;
+
+  function qs(sel){ return document.querySelector(sel); }
+  function setDisplay(el, show){ if(el) el.style.display = show ? '' : 'none'; }
+
+  function showBanner(msg, style){
+    var b = qs('#dashMatchBanner');
+    b.textContent = msg;
+    b.style.cssText = style;
+    setDisplay(b, true);
+  }
+
+  function renderStatus(d){
+    var sub = qs('#matchStatusSub');
+    setDisplay(qs('#dashMatchForm'),     false);
+    setDisplay(qs('#dashMatchAktiv'),    false);
+    setDisplay(qs('#dashMatchVerbunden'),false);
+    setDisplay(qs('#dashMatchBanner'),   false);
+
+    if(d.verbunden){
+      if(sub) sub.textContent = '✅ Mit einer Pflegekraft verbunden.';
+      showBanner('✅ Verbunden – Ihre Pflegekraft ist zugewiesen.','padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.85rem;font-weight:600;border:1.5px solid #86efac;background:#f0fdf4;color:#166534;');
+      ladeVerbunden();
+    } else if(d.anfrage && d.anfrage.status === 'aktiv'){
+      var a = d.anfrage;
+      if(sub) sub.textContent = a.modus==='offen' ? '🌐 Anfrage öffentlich – wird bearbeitet.' : a.modus==='ziel' ? '📨 Gezielte Anfrage gesendet.' : '📋 Anfrage gespeichert – Modus wählen.';
+      if(a.modus==='offen')
+        showBanner('🌐 Ihre Anfrage ist öffentlich – Pflegekräfte können sie annehmen.','padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.85rem;font-weight:600;border:1.5px solid #fcd34d;background:#fffbeb;color:#92400e;');
+      else if(a.modus==='ziel')
+        showBanner('📨 Gezielte Anfrage gesendet – warte auf Bestätigung.','padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:.85rem;font-weight:600;border:1.5px solid #93c5fd;background:#eff6ff;color:#1e40af;');
+      setDisplay(qs('#dashMatchAktiv'), true);
+      var det = qs('#dashMatchDetail');
+      var leis = (a.leistungen||[]).join(', ')||'–';
+      det.innerHTML = '<strong>Pflegebedarf:</strong> '+(a.pflegebedarf||'–')+'<br><strong>Bezirk:</strong> '+(a.bezirk||'–')+'<br><strong>Leistungen:</strong> '+leis;
+      setDisplay(qs('#dashMatchOptionen'), a.modus==='entwurf');
+    } else {
+      if(sub) sub.textContent = 'Noch keine Anfrage – hier direkt erstellen.';
+      setDisplay(qs('#dashMatchForm'), true);
+      ladePfleger();
+    }
+  }
+
+  function ladeStatus(){
+    fetch('/api/matching/status', {credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d.ok){
+          var sub = qs('#matchStatusSub');
+          if(sub) sub.textContent = 'Für das Matching bitte einmal anmelden.';
+          var sec = qs('#matchingClientSection');
+          if(sec){
+            var loginBox = document.createElement('div');
+            loginBox.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px 20px;text-align:center;';
+            loginBox.innerHTML = '<p style="margin:0 0 12px;font-size:.88rem;color:#64748b;">Sie sind noch nicht serverseitig angemeldet.<br>Einmaliges Einloggen genügt – danach direkt hier nutzbar.</p>'
+              + '<a href="login-client.html?return=dashboard-client.html" class="btn primary" style="display:inline-block;text-decoration:none;padding:9px 22px;font-size:.88rem;font-weight:700;">🔐 Jetzt anmelden</a>';
+            var existingBox = sec.querySelector('.dash-login-hint');
+            if(!existingBox){
+              loginBox.className = 'dash-login-hint';
+              sec.appendChild(loginBox);
+            }
+          }
+          return;
+        }
+        _status = d;
+        renderStatus(d);
+      }).catch(function(){});
+  }
+
+  function ladePfleger(){
+    var grid    = qs('#dashPflegerGrid');
+    var loading = qs('#dashPflegerLoading');
+    var empty   = qs('#dashPflegerEmpty');
+    if(!grid) return;
+    setDisplay(loading, true); setDisplay(empty, false); grid.innerHTML='';
+    fetch('/api/matching/vorschlaege', {credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        setDisplay(loading, false);
+        if(!d.ok||!d.vorschlaege||!d.vorschlaege.length){ setDisplay(empty,true); return; }
+        grid.innerHTML = d.vorschlaege.slice(0,6).map(function(p){
+          var busy = p.hat_verbindung;
+          var ini  = (p.vorname||'?')[0].toUpperCase();
+          return '<div style="border:1.5px solid '+(busy?'#e2e8f0':'#c7d2fe')+';border-radius:12px;padding:13px;background:'+(busy?'#f8fafc':'#fff')+';'+(busy?'opacity:.6;':'')+'text-align:center;">'
+            +'<div style="width:38px;height:38px;border-radius:50%;background:#eff2fd;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#3f6fe8;margin:0 auto 7px;">'+ini+'</div>'
+            +'<div style="font-weight:800;font-size:.85rem;color:#1e293b;margin-bottom:2px;">'+p.vorname+'</div>'
+            +'<div style="font-size:.72rem;color:#3f6fe8;font-weight:600;margin-bottom:4px;">'+(p.qualifikation||'Pflegekraft')+'</div>'
+            +'<div style="font-size:.72rem;color:#64748b;margin-bottom:10px;">📍 '+(p.bezirk||p.ort||'–')+'</div>'
+            +'<button onclick="dashSendZiel(\''+p.id+'\',\''+p.vorname+'\')" '+(busy?'disabled title="Ausgelastet"':'')+' style="background:'+(busy?'#e2e8f0':'#3f6fe8')+';color:'+(busy?'#94a3b8':'#fff')+';border:none;border-radius:8px;padding:5px 12px;font-size:.75rem;font-weight:700;cursor:'+(busy?'default':'pointer')+';font-family:inherit;width:100%;">Anfragen</button>'
+            +'</div>';
+        }).join('');
+      }).catch(function(){ setDisplay(loading,false); setDisplay(empty,true); });
+  }
+
+  function ladeVerbunden(){
+    var el = qs('#dashMatchVerbunden');
+    if(!el) return;
+    fetch('/api/matching/verbindung/pfleger', {credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d.ok||!d.pfleger){ return; }
+        var p = d.pfleger;
+        var ini = ((p.vorname||'')[0]+(p.nachname||'')[0]).toUpperCase()||'?';
+        el.innerHTML = '<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">'
+          +'<div style="width:44px;height:44px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;">'+ini+'</div>'
+          +'<div><div style="font-weight:800;font-size:.92rem;color:#1e293b;">'+p.vorname+' '+p.nachname+'</div>'
+          +'<div style="font-size:.78rem;color:#059669;font-weight:600;">'+(p.qualifikation||'Pflegekraft')+'</div>'
+          +'<div style="font-size:.76rem;color:#555;margin-top:2px;">📍 '+(p.bezirk||p.ort||'–')+(p.email?' · '+p.email:'')+'</div>'
+          +'</div></div>';
+        setDisplay(el, true);
+      }).catch(function(){});
+  }
+
+  window.dashSendZiel = function(cgId, name){
+    if(!_status || !_status.anfrage){
+      alert('Bitte erst Pflegebedarf eingeben und Anfrage speichern, dann können Sie einen Pfleger wählen.');
+      return;
+    }
+    if(!confirm('Anfrage an '+name+' senden?')) return;
+    fetch('/api/matching/anfrage/ziel/'+cgId, {method:'POST',credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d.ok) ladeStatus(); else alert(d.error||'Fehler'); });
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    ladeStatus();
+
+    var btnSpeichern = qs('#dashBtnSpeichern');
+    if(btnSpeichern) btnSpeichern.addEventListener('click', function(){
+      var pf = (qs('#dashAnfPf')||{}).value||''; pf = pf.trim();
+      var bz = (qs('#dashAnfBz')||{}).value||''; bz = bz.trim();
+      if(!pf){ var err=qs('#dashMatchErr'); err.textContent='Bitte Pflegebedarf eingeben.'; setDisplay(err,true); return; }
+      fetch('/api/matching/anfrage', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({pflegebedarf:pf, bezirk:bz, leistungen:[], schicht_wunsch:[]})
+      }).then(function(r){return r.json();})
+        .then(function(d){ if(d.ok) ladeStatus(); else { var err=qs('#dashMatchErr'); err.textContent=d.error||'Fehler'; setDisplay(err,true); } });
+    });
+
+    var btnFreistellen = qs('#dashBtnFreistellen');
+    if(btnFreistellen) btnFreistellen.addEventListener('click', function(){
+      if(!confirm('Anfrage für alle Pflegekräfte freistellen?')) return;
+      fetch('/api/matching/anfrage/freistellen', {method:'POST',credentials:'include'})
+        .then(function(r){return r.json();})
+        .then(function(d){ if(d.ok) ladeStatus(); });
+    });
+
+    var btnZurueck = qs('#dashBtnZurueck');
+    if(btnZurueck) btnZurueck.addEventListener('click', function(){
+      if(!confirm('Anfrage wirklich zurückziehen?')) return;
+      fetch('/api/matching/anfrage', {method:'DELETE',credentials:'include'})
+        .then(function(r){return r.json();})
+        .then(function(d){ if(d.ok) ladeStatus(); });
+    });
+
+    var btnZeigeSuche = qs('#dashBtnZeigeSuche');
+    if(btnZeigeSuche) btnZeigeSuche.addEventListener('click', function(){
+      var box = qs('#dashGezielt');
+      var visible = box.style.display !== 'none';
+      setDisplay(box, !visible);
+      if(!visible){
+        var g = qs('#dashPflegerGridAktiv');
+        if(g && !g.innerHTML){
+          g.innerHTML = '<div class="muted" style="font-size:.8rem;">Wird geladen…</div>';
+          fetch('/api/matching/vorschlaege', {credentials:'include'})
+            .then(function(r){return r.json();})
+            .then(function(d){
+              if(!d.ok||!d.vorschlaege||!d.vorschlaege.length){ g.innerHTML='<div style="font-size:.8rem;color:#94a3b8;">Keine Pflegekräfte gefunden.</div>'; return; }
+              g.innerHTML = d.vorschlaege.slice(0,6).map(function(p){
+                var busy=p.hat_verbindung;
+                var ini=(p.vorname||'?')[0].toUpperCase();
+                return '<div style="border:1.5px solid '+(busy?'#e2e8f0':'#c7d2fe')+';border-radius:12px;padding:12px;background:'+(busy?'#f8fafc':'#fff')+';text-align:center;'+(busy?'opacity:.6;':'')+'+">'
+                  +'<div style="width:34px;height:34px;border-radius:50%;background:#eff2fd;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#3f6fe8;margin:0 auto 6px;">'+ini+'</div>'
+                  +'<div style="font-weight:800;font-size:.82rem;color:#1e293b;margin-bottom:2px;">'+p.vorname+'</div>'
+                  +'<div style="font-size:.72rem;color:#64748b;margin-bottom:8px;">📍 '+(p.bezirk||p.ort||'–')+'</div>'
+                  +'<button onclick="dashSendZiel(\''+p.id+'\',\''+p.vorname+'\')" '+(busy?'disabled':'')+' style="background:'+(busy?'#e2e8f0':'#3f6fe8')+';color:'+(busy?'#94a3b8':'#fff')+';border:none;border-radius:8px;padding:5px 10px;font-size:.74rem;font-weight:700;cursor:'+(busy?'default':'pointer')+';font-family:inherit;width:100%;">Anfragen</button>'
+                  +'</div>';
+              }).join('');
+            }).catch(function(){ g.innerHTML='<div style="font-size:.8rem;color:#94a3b8;">Fehler beim Laden.</div>'; });
+        }
+      }
+    });
+  });
+
+  /* ── Abmelden + Account löschen ── */
+  var btnLogoutClient = document.getElementById('btnLogoutClient');
+  if(btnLogoutClient) btnLogoutClient.addEventListener('click', function(){
+    fetch('/api/logout/client', {method:'POST', credentials:'include'})
+      .then(function(){ location.href='login-client.html'; })
+      .catch(function(){ location.href='login-client.html'; });
+  });
+  var btnDeleteClient = document.getElementById('btnDeleteClient');
+  if(btnDeleteClient) btnDeleteClient.addEventListener('click', function(){
+    if(!confirm('Account wirklich löschen?\n\nAlle Ihre Anfragen und Verbindungen werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+    fetch('/api/client/account', {method:'DELETE', credentials:'include'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok) location.href='index.html';
+        else alert(d.error || 'Fehler beim Löschen');
+      });
+  });
+})();
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+</body>
+</html>

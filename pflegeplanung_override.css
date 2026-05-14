@@ -1,0 +1,117 @@
+
+/* ==================================================
+   PFLEGEPLANUNG – OVERRIDE (skizzengetreu, Nursy-Stil)
+   Wichtig: Dieses File überschreibt NUR die Pflegeplanung,
+   ohne dein globales Layout zu zerstören.
+   Version: 20260223162651
+================================================== */
+
+body[data-page="pflegeplanung"] .modal__panel{
+  width: min(1100px, 92vw);
+}
+
+body[data-page="pflegeplanung"] .modal__body{
+  padding: 28px 28px 18px;
+}
+
+/* ===== TOP: Patient links, Controls rechts ===== */
+body[data-page="pflegeplanung"] .ppwf-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+/* Controls rechts: Frequenz + Evaluierung nebeneinander */
+body[data-page="pflegeplanung"] .ppwf-controls{
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: nowrap;
+  margin-left: auto; /* schiebt nach rechts */
+}
+
+/* Frequenz etwas breiter, Evaluierung schmaler */
+body[data-page="pflegeplanung"] #ppwfFreq.control{
+  width: 240px;
+  max-width: 240px;
+}
+body[data-page="pflegeplanung"] #ppwfEvalDate.control{
+  width: 190px;             /* schmaler */
+  max-width: 190px;
+}
+
+/* iOS: verhindert Überlauf bei date-input */
+body[data-page="pflegeplanung"] .ppwf-controls .ppwf-field{
+  min-width: 0;
+}
+body[data-page="pflegeplanung"] .ppwf-controls .control{
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Inputs im Nursy-Stil (nur in Top-Controls) */
+body[data-page="pflegeplanung"] .ppwf-controls .control{
+  height: 48px;
+  border: 1px solid rgba(63,111,232,.28);
+  border-radius: 14px;
+  background: rgba(255,255,255,.96);
+}
+
+/* ===== Anamnese/Vorlagen: Spalten wie Skizze ===== */
+body[data-page="pflegeplanung"] .ppwf-colhead{
+  display: grid;
+  grid-template-columns: 44px 1.15fr 1fr 1fr;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(63,111,232,.18);
+  border-radius: 14px;
+  background: rgba(63,111,232,.04);
+  font-weight: 800;
+}
+
+body[data-page="pflegeplanung"] .ppwf-item{
+  display: grid;
+  grid-template-columns: 44px 1.15fr 1fr 1fr;
+  gap: 14px;
+  padding: 14px 14px;
+  border: 1px solid rgba(63,111,232,.14);
+  border-radius: 14px;
+  background: rgba(255,255,255,.78);
+}
+body[data-page="pflegeplanung"] .ppwf-item:hover{
+  background: rgba(63,111,232,.05);
+}
+body[data-page="pflegeplanung"] .ppwf-item input[type="checkbox"]{
+  margin-top: 3px;
+}
+
+/* ===== Buttons unten: 3 gleich große Buttons, nie über Rand ===== */
+body[data-page="pflegeplanung"] .modal__actions{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+body[data-page="pflegeplanung"] .modal__actions .btn{
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 52px;
+  border-radius: 18px;
+}
+
+/* ===== Responsive: wenn eng, Controls umbrechen ===== */
+@media (max-width: 760px){
+  body[data-page="pflegeplanung"] .ppwf-controls{
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+  body[data-page="pflegeplanung"] #ppwfFreq.control,
+  body[data-page="pflegeplanung"] #ppwfEvalDate.control{
+    width: 100%;
+    max-width: 100%;
+  }
+}

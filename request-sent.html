@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Anfrage gesendet</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .sent-wrap {
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .sent-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 32px rgba(15,26,51,.10);
+      padding: 48px 40px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+    }
+    .sent-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      font-size: 36px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 4px 16px rgba(34,197,94,.30);
+    }
+    .sent-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin: 0 0 12px;
+    }
+    .sent-text {
+      font-size: .95rem;
+      color: #64748b;
+      line-height: 1.6;
+      margin: 0 0 32px;
+    }
+    .sent-steps {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    .sent-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px 0;
+    }
+    .sent-step + .sent-step {
+      border-top: 1px solid #f1f5f9;
+    }
+    .sent-step__num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: #3f6fe8;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .sent-step__text { font-size: .87rem; color: #374151; line-height: 1.5; }
+    .sent-step__text strong { color: #1e293b; }
+    .sent-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .sent-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: .9rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: filter .15s;
+    }
+    .sent-btn--primary { background: #3f6fe8; color: #fff; }
+    .sent-btn--primary:hover { filter: brightness(.92); text-decoration: none; }
+    .sent-btn--ghost {
+      background: #f1f5f9;
+      color: #374151;
+      border: 1.5px solid #e2e8f0;
+    }
+    .sent-btn--ghost:hover { background: #e2e8f0; text-decoration: none; }
+
+    .sent-patname {
+      font-size: .9rem;
+      color: #3f6fe8;
+      font-weight: 700;
+      background: #eff2fd;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+    </a>
+  </div>
+</header>
+
+<main class="container">
+  <div class="sent-wrap">
+    <div class="sent-card">
+      <div class="sent-icon">✓</div>
+      <h1 class="sent-title">Anfrage erfolgreich gesendet!</h1>
+      <div id="patNameBadge"></div>
+      <p class="sent-text">
+        Ihre Pflegeanamnese wurde gespeichert und Ihre Anfrage wurde an passende Pflegekräfte in Ihrer Nähe weitergeleitet.
+      </p>
+
+      <div class="sent-steps">
+        <div class="sent-step">
+          <div class="sent-step__num">1</div>
+          <div class="sent-step__text"><strong>Anfrage prüfen</strong><br>Eine Pflegekraft sieht Ihre Anfrage und Ihr Pflegeprofil.</div>
+        </div>
+        <div class="sent-step">
+          <div class="sent-step__num">2</div>
+          <div class="sent-step__text"><strong>Übernehmen</strong><br>Die passende Pflegekraft nimmt Ihre Anfrage an – Sie werden benachrichtigt.</div>
+        </div>
+        <div class="sent-step">
+          <div class="sent-step__num">3</div>
+          <div class="sent-step__text"><strong>Erster Einsatz</strong><br>Ihr Pflegeplan wird gemeinsam erstellt und der erste Besuch geplant.</div>
+        </div>
+      </div>
+
+      <div class="sent-actions">
+        <a href="index.html" class="sent-btn sent-btn--ghost">Zur Startseite</a>
+        <a href="login-care.html" class="sent-btn sent-btn--primary">Als Pfleger einloggen →</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var name = '';
+  try{ name = localStorage.getItem('nursy_pending_patient_name') || ''; }catch(e){}
+  if(name){
+    var el = document.getElementById('patNameBadge');
+    if(el) el.innerHTML = '<span class="sent-patname">Patient: ' + name.replace(/</g,'&lt;') + '</span>';
+    try{ localStorage.removeItem('nursy_pending_patient_name'); }catch(e){}
+  }
+}());
+</script>
+</body>
+</html>

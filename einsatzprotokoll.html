@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Einsatzprotokoll</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="theme-color" content="#0f2744">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f2744;--navy2:#1a3a5c;--blue:#2563eb;--blue-l:#3b82f6;
+  --red:#dc2626;--green:#16a34a;--amber:#d97706;
+  --bg:#f0f4fb;--card:#fff;--text:#0f1a33;--muted:#64748b;
+  --border:rgba(15,26,51,.1);--r:12px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}
+body{display:flex;flex-direction:column;}
+
+/* ── Header ── */
+.ep-hdr{
+  background:var(--navy);color:#fff;
+  padding:12px 16px 10px;flex-shrink:0;
+  display:flex;align-items:center;gap:10px;
+}
+.ep-hdr__back{
+  background:rgba(255,255,255,.12);border:none;border-radius:8px;
+  color:#fff;padding:7px 11px;font-size:.78rem;font-weight:700;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+}
+.ep-hdr__info{flex:1;min-width:0;}
+.ep-hdr__title{font-size:1rem;font-weight:900;}
+.ep-hdr__sub{font-size:.72rem;opacity:.65;margin-top:1px;}
+.ep-hdr__print{
+  background:rgba(255,255,255,.12);border:none;border-radius:8px;
+  color:#fff;padding:7px 11px;font-size:.78rem;font-weight:700;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+}
+
+/* ── Content ── */
+.ep-body{
+  flex:1;padding:16px 16px 60px;
+  max-width:860px;margin:0 auto;width:100%;
+}
+
+/* ── Patient Banner ── */
+.ep-patient{
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  color:#fff;border-radius:var(--r);padding:16px;
+  margin-bottom:16px;display:flex;align-items:center;gap:14px;
+}
+.ep-patient__avatar{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.18);display:flex;align-items:center;
+  justify-content:center;font-size:1.2rem;font-weight:900;
+  border:2px solid rgba(255,255,255,.3);
+}
+.ep-patient__name{font-size:1.05rem;font-weight:900;line-height:1.2;}
+.ep-patient__sub{font-size:.76rem;opacity:.75;margin-top:3px;line-height:1.5;}
+.ep-patient__link{
+  margin-left:auto;flex-shrink:0;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;text-decoration:none;border-radius:8px;
+  padding:6px 12px;font-size:.73rem;font-weight:700;white-space:nowrap;
+}
+
+/* ── Meta grid ── */
+.ep-meta{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;
+  margin-bottom:16px;
+}
+.ep-meta__item{
+  background:var(--card);border-radius:var(--r);padding:12px 14px;
+  border:1px solid var(--border);
+}
+.ep-meta__label{font-size:.65rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);margin-bottom:4px;}
+.ep-meta__val{font-size:.9rem;font-weight:800;color:var(--text);}
+.ep-meta__val--green{color:var(--green);}
+.ep-meta__val--amber{color:var(--amber);}
+.ep-meta__val--red{color:var(--red);}
+
+/* ── Section ── */
+.ep-sec{
+  background:var(--card);border-radius:var(--r);
+  border:1px solid var(--border);margin-bottom:14px;overflow:hidden;
+}
+.ep-sec__head{
+  display:flex;align-items:center;gap:9px;
+  padding:11px 14px;background:#f8faff;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;user-select:none;
+}
+.ep-sec__icon{font-size:1rem;}
+.ep-sec__title{flex:1;font-size:.83rem;font-weight:800;color:var(--navy);}
+.ep-sec__badge{
+  font-size:.65rem;font-weight:700;background:#e0e9ff;color:var(--blue);
+  border-radius:999px;padding:2px 8px;
+}
+.ep-sec__chev{font-size:.7rem;color:var(--muted);transition:transform .2s;}
+.ep-sec.collapsed .ep-sec__chev{transform:rotate(-90deg);}
+.ep-sec__body{padding:14px;display:block;}
+.ep-sec.collapsed .ep-sec__body{display:none;}
+
+/* ── Timeline ── */
+.ep-timeline{position:relative;padding-left:28px;}
+.ep-timeline::before{
+  content:'';position:absolute;left:9px;top:8px;bottom:8px;
+  width:2px;background:rgba(37,99,235,.15);
+}
+.ep-tl-item{position:relative;margin-bottom:16px;}
+.ep-tl-item:last-child{margin-bottom:0;}
+.ep-tl-dot{
+  position:absolute;left:-23px;top:2px;
+  width:14px;height:14px;border-radius:50%;
+  border:2.5px solid var(--blue-l);background:#fff;
+}
+.ep-tl-dot--status{background:var(--blue-l);border-color:var(--blue);}
+.ep-tl-dot--nachricht{background:#fff;border-color:var(--amber);}
+.ep-tl-dot--system{background:#fff;border-color:var(--muted);}
+.ep-tl-dot--green{background:var(--green);border-color:var(--green);}
+.ep-tl-time{font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:2px;}
+.ep-tl-action{font-size:.84rem;font-weight:800;color:var(--text);}
+.ep-tl-details{font-size:.78rem;color:var(--muted);margin-top:2px;line-height:1.4;}
+.ep-tl-akteur{
+  display:inline-block;margin-top:4px;font-size:.68rem;font-weight:700;
+  background:#f0f4fb;color:var(--muted);border-radius:6px;padding:1px 7px;
+}
+
+/* ── Status Chips in Meta ── */
+.ep-status{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:999px;
+  font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+}
+.ep-status--alarmiert{background:rgba(220,38,38,.12);color:var(--red);}
+.ep-status--angenommen{background:rgba(217,119,6,.12);color:var(--amber);}
+.ep-status--unterwegs{background:rgba(217,119,6,.2);color:var(--amber);}
+.ep-status--eingetroffen{background:rgba(37,99,235,.12);color:var(--blue);}
+.ep-status--beendet{background:rgba(22,163,74,.12);color:var(--green);}
+.ep-status--storniert{background:rgba(100,116,139,.12);color:var(--muted);}
+
+/* ── Doku Row ── */
+.ep-doku-item{
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.ep-doku-item:last-child{border-bottom:none;}
+.ep-doku-item__head{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.ep-doku-item__typ{
+  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  background:#f0f4fb;color:var(--muted);border-radius:6px;padding:2px 7px;
+}
+.ep-doku-item__time{font-size:.7rem;color:var(--muted);}
+.ep-doku-item__text{font-size:.84rem;line-height:1.5;color:var(--text);}
+.ep-doku-item__important{color:var(--red);font-weight:800;}
+
+/* ── Vitals table ── */
+.ep-vt{width:100%;border-collapse:collapse;font-size:.8rem;}
+.ep-vt th{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--muted);padding:6px 8px;text-align:left;border-bottom:2px solid var(--border);}
+.ep-vt td{padding:8px;border-bottom:1px solid var(--border);}
+.ep-vt tr:last-child td{border-bottom:none;}
+.ep-vt__val{font-weight:700;}
+.ep-vt__unit{color:var(--muted);font-size:.72rem;}
+
+/* ── Doc cards ── */
+.ep-doc-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.ep-doc-item:last-child{border-bottom:none;}
+.ep-doc-icon{
+  width:36px;height:36px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+  background:#f0f4fb;border:1px solid var(--border);
+}
+.ep-doc-name{font-size:.82rem;font-weight:700;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ep-doc-meta{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.ep-doc-btn{
+  flex-shrink:0;padding:5px 10px;border-radius:7px;
+  font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;
+  text-decoration:none;display:inline-flex;align-items:center;gap:4px;
+  background:#fff;color:var(--blue);border-color:rgba(37,99,235,.25);
+}
+
+/* ── Nachrichten ── */
+.ep-msg{
+  padding:9px 12px;border-radius:10px;margin-bottom:8px;
+  background:#f8faff;border:1px solid var(--border);
+  font-size:.83rem;line-height:1.5;
+}
+.ep-msg:last-child{margin-bottom:0;}
+.ep-msg__head{font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:4px;}
+
+/* ── Empty ── */
+.ep-empty{
+  text-align:center;padding:20px;color:var(--muted);font-size:.82rem;
+}
+
+/* ── Zeit Grid ── */
+.ep-zeiten{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:8px;
+}
+.ep-zeit-item{
+  background:#f8faff;border:1px solid var(--border);border-radius:9px;
+  padding:8px 12px;text-align:center;
+}
+.ep-zeit-label{font-size:.65rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.ep-zeit-val{font-size:1rem;font-weight:900;color:var(--navy);}
+.ep-zeit-val--empty{font-size:.82rem;color:var(--muted);font-weight:400;}
+
+/* ── Risiko Chips ── */
+.ep-risiken{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.ep-risiko{
+  padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;
+  background:rgba(220,38,38,.09);color:var(--red);border:1px solid rgba(220,38,38,.2);
+}
+
+/* ── Loading ── */
+.ep-loading{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;padding:60px 20px;color:var(--muted);
+}
+.ep-spinner{
+  width:32px;height:32px;border:3px solid rgba(37,99,235,.15);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Print ── */
+@media print {
+  .ep-hdr__back,.ep-hdr__print,.ep-patient__link,.ep-doc-btn{display:none!important;}
+  .ep-hdr{background:#0f2744;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .ep-patient{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .ep-sec.collapsed .ep-sec__body{display:block!important;}
+  body{background:#fff;}
+  .ep-body{padding:12px;}
+  .ep-sec{break-inside:avoid;}
+}
+
+@media(max-width:480px){
+  .ep-body{padding:12px 12px 60px;}
+  .ep-hdr{padding:10px 12px 8px;}
+  .ep-meta{grid-template-columns:1fr 1fr;}
+  .ep-zeiten{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<header class="ep-hdr">
+  <button class="ep-hdr__back" onclick="history.back()">← Zurück</button>
+  <div class="ep-hdr__info">
+    <div class="ep-hdr__title">📋 Einsatzprotokoll</div>
+    <div class="ep-hdr__sub" id="epHdrSub">Wird geladen…</div>
+  </div>
+  <button class="ep-hdr__print" onclick="window.print()">🖨 Drucken</button>
+</header>
+
+<div class="ep-body" id="epBody">
+  <div class="ep-loading">
+    <div class="ep-spinner"></div>
+    <div>Protokoll wird geladen…</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+function getParam(k){
+  var p={};
+  window.location.search.slice(1).split('&').forEach(function(x){
+    var kv=x.split('='); if(kv[0]) p[decodeURIComponent(kv[0])]=decodeURIComponent(kv[1]||'');
+  });
+  return p[k]||'';
+}
+
+function fmtDatum(s){
+  if(!s) return '–';
+  try{
+    var d=new Date(s.replace(' ','T'));
+    if(isNaN(d)) return s;
+    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  }catch(e){return s;}
+}
+
+function fmtZeit(s){
+  if(!s) return '–';
+  try{
+    var d=new Date(s.replace(' ','T'));
+    if(isNaN(d)) return s;
+    return d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){return s;}
+}
+
+function fmtTs(s){
+  if(!s) return '–';
+  try{
+    var d=new Date(s.replace(' ','T'));
+    if(isNaN(d)) return s;
+    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit'})
+      +' '+d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){return s;}
+}
+
+var TYPE_ICONS={arztbrief:'📄',wundfoto:'🩹',befund:'🔬',verlauf:'📊',foto:'📷',sonstiges:'📎'};
+var TYPE_LABELS={arztbrief:'Arztbrief',wundfoto:'Wundfoto',befund:'Befund/Labor',verlauf:'Verlaufsdoku',foto:'Foto',sonstiges:'Sonstiges'};
+
+var STATUS_LABELS={
+  alarmiert:'Alarmiert',angenommen:'Angenommen',
+  unterwegs:'Unterwegs',eingetroffen:'Eingetroffen',
+  beendet:'Beendet',storniert:'Storniert',einsatzbereit:'Einsatzbereit'
+};
+
+function toggleSec(id){
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function renderProtokoll(data){
+  var e  = data.einsatz   || {};
+  var p  = data.patient   || {};
+  var tl = data.protokoll || [];
+  var na = data.nachrichten   || [];
+  var dk = data.dokumentation || [];
+  var vz = data.vitalzeichen  || [];
+  var files = data.dokumente  || [];
+
+  var status = e.status || '';
+  var statusCss = 'ep-status--'+(status||'alarmiert');
+
+  /* Header sub */
+  document.getElementById('epHdrSub').textContent =
+    (e.nummer ? 'Nr. '+e.nummer+' · ' : '') + fmtDatum(e.datum) + (e.zeit ? ' · '+e.zeit+' Uhr' : '');
+
+  var html = '';
+
+  /* ── Patient Banner ── */
+  if(p && p.vorname){
+    var initials = ((p.vorname||'').charAt(0)+(p.nachname||'').charAt(0)).toUpperCase();
+    html +=
+      '<div class="ep-patient">'+
+        '<div class="ep-patient__avatar">'+esc(initials)+'</div>'+
+        '<div>'+
+          '<div class="ep-patient__name">'+esc(p.vorname)+' '+esc(p.nachname)+'</div>'+
+          '<div class="ep-patient__sub">'+
+            (p.gender||'')+(p.birth?' · geb. '+esc(p.birth):'')+'<br>'+
+            esc(p.address||p.adresse||'')+'</div>'+
+        '</div>'+
+        (p.id?'<a class="ep-patient__link" href="patientenakte.html?pid='+encodeURIComponent(p.id)+'&from=leitstelle" target="_blank">👤 Akte öffnen</a>':'')+
+      '</div>';
+  }
+
+  /* ── Meta grid ── */
+  html += '<div class="ep-meta">';
+  html += '<div class="ep-meta__item"><div class="ep-meta__label">Status</div>'+
+    '<div><span class="ep-status '+statusCss+'">'+esc(STATUS_LABELS[status]||status)+'</span></div></div>';
+  if(e.nummer)
+    html += '<div class="ep-meta__item"><div class="ep-meta__label">Einsatznummer</div><div class="ep-meta__val">'+esc(e.nummer)+'</div></div>';
+  if(e.fahrzeug)
+    html += '<div class="ep-meta__item"><div class="ep-meta__label">Fahrzeug</div><div class="ep-meta__val">'+esc(e.fahrzeug)+'</div></div>';
+  if(e.adresse||e.bezirk)
+    html += '<div class="ep-meta__item"><div class="ep-meta__label">Einsatzort</div><div class="ep-meta__val" style="font-size:.8rem;">'+esc(e.adresse||e.bezirk||'–')+'</div></div>';
+  if(e.art||e.artLabel)
+    html += '<div class="ep-meta__item"><div class="ep-meta__label">Art</div><div class="ep-meta__val">'+esc(e.artLabel||e.art||'–')+'</div></div>';
+  html += '</div>';
+
+  /* ── Zeiten ── */
+  var zeiten = [
+    {label:'Alarmiert',  val: e.datum&&e.zeit ? e.datum.slice(0,10)+' '+e.zeit : e.datum},
+    {label:'Angenommen', val: e.zeit_angenommen},
+    {label:'Unterwegs',  val: e.zeit_unterwegs},
+    {label:'Eingetroffen',val:e.zeit_eingetroffen},
+    {label:'Beendet',    val: e.zeit_beendet},
+  ];
+  var haveZeit = zeiten.some(function(z){ return z.val && z.val.trim(); });
+  if(haveZeit){
+    html += '<div id="secZeiten" class="ep-sec">';
+    html += '<div class="ep-sec__head" onclick="toggleSec(\'secZeiten\')">'+
+      '<span class="ep-sec__icon">⏱</span><span class="ep-sec__title">Zeitverlauf</span>'+
+      '<span class="ep-sec__chev">▼</span></div>';
+    html += '<div class="ep-sec__body"><div class="ep-zeiten">';
+    zeiten.forEach(function(z){
+      var v = z.val && z.val.trim()
+        ? '<div class="ep-zeit-val">'+esc(z.val.slice(-5)||z.val)+'</div>'
+        : '<div class="ep-zeit-val ep-zeit-val--empty">–</div>';
+      html += '<div class="ep-zeit-item"><div class="ep-zeit-label">'+esc(z.label)+'</div>'+v+'</div>';
+    });
+    html += '</div></div></div>';
+  }
+
+  /* ── Risiken ── */
+  if(e.risiken && e.risiken.length){
+    html += '<div id="secRisiken" class="ep-sec">';
+    html += '<div class="ep-sec__head" onclick="toggleSec(\'secRisiken\')">'+
+      '<span class="ep-sec__icon">⚠️</span><span class="ep-sec__title">Risiken / Hinweise</span>'+
+      '<span class="ep-sec__badge">'+e.risiken.length+'</span><span class="ep-sec__chev">▼</span></div>';
+    html += '<div class="ep-sec__body"><div class="ep-risiken">'+
+      e.risiken.map(function(r){ return '<span class="ep-risiko">'+esc(r)+'</span>'; }).join('')+
+    '</div></div></div>';
+  }
+
+  /* ── Timeline ── */
+  html += '<div id="secTimeline" class="ep-sec">';
+  html += '<div class="ep-sec__head" onclick="toggleSec(\'secTimeline\')">'+
+    '<span class="ep-sec__icon">📍</span><span class="ep-sec__title">Aktivitäts-Protokoll</span>'+
+    '<span class="ep-sec__badge">'+tl.length+'</span><span class="ep-sec__chev">▼</span></div>';
+  html += '<div class="ep-sec__body">';
+  if(!tl.length){
+    html += '<div class="ep-empty">Noch keine Protokolleinträge.</div>';
+  } else {
+    html += '<div class="ep-timeline">';
+    tl.forEach(function(ev){
+      var dotCss = ev.akteur_typ==='system' ? 'ep-tl-dot--system'
+        : ev.aktion==='status' && ev.details==='Einsatz beendet' ? 'ep-tl-dot--green'
+        : ev.aktion==='status' ? 'ep-tl-dot--status'
+        : ev.akteur_typ==='nachricht' ? 'ep-tl-dot--nachricht'
+        : '';
+      var label = ev.aktion==='status' ? esc(ev.details||ev.aktion)
+        : esc(ev.aktion);
+      html += '<div class="ep-tl-item">'+
+        '<div class="ep-tl-dot '+dotCss+'"></div>'+
+        '<div class="ep-tl-time">'+fmtTs(ev.zeitpunkt)+'</div>'+
+        '<div class="ep-tl-action">'+label+'</div>'+
+        (ev.details&&ev.details!==ev.aktion?'<div class="ep-tl-details">'+esc(ev.details)+'</div>':'')+
+        (ev.akteur?'<span class="ep-tl-akteur">'+esc(ev.akteur_typ==='system'?'System':ev.akteur)+'</span>':'')+
+      '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div></div>';
+
+  /* ── Pflege-Nachrichten ── */
+  if(na.length){
+    html += '<div id="secNachrichten" class="ep-sec collapsed">';
+    html += '<div class="ep-sec__head" onclick="toggleSec(\'secNachrichten\')">'+
+      '<span class="ep-sec__icon">💬</span><span class="ep-sec__title">Nachrichten</span>'+
+      '<span class="ep-sec__badge">'+na.length+'</span><span class="ep-sec__chev">▼</span></div>';
+    html += '<div class="ep-sec__body">';
+    na.forEach(function(m){
+      html += '<div class="ep-msg">'+
+        '<div class="ep-msg__head">'+esc(m.von_name||m.von||'Unbekannt')+' · '+fmtTs(m.created_at)+'</div>'+
+        esc(m.text||m.inhalt||'')+'</div>';
+    });
+    html += '</div></div>';
+  }
+
+  /* ── Pflege-Dokumentation ── */
+  html += '<div id="secDoku" class="ep-sec">';
+  html += '<div class="ep-sec__head" onclick="toggleSec(\'secDoku\')">'+
+    '<span class="ep-sec__icon">📝</span><span class="ep-sec__title">Pflegedokumentation</span>'+
+    '<span class="ep-sec__badge">'+dk.length+'</span><span class="ep-sec__chev">▼</span></div>';
+  html += '<div class="ep-sec__body">';
+  if(!dk.length){
+    html += '<div class="ep-empty">Keine Dokumentationseinträge für diesen Einsatztag.</div>';
+  } else {
+    dk.forEach(function(d){
+      html += '<div class="ep-doku-item">'+
+        '<div class="ep-doku-item__head">'+
+          '<span class="ep-doku-item__typ">'+esc(d.typ||'allgemein')+'</span>'+
+          (d.uhrzeit?'<span class="ep-doku-item__time">'+esc(d.datum||'')+(d.uhrzeit?' · '+esc(d.uhrzeit):'')+'</span>':'')+
+          (d.grp?'<span class="ep-doku-item__time"> · '+esc(d.grp)+'</span>':'')+
+        '</div>'+
+        '<div class="ep-doku-item__text'+(d.important?' ep-doku-item__important':'')+'">'+
+          esc(d.text||d.plan||'')+'</div>'+
+      '</div>';
+    });
+  }
+  html += '</div></div>';
+
+  /* ── Vitalzeichen ── */
+  html += '<div id="secVitals" class="ep-sec'+(vz.length?'':' collapsed')+'">';
+  html += '<div class="ep-sec__head" onclick="toggleSec(\'secVitals\')">'+
+    '<span class="ep-sec__icon">❤️</span><span class="ep-sec__title">Vitalzeichen</span>'+
+    '<span class="ep-sec__badge">'+vz.length+'</span><span class="ep-sec__chev">▼</span></div>';
+  html += '<div class="ep-sec__body">';
+  if(!vz.length){
+    html += '<div class="ep-empty">Keine Vitalzeichen erfasst.</div>';
+  } else {
+    html += '<div style="overflow-x:auto;"><table class="ep-vt"><thead><tr>'+
+      '<th>Uhrzeit</th><th>RR</th><th>Puls</th><th>SpO₂</th><th>Temp.</th><th>BZ</th>'+
+    '</tr></thead><tbody>';
+    vz.forEach(function(v){
+      html += '<tr>'+
+        '<td class="ep-vt__val">'+esc(v.uhrzeit||'–')+'</td>'+
+        '<td>'+(v.sys||v.dia?'<span class="ep-vt__val">'+esc((v.sys||'?')+'/'+( v.dia||'?'))+'</span> <span class="ep-vt__unit">mmHg</span>':'–')+'</td>'+
+        '<td>'+(v.puls?'<span class="ep-vt__val">'+v.puls+'</span> <span class="ep-vt__unit">/min</span>':'–')+'</td>'+
+        '<td>'+(v.spo2?'<span class="ep-vt__val">'+v.spo2+'</span><span class="ep-vt__unit">%</span>':'–')+'</td>'+
+        '<td>'+(v.temp?'<span class="ep-vt__val">'+v.temp+'</span><span class="ep-vt__unit">°C</span>':'–')+'</td>'+
+        '<td>'+(v.bz?'<span class="ep-vt__val">'+v.bz+'</span><span class="ep-vt__unit">mmol/L</span>':'–')+'</td>'+
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div></div>';
+
+  /* ── Dokumente / Dateien ── */
+  html += '<div id="secFiles" class="ep-sec'+(files.length?'':' collapsed')+'">';
+  html += '<div class="ep-sec__head" onclick="toggleSec(\'secFiles\')">'+
+    '<span class="ep-sec__icon">📁</span><span class="ep-sec__title">Dokumente &amp; Dateien</span>'+
+    '<span class="ep-sec__badge">'+files.length+'</span><span class="ep-sec__chev">▼</span></div>';
+  html += '<div class="ep-sec__body">';
+  if(!files.length){
+    html += '<div class="ep-empty">Keine Dateien hochgeladen.</div>';
+  } else {
+    files.forEach(function(f){
+      var icon = TYPE_ICONS[f.typ]||'📎';
+      var label = TYPE_LABELS[f.typ]||f.typ||'Sonstiges';
+      html += '<div class="ep-doc-item">'+
+        '<div class="ep-doc-icon">'+icon+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div class="ep-doc-name">'+esc(f.original_name||f.id)+'</div>'+
+          '<div class="ep-doc-meta">'+esc(label)+' · '+fmtTs(f.created_at)+(f.uploaded_by?' · '+esc(f.uploaded_by):'')+'</div>'+
+          (f.beschreibung?'<div class="ep-doc-meta" style="font-style:italic;">'+esc(f.beschreibung)+'</div>':'')+
+        '</div>'+
+        (f.url?'<a class="ep-doc-btn" href="'+esc(f.url)+'" target="_blank" download="'+esc(f.original_name||'')+'">⬇ Öffnen</a>':'')+
+      '</div>';
+    });
+  }
+  html += '</div></div>';
+
+  document.getElementById('epBody').innerHTML = html;
+}
+
+/* ── Load ── */
+var eid = getParam('eid');
+if(!eid){
+  document.getElementById('epBody').innerHTML =
+    '<div class="ep-loading"><div>⚠️ Kein Einsatz angegeben (Parameter: ?eid=…)</div></div>';
+} else {
+  fetch('/api/einsaetze/'+encodeURIComponent(eid)+'/protokoll-voll', {credentials:'include'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){
+        document.getElementById('epBody').innerHTML =
+          '<div class="ep-loading"><div>⚠️ '+esc(d.error)+'</div></div>';
+        return;
+      }
+      renderProtokoll(d);
+    })
+    .catch(function(){
+      document.getElementById('epBody').innerHTML =
+        '<div class="ep-loading"><div>⚠️ Verbindungsfehler beim Laden.</div></div>';
+    });
+}
+</script>
+</body>
+</html>

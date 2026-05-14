@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nursy – Durchführungsnachweis</title>
+<style>
+:root{
+  --bg:#eef4ff;
+  --card:#fff;
+  --line:#e7edf7;
+  --text:#1d2b4f;
+  --muted:#72809d;
+  --blue:#3f6fe8;
+  --green:#2f8f4e;
+  --red:#cf2f2f;
+  --border:1px solid rgba(63,111,232,.14);
+  --shadow:0 8px 18px rgba(15,26,51,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:linear-gradient(180deg,#eef4ff,#e3edff);
+  color:var(--text);
+  font-family:ui-sans-serif,system-ui,sans-serif;
+  min-height:100vh;
+}
+.page{width:min(1080px,95vw);margin:0 auto;padding:20px 0 48px;}
+
+/* top */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.back{font-size:13px;margin-bottom:10px;}
+.back a{color:var(--blue);text-decoration:none;font-weight:700;}
+.patient{font-size:17px;font-weight:800;line-height:1.5;}
+.patient span{font-weight:500;}
+.pill{height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(63,111,232,.18);background:#fff;color:#1d2b4f;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;text-decoration:none;}
+.pill:hover{background:#f3f7ff;}
+.pill.primary{background:#3f6fe8;color:#fff;border-color:#3f6fe8;}
+.pill.primary:hover{background:#3464d8;}
+
+/* meta bar */
+.meta-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.chip{background:#fff;border:var(--border);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;box-shadow:var(--shadow);color:var(--muted);}
+.chip strong{color:var(--text);}
+.chip.chip--done strong{color:var(--green);}
+.chip.chip--open strong{color:#9a6b00;}
+
+/* cards */
+.card{background:var(--card);border:var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px;}
+.card__head{padding:16px 20px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.card__head__left{flex:1;}
+.card__title{font-size:15px;font-weight:800;margin-bottom:2px;}
+.card__sub{font-size:12px;color:var(--muted);}
+.btn-sign-all{flex-shrink:0;padding:7px 16px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.btn-sign-all:hover{opacity:.88;}
+
+/* time group */
+.tg{border-top:1px solid var(--line);}
+.tg:first-of-type{border-top:none;}
+.tg__head{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#f7f9fe;border-bottom:1px solid var(--line);}
+.tg__icon{font-size:18px;line-height:1;}
+.tg__label{font-size:13px;font-weight:800;}
+.tg__range{font-size:11px;color:var(--muted);}
+.tg__badge{padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;margin-left:auto;}
+.btn-sign-group{height:26px;padding:0 11px;border-radius:999px;border:none;background:var(--green);color:#fff;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.btn-sign-group:hover{opacity:.85;}
+.badge--frueh{background:rgba(255,190,50,.18);color:#7a5200;}
+.badge--mittag{background:rgba(63,111,232,.12);color:#1a4fa8;}
+.badge--abend{background:rgba(100,60,200,.12);color:#4a1a9a;}
+
+/* measure row */
+.m-row{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--line);transition:background .12s;}
+.m-row:hover{background:#fafbff;}
+.m-time{width:84px;min-width:84px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;border-right:1px solid var(--line);padding-right:12px;margin-right:4px;}
+.m-time__val{font-size:15px;font-weight:800;color:var(--blue);white-space:nowrap;}
+.m-time__freq{font-size:10px;color:var(--muted);line-height:1.3;text-align:center;word-break:break-word;}
+.m-info{flex:1;min-width:0;}
+.m-info__name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.m-info__goal{font-size:11px;color:var(--muted);}
+.m-btn{height:30px;padding:0 12px;border-radius:8px;border:1px solid rgba(63,111,232,.25);background:#fff;color:var(--blue);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .12s,color .12s;flex-shrink:0;}
+.m-btn:hover{background:var(--blue);color:#fff;}
+
+/* sign-off bar */
+.m-signoff{background:#f0f5ff;border-bottom:1px solid var(--line);padding:10px 20px;display:none;flex-direction:column;gap:10px;}
+.m-signoff.open{display:flex;}
+.sf-toggle{display:flex;gap:6px;}
+.sf-tab{height:30px;padding:0 14px;border-radius:8px;border:1px solid rgba(11,27,58,.13);background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .12s,color .12s,border-color .12s;}
+.sf-tab.active-done{background:var(--green);color:#fff;border-color:var(--green);}
+.sf-tab.active-notdone{background:var(--red);color:#fff;border-color:var(--red);}
+.sf-fields{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.sf-fields select,.sf-fields input[type=text]{height:30px;border:1px solid rgba(11,27,58,.13);border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;background:#fff;color:var(--text);}
+.sf-fields select{min-width:200px;}
+.sf-fields input[type=text]{flex:1;min-width:160px;}
+.sf-fields select:focus,.sf-fields input:focus{outline:none;border-color:var(--blue);}
+.sf-confirm{height:30px;padding:0 14px;border-radius:8px;border:none;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;}
+.sf-confirm.green{background:var(--green);color:#fff;}
+.sf-confirm.red{background:var(--red);color:#fff;}
+.sf-cancel{height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* done list */
+.done-item{display:flex;align-items:flex-start;gap:12px;padding:11px 20px;border-bottom:1px solid var(--line);}
+.done-item:last-child{border-bottom:none;}
+.done-icon{width:26px;height:26px;border-radius:50%;background:rgba(47,143,78,.12);color:#1f6e3a;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0;margin-top:1px;}
+.done-icon.notdone{background:rgba(207,47,47,.10);color:var(--red);}
+.done-info__reason{font-size:11px;font-weight:700;color:var(--red);margin-top:2px;}
+.chip.chip--notdone strong{color:var(--red);}
+.done-info{flex:1;}
+.done-info__name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.done-info__meta{font-size:11px;color:var(--muted);}
+.done-info__comment{font-size:11px;color:var(--text);margin-top:3px;font-style:italic;}
+.done-undo{height:24px;padding:0 9px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;align-self:center;}
+.done-undo:hover{background:var(--line);}
+
+.empty-msg{padding:22px 20px;text-align:center;color:var(--muted);font-size:13px;}
+
+/* archive */
+.archive-day{border-top:1px solid var(--line);}
+.archive-day:first-of-type{border-top:none;}
+.archive-day__head{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#f7f9fe;cursor:pointer;user-select:none;}
+.archive-day__head:hover{background:#eef2fb;}
+.archive-day__date{font-size:13px;font-weight:800;flex:1;}
+.archive-day__summary{font-size:11px;color:var(--muted);}
+.archive-day__chevron{font-size:11px;color:var(--muted);transition:transform .2s;}
+.archive-day__body{display:none;}
+.archive-day.open .archive-day__body{display:block;}
+.archive-day.open .archive-day__chevron{transform:rotate(180deg);}
+.ar-item{display:flex;align-items:flex-start;gap:10px;padding:9px 20px;border-bottom:1px solid var(--line);}
+.ar-item:last-child{border-bottom:none;}
+.ar-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:1px;}
+.ar-icon.done{background:rgba(47,143,78,.12);color:#1f6e3a;}
+.ar-icon.notdone{background:rgba(207,47,47,.10);color:var(--red);}
+.ar-icon.open{background:rgba(11,27,58,.06);color:var(--muted);}
+.ar-info{flex:1;}
+.ar-info__name{font-size:12px;font-weight:700;}
+.ar-info__meta{font-size:11px;color:var(--muted);}
+.ar-info__reason{font-size:11px;font-weight:700;color:var(--red);}
+
+@media print{
+  body{background:#fff!important;}
+  .back,.pill,.m-btn,.m-signoff,.done-undo,.pat-modal{display:none!important;}
+  .card{box-shadow:none;border:1px solid #ddd;border-radius:0;}
+  @page{margin:14mm 12mm;}
+}
+@media(max-width:600px){
+  .top{flex-direction:column;}
+  .m-row{flex-wrap:wrap;}
+}
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <div id="patBlock"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <button class="pill" id="openPatModal">Patient auswählen</button>
+      <button class="pill primary" onclick="window.print()">Drucken / PDF</button>
+      <a class="pill" href="dashboard-care.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Zurück</a>
+    </div>
+  </div>
+
+  <div class="meta-bar">
+    <div class="chip">Quelle: <strong>Pflegeplanung</strong></div>
+    <div class="chip" id="todayChip">Datum: <strong>—</strong></div>
+    <div class="chip chip--done"    id="chipDone">Durchgeführt: <strong>0</strong></div>
+    <div class="chip chip--notdone" id="chipNotDone">Nicht durchgeführt: <strong>0</strong></div>
+    <div class="chip chip--open"    id="chipOpen">Offen: <strong>0</strong></div>
+  </div>
+
+  <div class="card">
+    <div class="card__head">
+      <div class="card__head__left">
+        <div class="card__title">Geplante Maßnahmen</div>
+        <div class="card__sub">Alle Maßnahmen aus der Pflegeplanung – gegliedert nach Tageszeit</div>
+      </div>
+      <button class="btn-sign-all" id="btnSignAll" type="button">✓ Alle abzeichnen</button>
+    </div>
+    <div id="planBody"></div>
+  </div>
+
+  <div class="card" id="doneCard">
+    <div class="card__head">
+      <div class="card__title" style="color:var(--green)">✓ Abgezeichnete Maßnahmen heute</div>
+      <div class="card__sub">Alle abgezeichneten Maßnahmen des heutigen Tages</div>
+    </div>
+    <div id="doneBody"></div>
+  </div>
+
+  <div class="card" id="archiveCard" style="display:none">
+    <div class="card__head">
+      <div class="card__title">Archiv – Vergangene Tage</div>
+      <div class="card__sub">Automatisch archivierte Durchführungsnachweise</div>
+    </div>
+    <div id="archiveBody"></div>
+  </div>
+
+</div>
+
+<script src="patient-selector.js"></script>
+<script>
+/* ── Maßnahmen aus der Pflegeplanung ── */
+const MEASURES = [
+  {id:1,  massnahme:'Ganzkörperpflege / Körperpflege',    ziel:'Hygiene und Selbstständigkeit erhalten',    uhrzeit:'07:00', frequenz:'1× täglich',    zeitpunkt:'früh'},
+  {id:2,  massnahme:'Atemübungen & Positionierung',        ziel:'Dyspnoe reduzieren, Atmung vertiefen',      uhrzeit:'07:30', frequenz:'1× täglich',    zeitpunkt:'früh'},
+  {id:3,  massnahme:'Medikamentengabe oral (Frühgabe)',    ziel:'Stabile Medikation sicherstellen',          uhrzeit:'08:00', frequenz:'08:00 / 20:00', zeitpunkt:'früh'},
+  {id:4,  massnahme:'Blutdruck- & Pulskontrolle',         ziel:'Kreislauf überwachen',                      uhrzeit:'08:00', frequenz:'2× täglich',    zeitpunkt:'früh'},
+  {id:5,  massnahme:'Trinkplan – Erinnerung (Früh)',      ziel:'Ausreichende Hydrierung sichern',           uhrzeit:'09:00', frequenz:'3× täglich',    zeitpunkt:'früh'},
+  {id:6,  massnahme:'Mobilisation & Gehtraining',         ziel:'Sicheres Gehen, Muskelkraft erhalten',      uhrzeit:'10:00', frequenz:'1× täglich',    zeitpunkt:'früh'},
+  {id:7,  massnahme:'Lagerungswechsel',                   ziel:'Dekubitusprophylaxe',                       uhrzeit:'10:00', frequenz:'alle 2 Stunden', zeitpunkt:'früh'},
+  {id:8,  massnahme:'Wundversorgung / Verbandswechsel',   ziel:'Infektionsprophylaxe',                      uhrzeit:'11:00', frequenz:'1× täglich',    zeitpunkt:'früh'},
+  {id:9,  massnahme:'Trinkplan – Erinnerung (Mittag)',    ziel:'Ausreichende Hydrierung sichern',           uhrzeit:'12:00', frequenz:'3× täglich',    zeitpunkt:'mittag'},
+  {id:10, massnahme:'Mittagsmedikation',                  ziel:'Schmerzreduktion und Therapietreue',        uhrzeit:'12:00', frequenz:'1× täglich',    zeitpunkt:'mittag'},
+  {id:11, massnahme:'Ernährungsprotokoll / Zwischenm.',   ziel:'Gewicht stabil, ausreichend Intake',        uhrzeit:'13:00', frequenz:'1× täglich',    zeitpunkt:'mittag'},
+  {id:12, massnahme:'Lagerungswechsel',                   ziel:'Dekubitusprophylaxe',                       uhrzeit:'14:00', frequenz:'alle 2 Stunden', zeitpunkt:'mittag'},
+  {id:13, massnahme:'Stuhlgang-/Ausscheidungskontrolle',  ziel:'Obstipationsprophylaxe',                    uhrzeit:'15:00', frequenz:'1× täglich',    zeitpunkt:'mittag'},
+  {id:14, massnahme:'Sturzprophylaxe (Rundgang)',         ziel:'Sicherheit gewährleisten',                  uhrzeit:'16:00', frequenz:'2× täglich',    zeitpunkt:'mittag'},
+  {id:15, massnahme:'Trinkplan – Erinnerung (Abend)',     ziel:'Ausreichende Hydrierung sichern',           uhrzeit:'18:00', frequenz:'3× täglich',    zeitpunkt:'abend'},
+  {id:16, massnahme:'Medikamentengabe oral (Abendgabe)',  ziel:'Stabile Medikation sicherstellen',          uhrzeit:'20:00', frequenz:'08:00 / 20:00', zeitpunkt:'abend'},
+  {id:17, massnahme:'Abendpflege / Mundpflege',           ziel:'Mundschleimhaut intakt, Wohlbefinden',      uhrzeit:'20:00', frequenz:'1× täglich',    zeitpunkt:'abend'},
+  {id:18, massnahme:'Lagerungswechsel',                   ziel:'Dekubitusprophylaxe',                       uhrzeit:'20:00', frequenz:'alle 2 Stunden', zeitpunkt:'abend'},
+  {id:19, massnahme:'Schlafförderung / Nachtruhe',        ziel:'Erholsamer Schlaf sicherstellen',           uhrzeit:'21:00', frequenz:'1× täglich',    zeitpunkt:'abend'},
+  {id:20, massnahme:'Sicherheitscheck / Bettgitter',      ziel:'Sturzprophylaxe in der Nacht',              uhrzeit:'21:30', frequenz:'1× täglich',    zeitpunkt:'abend'},
+];
+
+const GROUPS = [
+  {key:'früh',   label:'Früh',   range:'06:00 – 12:00', cls:'badge--frueh'},
+  {key:'mittag', label:'Mittag', range:'12:00 – 18:00', cls:'badge--mittag'},
+  {key:'abend',  label:'Abend',  range:'18:00 – 24:00', cls:'badge--abend'},
+];
+
+/* ── Wundversorgungsplan aus Pflegeplanung einlesen ── */
+function loadWundPlan(patId){
+  try{ return JSON.parse(localStorage.getItem('nursy_pp_wund_v1_' + (patId||'default'))||'null'); }catch(e){ return null; }
+}
+function applyWundPlan(patId){
+  const plan = loadWundPlan(patId);
+  const m8 = MEASURES.find(m => m.id === 8);
+  if(m8 && plan && plan.material){
+    m8.ziel = 'Versorgt mit: ' + plan.material;
+    m8.frequenz = plan.frequenz || m8.frequenz;
+    m8.uhrzeit  = plan.zeit    || m8.uhrzeit;
+  }
+}
+/* Wundplan asynchron vom Server laden */
+function fetchWundPlanFromApi(patId){
+  fetch('/api/care/pflegeplanung/' + encodeURIComponent(patId||'default'), {credentials:'include'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.ok || !d.wundPlan) return;
+      try{ localStorage.setItem('nursy_pp_wund_v1_' + (patId||'default'), JSON.stringify(d.wundPlan)); }catch(e){}
+      applyWundPlan(patId);
+      render();
+    }).catch(function(){});
+}
+
+/* ── Storage: pro Patient & Tag ── */
+function patDayKey(patId, date){ return 'nursy_df_v1_' + patId + '_' + date; }
+function patArchiveKey(patId){ return 'nursy_df_archive_v1_' + patId; }
+const TODAY = new Date().toISOString().slice(0,10);
+
+let _activeKey = patDayKey(getCurrentPatientId(), TODAY);
+let _dfPatId = getCurrentPatientId();
+function stLoad(){ try{ return JSON.parse(localStorage.getItem(_activeKey)||'{}'); }catch(e){ return {}; } }
+function _dfApiSave(patId, s){
+  fetch('/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, {
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({state: s})
+  }).catch(function(){});
+}
+let stSave = function(s){
+  try{ localStorage.setItem(_activeKey, JSON.stringify(s)); }catch(e){}
+  _dfApiSave(_dfPatId, s);
+};
+let state = stLoad();
+
+/* ── Initiale API-Abfrage für heutigen Tag + Wundplan ── */
+(function(){
+  const pid = _dfPatId;
+  fetch('/api/care/df/' + encodeURIComponent(pid) + '/' + TODAY, { credentials:'include' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.ok || !d.state || !Object.keys(d.state).length) return;
+      state = d.state;
+      try{ localStorage.setItem(_activeKey, JSON.stringify(state)); }catch(e){}
+      render();
+    })
+    .catch(function(){});
+  /* Wundplan asynchron laden */
+  fetchWundPlanFromApi(pid);
+})();
+
+/* ── Archivierung: Einträge vergangener Tage sichern ── */
+function runArchive(patId){
+  const prefix = 'nursy_df_v1_' + patId + '_';
+  const archKey = patArchiveKey(patId);
+  let archive = [];
+  try{ archive = JSON.parse(localStorage.getItem(archKey)||'[]')||[]; }catch(e){}
+  const keysToArchive = [];
+  for(let i=0; i<localStorage.length; i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(prefix)){
+      const date = k.slice(prefix.length);
+      if(date < TODAY) keysToArchive.push({key:k, date});
+    }
+  }
+  keysToArchive.forEach(({key, date})=>{
+    try{
+      const data = JSON.parse(localStorage.getItem(key)||'{}');
+      if(Object.keys(data).length > 0){
+        archive = archive.filter(a => a.date !== date);
+        archive.push({date, data});
+      }
+      localStorage.removeItem(key);
+    }catch(e){}
+  });
+  archive.sort((a,b) => b.date.localeCompare(a.date));
+  try{ localStorage.setItem(archKey, JSON.stringify(archive)); }catch(e){}
+  return archive;
+}
+
+function loadArchive(patId){
+  try{ return JSON.parse(localStorage.getItem(patArchiveKey(patId))||'[]')||[]; }catch(e){ return []; }
+}
+
+/* ── Wunddoku-Auto-Eintrag: Wenn heute eine Wunddoku gespeichert wurde ── */
+function autoSignWunddoku(patId){
+  const wdRaw = localStorage.getItem('nursy_wunddoku_v1');
+  if(!wdRaw) return;
+  let wd;
+  try{ wd = JSON.parse(wdRaw); }catch(e){ return; }
+  if(!wd || !wd.savedAt) return;
+  /* prüfen ob Wunddoku heute gespeichert wurde */
+  const savedDate = wd.savedAt.slice(0,10);
+  if(savedDate !== TODAY) return;
+  /* Maßnahme 8 als erledigt markieren falls noch nicht abgezeichnet */
+  const key = patDayKey(patId, TODAY);
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){}
+  if(!s[8]){
+    const ts = wd.savedAt ? new Date(wd.savedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const wunden = Array.isArray(wd.wounds) ? wd.wounds.map(function(w){ return 'Wunde ' + w.nr + ' (' + (w.localisation||'—') + ')'; }).join(', ') : '—';
+    s[8] = { status:'done', ts, comment:'Wunddokumentation: ' + wunden, reason:'' };
+    try{ localStorage.setItem(key, JSON.stringify(s)); }catch(e){}
+  }
+}
+
+/* ── Patientenwechsel (ausgelöst durch patient-selector.js) ── */
+function onPatientChange(idx){
+  const pat = getPatient(idx);
+  const patId = pat ? pat.id : getCurrentPatientId();
+  const newKey = patDayKey(patId, TODAY);
+  _activeKey = newKey;
+  _dfPatId = patId;
+  applyWundPlan(patId);
+  autoSignWunddoku(patId);
+  try{ state = JSON.parse(localStorage.getItem(newKey)||'{}'); }catch(e){ state={}; }
+  stSave = function(s){
+    try{ localStorage.setItem(newKey, JSON.stringify(s)); }catch(e){}
+    _dfApiSave(patId, s);
+  };
+  runArchive(patId);
+  renderArchive(patId);
+  render();
+  /* API-Abfrage für neuen Patienten */
+  fetch('/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, { credentials:'include' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.ok || !d.state || !Object.keys(d.state).length) return;
+      state = d.state;
+      try{ localStorage.setItem(newKey, JSON.stringify(state)); }catch(e){}
+      render();
+    })
+    .catch(function(){});
+}
+
+/* ── render plan ── */
+function renderPlan(){
+  const planBody = document.getElementById('planBody');
+  planBody.innerHTML = '';
+
+  GROUPS.forEach(g => {
+    const items = MEASURES.filter(m => m.zeitpunkt === g.key && !state[m.id]);
+    const tg = document.createElement('div');
+    tg.className = 'tg';
+
+    const pending = items.length;
+    tg.innerHTML =
+      '<div class="tg__head">' +
+        '<span class="tg__label">' + g.label + '</span>' +
+        '<span class="tg__range">' + g.range + '</span>' +
+        '<span class="tg__badge ' + g.cls + '">' + pending + ' offen</span>' +
+        (pending > 0 ? '<button class="btn-sign-group" data-sign-group="' + g.key + '">✓ Alle abzeichnen</button>' : '') +
+      '</div>';
+
+    if(pending === 0){
+      tg.innerHTML += '<div class="empty-msg">Alle Maßnahmen dieser Gruppe abgezeichnet ✓</div>';
+    } else {
+      items.forEach(m => {
+        const wrap = document.createElement('div');
+        wrap.innerHTML =
+          '<div class="m-row" id="mrow-' + m.id + '">' +
+            '<div class="m-time">' +
+              '<div class="m-time__val">' + m.uhrzeit + '</div>' +
+              '<div class="m-time__freq">' + m.frequenz + '</div>' +
+            '</div>' +
+            '<div class="m-info">' +
+              '<div class="m-info__name">' + m.massnahme + '</div>' +
+              '<div class="m-info__goal">' + m.ziel + '</div>' +
+            '</div>' +
+            '<button class="m-btn" data-sign="' + m.id + '">Abzeichnen</button>' +
+          '</div>' +
+          '<div class="m-signoff" id="sf-' + m.id + '">' +
+            '<div class="sf-toggle">' +
+              '<button class="sf-tab" data-tab="done"    data-for="' + m.id + '">✓ Durchgeführt</button>' +
+              '<button class="sf-tab" data-tab="notdone" data-for="' + m.id + '">✗ Nicht durchgeführt</button>' +
+            '</div>' +
+            '<div class="sf-fields" id="sf-fields-' + m.id + '" style="display:none">' +
+              '<select id="sf-reason-' + m.id + '" style="display:none">' +
+                '<option value="">Grund auswählen …</option>' +
+                '<option value="Patient lehnt ab">Patient lehnt ab</option>' +
+                '<option value="Nicht notwendig">Nicht notwendig</option>' +
+                '<option value="Sonstiges">Sonstiges</option>' +
+              '</select>' +
+              '<input type="text" id="sf-cmt-' + m.id + '" placeholder="Kommentar (optional)">' +
+              '<button class="sf-confirm green" id="sf-btn-' + m.id + '" data-confirm="' + m.id + '">Bestätigen</button>' +
+              '<button class="sf-cancel" data-cancel="' + m.id + '">Abbrechen</button>' +
+            '</div>' +
+          '</div>';
+        tg.appendChild(wrap);
+      });
+    }
+    planBody.appendChild(tg);
+  });
+}
+
+/* ── render done ── */
+function renderDone(){
+  const doneBody = document.getElementById('doneBody');
+  doneBody.innerHTML = '';
+  const signed = MEASURES.filter(m => state[m.id])
+    .sort((a,b) => (state[a.id].ts||'') < (state[b.id].ts||'') ? -1 : 1);
+
+  if(signed.length === 0){
+    doneBody.innerHTML = '<div class="empty-msg">Noch keine Maßnahmen abgezeichnet.</div>';
+    return;
+  }
+  signed.forEach(m => {
+    const s = state[m.id];
+    const isDone = s.status === 'done';
+    const row = document.createElement('div');
+    row.className = 'done-item';
+    row.innerHTML =
+      '<div class="done-icon' + (isDone ? '' : ' notdone') + '">' + (isDone ? '✓' : '✗') + '</div>' +
+      '<div class="done-info">' +
+        '<div class="done-info__name">' + m.massnahme + '</div>' +
+        '<div class="done-info__meta">Geplant ' + m.uhrzeit + ' · ' + m.frequenz + ' · Abgezeichnet: ' + (s.ts||'—') + '</div>' +
+        (!isDone && s.reason ? '<div class="done-info__reason">Grund: ' + s.reason + '</div>' : '') +
+        (s.comment ? '<div class="done-info__comment">„' + s.comment + '"</div>' : '') +
+      '</div>' +
+      '<button class="done-undo" data-undo="' + m.id + '">↩ Rückgängig</button>';
+    doneBody.appendChild(row);
+  });
+}
+
+/* ── counts ── */
+function updateCounts(){
+  const doneN    = MEASURES.filter(m => state[m.id]?.status === 'done').length;
+  const notDoneN = MEASURES.filter(m => state[m.id]?.status === 'notdone').length;
+  const openN    = MEASURES.length - doneN - notDoneN;
+  document.getElementById('chipDone').innerHTML    = 'Durchgeführt: <strong>' + doneN + '</strong>';
+  document.getElementById('chipNotDone').innerHTML = 'Nicht durchgeführt: <strong>' + notDoneN + '</strong>';
+  document.getElementById('chipOpen').innerHTML    = 'Offen: <strong>' + openN + '</strong>';
+}
+
+function render(){ renderPlan(); renderDone(); updateCounts(); }
+
+/* ── helper: active tab state per sign-off ── */
+const sfMode = {}; // {id: 'done'|'notdone'}
+
+/* ── event delegation on full page ── */
+document.addEventListener('click', e => {
+  const signGroup = e.target.closest('[data-sign-group]');
+  const sign    = e.target.closest('[data-sign]');
+  const tab     = e.target.closest('[data-tab]');
+  const confirm = e.target.closest('[data-confirm]');
+  const cancel  = e.target.closest('[data-cancel]');
+  const undo    = e.target.closest('[data-undo]');
+
+  /* sign all open measures of one group */
+  if(signGroup){
+    const gKey = signGroup.dataset.signGroup;
+    const open = MEASURES.filter(m => m.zeitpunkt === gKey && !state[m.id]);
+    if(open.length === 0) return;
+    const ts = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    open.forEach(m => { state[m.id] = {status:'done', ts, comment:'', reason:''}; });
+    stSave(state);
+    render();
+    return;
+  }
+
+  /* open/close sign-off panel */
+  if(sign){
+    const id = sign.dataset.sign;
+    const sf = document.getElementById('sf-' + id);
+    if(!sf) return;
+    const wasOpen = sf.classList.contains('open');
+    document.querySelectorAll('.m-signoff.open').forEach(el => el.classList.remove('open'));
+    if(!wasOpen){
+      sf.classList.add('open');
+      // reset tab state
+      sfMode[id] = null;
+      document.getElementById('sf-fields-' + id).style.display = 'none';
+      sf.querySelectorAll('.sf-tab').forEach(t => t.classList.remove('active-done','active-notdone'));
+    }
+    return;
+  }
+
+  /* tab toggle: Durchgeführt / Nicht durchgeführt */
+  if(tab){
+    const id  = tab.dataset.for;
+    const mode = tab.dataset.tab;
+    sfMode[id] = mode;
+    const sf = document.getElementById('sf-' + id);
+    sf.querySelectorAll('.sf-tab').forEach(t => t.classList.remove('active-done','active-notdone'));
+    tab.classList.add(mode === 'done' ? 'active-done' : 'active-notdone');
+    const fieldsDiv  = document.getElementById('sf-fields-' + id);
+    const reasonSel  = document.getElementById('sf-reason-' + id);
+    const confirmBtn = document.getElementById('sf-btn-' + id);
+    fieldsDiv.style.display = 'flex';
+    if(mode === 'done'){
+      reasonSel.style.display = 'none';
+      reasonSel.value = '';
+      confirmBtn.className = 'sf-confirm green';
+      confirmBtn.textContent = '✓ Bestätigen';
+    } else {
+      reasonSel.style.display = '';
+      confirmBtn.className = 'sf-confirm red';
+      confirmBtn.textContent = '✗ Bestätigen';
+    }
+    return;
+  }
+
+  /* confirm */
+  if(confirm){
+    const id   = Number(confirm.dataset.confirm);
+    const mode = sfMode[id];
+    if(!mode) return;
+    const ts     = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    const cmt    = (document.getElementById('sf-cmt-' + id)?.value||'').trim();
+    const reason = mode === 'notdone' ? (document.getElementById('sf-reason-' + id)?.value||'') : '';
+    if(mode === 'notdone' && !reason){ alert('Bitte einen Grund auswählen.'); return; }
+    state[id] = {status: mode, ts, comment: cmt, reason};
+    stSave(state);
+    render();
+    return;
+  }
+
+  /* cancel */
+  if(cancel){
+    document.querySelectorAll('.m-signoff.open').forEach(el => el.classList.remove('open'));
+    return;
+  }
+
+  /* undo */
+  if(undo){
+    delete state[Number(undo.dataset.undo)];
+    stSave(state);
+    render();
+    return;
+  }
+});
+
+/* ── Alle abzeichnen ── */
+document.getElementById('btnSignAll').addEventListener('click', function(){
+  const open = MEASURES.filter(m => !state[m.id]);
+  if(open.length === 0){ alert('Alle Maßnahmen sind bereits abgezeichnet.'); return; }
+  if(!confirm('Alle ' + open.length + ' offenen Maßnahmen als „Durchgeführt" abzeichnen?')) return;
+  const ts = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  open.forEach(m => { state[m.id] = {status:'done', ts, comment:'', reason:''}; });
+  stSave(state);
+  render();
+});
+
+/* ── render archive ── */
+function renderArchive(patId){
+  fetch('/api/care/df/' + encodeURIComponent(patId) + '/archive', { credentials:'include' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      const archive = (d && d.ok && Array.isArray(d.archive)) ? d.archive : loadArchive(patId);
+      _doRenderArchive(archive);
+    })
+    .catch(function(){ _doRenderArchive(loadArchive(patId)); });
+}
+function _doRenderArchive(archive){
+  const card = document.getElementById('archiveCard');
+  const body = document.getElementById('archiveBody');
+  if(!archive.length){ card.style.display='none'; return; }
+  card.style.display='';
+  body.innerHTML = '';
+  archive.forEach(entry => {
+    const dateStr = new Date(entry.date).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+    const doneN    = Object.values(entry.data).filter(s=>s.status==='done').length;
+    const notDoneN = Object.values(entry.data).filter(s=>s.status==='notdone').length;
+    const openN    = MEASURES.length - doneN - notDoneN;
+    const day = document.createElement('div');
+    day.className = 'archive-day';
+    day.innerHTML =
+      '<div class="archive-day__head">' +
+        '<span class="archive-day__date">' + dateStr + '</span>' +
+        '<span class="archive-day__summary">✓ ' + doneN + '  ✗ ' + notDoneN + '  ○ ' + openN + ' offen</span>' +
+        '<span class="archive-day__chevron">▼</span>' +
+      '</div>' +
+      '<div class="archive-day__body"></div>';
+    const dayBody = day.querySelector('.archive-day__body');
+    MEASURES.forEach(m => {
+      const s = entry.data[m.id];
+      const status = s ? s.status : 'open';
+      const icon  = status==='done' ? '✓' : status==='notdone' ? '✗' : '○';
+      const iconCls = status==='done' ? 'done' : status==='notdone' ? 'notdone' : 'open';
+      const item = document.createElement('div');
+      item.className = 'ar-item';
+      item.innerHTML =
+        '<div class="ar-icon ' + iconCls + '">' + icon + '</div>' +
+        '<div class="ar-info">' +
+          '<div class="ar-info__name">' + m.massnahme + '</div>' +
+          '<div class="ar-info__meta">Geplant ' + m.uhrzeit + (s ? ' · Abgezeichnet: ' + s.ts : ' · Nicht abgezeichnet') + '</div>' +
+          (s && s.status==='notdone' && s.reason ? '<div class="ar-info__reason">Grund: ' + s.reason + '</div>' : '') +
+        '</div>';
+      dayBody.appendChild(item);
+    });
+    day.querySelector('.archive-day__head').addEventListener('click', ()=> day.classList.toggle('open'));
+    body.appendChild(day);
+  });
+}
+/* ── init ── */
+const today = new Date().toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+document.getElementById('todayChip').innerHTML = 'Datum: <strong>' + today + '</strong>';
+
+const _initPatId = getCurrentPatientId();
+applyWundPlan(_initPatId);
+autoSignWunddoku(_initPatId);
+/* reload state after potential auto-sign */
+state = stLoad();
+
+initPatientSelector({
+  container: 'patBlock',
+  openBtnId: 'openPatModal',
+  onChange:  onPatientChange,
+});
+
+runArchive(_initPatId);
+renderArchive(_initPatId);
+render();
+</script>
+</body>
+</html>

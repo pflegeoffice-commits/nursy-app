@@ -1,0 +1,417 @@
+Erstelle eine moderne Leitstellen-Funktion für den Pflegenotdienst akut plus als Frontend-Web-App mit HTML, CSS und JavaScript.
+
+Design:
+- Professionell, modern, übersichtlich
+- Hauptfarbe Dunkelblau
+- Akzentfarben Weiß, Hellgrau, Türkis/Blau
+- Buttons im einheitlichen Pill-Style
+- Buttons ca. 48px Höhe
+- Stark abgerundete Karten und Eingabefelder
+- Responsives Layout für Desktop, Tablet und Smartphone
+- Serifenbetonte Zeitungsschrift für Überschriften
+- Gute Lesbarkeit für Leitstellenbetrieb
+
+Ziel:
+Es soll ein professionelles Alarmierungsformular für eine Pflege-Leitstelle entstehen. Die Leitstelle soll Einsätze erfassen, Patienten suchen, gespeicherte Daten übernehmen, pflegerische Ersteinschätzungen dokumentieren und eine Einsatzentscheidung vorbereiten können.
+
+--------------------------------------------------
+1. Patientensuche / gespeicherte Daten
+--------------------------------------------------
+
+Ganz oben im Formular soll eine Suchfunktion stehen:
+
+Label:
+„Patient im System suchen“
+
+Placeholder:
+„Name, SV-Nummer oder Telefonnummer eingeben...“
+
+Funktion:
+- Live-Suche mit Autocomplete
+- Suche nach Nachname, Vorname, Sozialversicherungsnummer und Telefonnummer
+- Ergebnisse als Dropdown-Karten anzeigen
+
+Pro Suchergebnis anzeigen:
+- Nachname Vorname
+- Geburtsdatum
+- Wohnort
+- Sozialversicherungsnummer gekürzt, z. B. **** 120599
+- Telefonnummer
+
+Beim Klick auf einen Patienten sollen automatisch folgende Felder ausgefüllt werden:
+- Nachname
+- Vorname
+- Sozialversicherungsnummer
+- Geburtsdatum
+- Straße
+- Hausnummer
+- Stock
+- Tür
+- PLZ
+- Wohnort
+- Bezirk
+- Telefonnummer Patient
+- E-Mail Patient
+- Angehörige
+- bekannte Erkrankungen
+- Allergien
+- wichtige medizinische Informationen
+
+Zusätzliche Buttons:
+- „Neuen Patienten anlegen“
+  - leert alle patientenbezogenen Felder
+- „Daten aktualisieren“
+  - speichert Änderungen in LocalStorage
+- „Patient speichern“
+  - speichert neuen Patienten in LocalStorage
+
+Technik:
+- Verwende JavaScript LocalStorage als Demo-Datenbank
+- Lege mindestens 3 Beispielpatienten an
+- Wenn LocalStorage leer ist, sollen die Beispielpatienten automatisch geladen werden
+
+--------------------------------------------------
+2. Einsatzdaten
+--------------------------------------------------
+
+Abschnitt „Einsatzdaten“
+
+Felder:
+- Einsatznummer automatisch generieren, z. B. E-2026-0001
+- Datum automatisch setzen
+- Uhrzeit automatisch setzen
+- Disponent/in
+- Einsatzart als Dropdown
+
+Einsatzart Optionen:
+- First Responder Einsatz
+- Akuter Pflege Einsatz
+- Behandlungspflege Unterstützung
+- Medizinische Pflege mit Anordnung
+- Palliativ Einsatz
+- Beratung
+- Kontrollbesuch
+- Sonstiges / Lage unklar
+
+Zusätzlich:
+- Dringlichkeit als Dropdown:
+  - niedrig
+  - mittel
+  - hoch
+  - akut / sofort
+
+--------------------------------------------------
+3. Patientendaten
+--------------------------------------------------
+
+Abschnitt „Patientendaten“
+
+Felder:
+- Nachname
+- Vorname
+- Sozialversicherungsnummer
+- Geburtsdatum
+- Straße
+- Hausnummer
+- Stock
+- Tür
+- PLZ
+- Wohnort
+- Bezirk
+
+Sozialversicherungsnummer:
+- Label: Sozialversicherungsnummer
+- Placeholder: z. B. 1234 TTMMJJ
+- Hinweistext: „Bitte österreichische Sozialversicherungsnummer inkl. Geburtsdatum eingeben.“
+
+PLZ / Bezirk:
+- Das Feld „Bezirk“ soll automatisch anhand der österreichischen PLZ ermittelt werden
+- Verwende eine JavaScript-Mapping-Funktion mit Beispielen für Oberösterreich, Salzburg, Wien und Niederösterreich
+- Wenn keine PLZ erkannt wird: „Bezirk unbekannt“
+- Bei Änderung der PLZ soll der Bezirk automatisch aktualisiert werden
+
+--------------------------------------------------
+4. Adress-Sonderinformationen
+--------------------------------------------------
+
+Checkbox:
+„Schlüsselsafe vorhanden“
+
+Wenn aktiv:
+- Eingabefeld „Schlüsselsafe-Code“ anzeigen
+
+Checkbox:
+„Wichtige Informationen zur Adresse vorhanden“
+
+Wenn aktiv:
+- großes Textfeld „Wichtige Hinweise zur Adresse“ anzeigen
+- Beispiele als Placeholder:
+  „Eingang hinten, Lift defekt, Hund im Haus, Patient hört schlecht, Haustür schwer auffindbar...“
+
+--------------------------------------------------
+5. Kontaktdaten Patient
+--------------------------------------------------
+
+Felder:
+- Telefonnummer Patient
+- E-Mail Patient
+
+--------------------------------------------------
+6. Angehörige / Kontaktperson
+--------------------------------------------------
+
+Abschnitt:
+„Daten Angehöriger, falls vorhanden“
+
+Felder:
+- Nachname Angehöriger
+- Vorname Angehöriger
+- Beziehung zum Patienten
+- Telefonnummer Angehöriger
+- E-Mail Angehöriger
+
+--------------------------------------------------
+7. Problemdefinition / Lagebild
+--------------------------------------------------
+
+Großes Textfeld:
+„Was ist das akute Problem / warum wird Hilfe benötigt?“
+
+Zusätzliche Felder:
+- Beginn der Problematik
+- Aktueller Aufenthaltsort des Patienten
+- Ist der Patient alleine?
+  - Ja
+  - Nein
+  - Unbekannt
+- Ist akute Gefahr erkennbar?
+  - Ja
+  - Nein
+  - Unklar
+
+--------------------------------------------------
+8. Pflegerische Ersteinschätzung
+--------------------------------------------------
+
+Erstelle strukturierte Karten mit Dropdowns, Checkboxen und Textfeldern.
+
+Mobilität:
+Dropdown:
+- selbstständig
+- teilweise selbstständig
+- komplette Übernahme
+- bettlägerig
+
+Checkboxen:
+- sturzgefährdet
+- Transferhilfe nötig
+- rollstuhlpflichtig
+- Schmerzen bei Bewegung
+
+An- und Auskleiden:
+Dropdown:
+- selbstständig
+- teilweise selbstständig
+- komplette Übernahme
+
+Körperpflege:
+Dropdown:
+- selbstständig
+- teilweise selbstständig
+- komplette Übernahme
+
+Checkboxen:
+- Teilwaschung nötig
+- Ganzkörperpflege nötig
+- Intimpflege nötig
+- Mundpflege nötig
+
+Ernährung:
+Dropdown:
+- selbstständig
+- Unterstützung nötig
+- komplette Übernahme
+
+Checkboxen:
+- Schluckstörung
+- Übelkeit
+- Appetitlosigkeit
+
+Felder:
+- Trinkmenge heute
+- Letzte Nahrungsaufnahme
+
+Ausscheidung:
+Checkboxen:
+- kontinent
+- harninkontinent
+- stuhlinkontinent
+- Durchfall
+- Obstipation
+- Harnverhalt
+
+Felder:
+- Letzter Stuhlgang
+- Auffälligkeiten
+
+Ableitende Systeme / Stoma:
+Mehrfachauswahl als Checkboxen:
+- Dauerkatheter
+- Urostoma
+- suprapubischer Katheter
+- Colostoma
+- Ileostoma
+- Drainage
+- Sonstiges
+
+Wenn „Sonstiges“ aktiv:
+- Eingabefeld „Sonstiges ableitendes System“
+
+Haut / Wunden:
+Dropdown:
+- unauffällig
+- auffällig
+
+Checkboxen:
+- Wunden
+- Hämatome
+- Rötungen
+- Dekubitusverdacht
+- Schwellung
+
+Felder:
+- Lokalisation
+- Beschreibung
+
+Neurologische Einschränkungen / Querschnitt / Lähmung:
+Dropdown:
+- keine
+- halbseitige Lähmung rechts
+- halbseitige Lähmung links
+- Paraplegie
+- Tetraplegie
+- Sensibilitätsstörung
+- Spastik
+- sonstige Einschränkung
+
+Wenn „sonstige Einschränkung“:
+- Textfeld anzeigen
+
+Pflegehilfsmittel:
+Mehrfachauswahl:
+- Pflegebett
+- Rollator
+- Rollstuhl
+- Toilettenstuhl
+- Duschstuhl
+- Patientenlifter
+- Antidekubitusmatratze
+- Sauerstoffgerät
+- Notrufsystem
+- Sonstiges
+
+Wenn „Sonstiges“:
+- Textfeld anzeigen
+
+--------------------------------------------------
+9. Medizinisch relevante Informationen
+--------------------------------------------------
+
+Abschnitt:
+„Medizinisch relevante Informationen“
+
+Checkboxen typische Erkrankungen:
+- Diabetes mellitus
+- Demenz
+- Parkinson
+- COPD
+- Herzinsuffizienz
+- Schlaganfall
+- Tumorerkrankung
+- Palliativsituation
+- Epilepsie
+- Niereninsuffizienz
+- Bluthochdruck
+- MRSA / MRGN / multiresistente Keime
+- Infektion / Fieber
+- Sonstiges
+
+Wenn „Sonstiges“:
+- Textfeld anzeigen
+
+Weitere Felder:
+- Allergien
+- Aktuelle Medikamente
+- Ärztliche Anordnungen
+- Hausarzt / behandelnder Arzt
+- Sonstige wichtige medizinische Informationen
+
+--------------------------------------------------
+10. Einsatzentscheidung / Alarmierung
+--------------------------------------------------
+
+Abschnitt:
+„Einsatzentscheidung“
+
+Felder:
+- Einsatz erforderlich?
+  - Ja
+  - Nein
+  - Rücksprache notwendig
+
+Dropdown:
+„Benötigte Qualifikation“
+- Pflegeassistenz
+- Pflegefachassistenz
+- DGKP
+- DGKP mit Erfahrung Behandlungspflege
+- Palliativ erfahrene Pflegeperson
+- Notarzt / Rettung verständigen
+- Arztkontakt empfohlen
+
+Felder:
+- Empfohlene Einsatzdauer
+- Gewünschter Einsatzbeginn
+- Interne Leitstellen-Anmerkung
+
+Buttons:
+- „Einsatz speichern“
+- „Einsatz alarmieren“
+- „PDF / Einsatzprotokoll erstellen“
+- „Formular zurücksetzen“
+
+--------------------------------------------------
+11. Zusammenfassung
+--------------------------------------------------
+
+Rechts oder am Ende soll eine automatische Einsatz-Zusammenfassung erscheinen.
+
+Sie soll live aktualisiert werden und enthalten:
+- Einsatznummer
+- Einsatzart
+- Dringlichkeit
+- Patient
+- Adresse
+- Bezirk
+- Telefonnummer
+- Problem/Lagebild
+- wichtige Risiken
+- benötigte Qualifikation
+
+--------------------------------------------------
+12. Technische Anforderungen
+--------------------------------------------------
+
+- Nur HTML, CSS und JavaScript
+- Keine Backend-Abhängigkeit
+- LocalStorage für Patienten und gespeicherte Einsätze
+- Saubere Dateistruktur:
+  - index.html
+  - style.css
+  - script.js
+- Der Code soll vollständig lauffähig sein
+- Alle Formularelemente brauchen eindeutige IDs
+- Checkboxen sollen sauber gruppiert sein
+- Dynamische Felder sollen nur erscheinen, wenn die passende Checkbox oder Auswahl aktiv ist
+- Formular soll optisch wie professionelle Leitstellen-Software wirken
+- Keine Platzhalter-App, sondern vollständig funktionsfähige Demo

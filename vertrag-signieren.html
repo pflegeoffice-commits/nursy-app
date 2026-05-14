@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Vertrag signieren – Nursy</title>
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body{ margin:0; background:#f0f4f8; font-family:'Inter',system-ui,sans-serif; min-height:100vh; }
+
+.vs-header{ background:linear-gradient(135deg,#0f2744,#1d4ed8); padding:18px 20px 14px; color:#fff; }
+.vs-header h1{ margin:0; font-size:1.1rem; font-weight:900; }
+.vs-header .sub{ font-size:.75rem; opacity:.75; margin-top:3px; }
+.vs-header .by{ font-size:.72rem; margin-top:6px; opacity:.6; }
+
+.vs-body{ max-width:500px; margin:0 auto; padding:16px 14px 100px; }
+
+.vs-card{ background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:18px; margin-bottom:14px; }
+.vs-card h2{ margin:0 0 12px; font-size:.92rem; font-weight:800; color:#0f1a33; }
+
+/* PDF Viewer */
+.pdf-frame{ width:100%; height:480px; border:1.5px solid #e2e8f0; border-radius:10px; background:#f8fafc; }
+.pdf-note{ font-size:.72rem; color:#7a8faa; margin-top:6px; text-align:center; }
+
+/* Form */
+.f-lbl{ display:block; font-size:.78rem; font-weight:700; color:#374151; margin-bottom:4px; }
+.f-inp{ width:100%; padding:11px 13px; border:1.5px solid #e2e8f0; border-radius:9px;
+  font-size:.95rem; font-family:inherit; outline:none; transition:border-color .15s; }
+.f-inp:focus{ border-color:#2563eb; }
+
+/* Signature canvas */
+.sig-wrap{ position:relative; border:2px solid #bfdbfe; border-radius:10px; background:#f8fbff;
+  touch-action:none; overflow:hidden; }
+.sig-canvas{ display:block; width:100%; }
+.sig-hint{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:.85rem; color:#94a3b8; pointer-events:none; text-align:center; line-height:1.4; }
+.sig-clear{ position:absolute; top:8px; right:8px; background:rgba(255,255,255,.9);
+  border:1.5px solid #e2e8f0; border-radius:7px; padding:4px 10px;
+  font-size:.72rem; font-weight:700; color:#64748b; cursor:pointer; }
+
+/* Checkbox */
+.check-row{ display:flex; align-items:flex-start; gap:10px; margin-top:4px; }
+.check-row input{ width:18px; height:18px; margin-top:2px; cursor:pointer; flex-shrink:0; accent-color:#1d4ed8; }
+.check-row label{ font-size:.82rem; color:#374151; line-height:1.5; cursor:pointer; }
+
+/* Submit */
+.btn-sign{ display:block; width:100%; background:#16a34a; color:#fff; border:none;
+  border-radius:12px; padding:15px 20px; font-size:1rem; font-weight:900;
+  cursor:pointer; transition:background .15s; letter-spacing:.3px; }
+.btn-sign:hover{ background:#15803d; }
+.btn-sign:disabled{ background:#86efac; cursor:not-allowed; }
+
+/* States */
+.vs-error{ text-align:center; padding:60px 20px; }
+.vs-error .ico{ font-size:3rem; margin-bottom:12px; }
+.vs-error h2{ color:#dc2626; margin:0 0 8px; font-size:1.1rem; }
+.vs-error p{ color:#64748b; font-size:.88rem; }
+
+.vs-success{ text-align:center; padding:60px 20px; }
+.vs-success .ico{ font-size:4rem; margin-bottom:16px; }
+.vs-success h2{ color:#15803d; margin:0 0 8px; font-size:1.2rem; font-weight:900; }
+.vs-success p{ color:#374151; font-size:.9rem; margin:0; }
+.vs-success .sig-preview{ margin:20px auto 0; max-width:260px; border:1.5px solid #d1fae5; border-radius:10px; padding:10px; background:#f0fdf4; }
+.vs-success .sig-preview img{ width:100%; border-radius:6px; }
+.vs-success .sig-preview .lbl{ font-size:.72rem; color:#6b7280; margin-top:4px; }
+
+.loading{ text-align:center; padding:60px 20px; color:#64748b; font-size:.9rem; }
+</style>
+</head>
+<body>
+
+<div class="vs-header">
+  <h1>✍️ Vertrag unterschreiben</h1>
+  <div class="sub" id="hdrSub">Bitte Vertrag lesen und digital signieren</div>
+  <div class="by" id="hdrBy"></div>
+</div>
+
+<div class="vs-body" id="vsBody">
+  <div class="loading">⏳ Lade Vertrag…</div>
+</div>
+
+<script>
+var _token = '';
+var _sigCanvas, _sigCtx, _drawing = false, _hasSig = false;
+var _lastX, _lastY;
+
+function getToken(){
+  var p = new URLSearchParams(window.location.search);
+  return p.get('t') || '';
+}
+
+function init(){
+  _token = getToken();
+  if(!_token){ showError('Kein gültiger Link.','Bitte fragen Sie Ihre Pflegekraft nach einem neuen Signatur-Link.'); return; }
+  fetch('/api/vertrag/info/'+_token)
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.bereits_signiert){
+      showAlreadySigned();
+      return;
+    }
+    if(!d.ok){ showError('Ungültiger Link', d.error||'Dieser Link ist nicht mehr gültig.'); return; }
+    document.getElementById('hdrSub').textContent=d.titel;
+    document.getElementById('hdrBy').textContent=d.caregiver_name?'Bereitgestellt von: '+d.caregiver_name:'';
+    showForm(d.titel);
+  })
+  .catch(function(){ showError('Verbindungsfehler','Bitte Internetverbindung prüfen und Seite neu laden.'); });
+}
+
+function showError(title, msg){
+  document.getElementById('vsBody').innerHTML=
+    '<div class="vs-error"><div class="ico">❌</div><h2>'+esc(title)+'</h2><p>'+esc(msg)+'</p></div>';
+}
+
+function showAlreadySigned(){
+  document.getElementById('vsBody').innerHTML=
+    '<div class="vs-success"><div class="ico">✅</div><h2>Bereits unterschrieben</h2>'
+    +'<p>Dieser Vertrag wurde bereits signiert. Für eine neue Unterschrift bitte Ihre Pflegekraft um einen neuen Link.</p></div>';
+}
+
+function showForm(titel){
+  document.getElementById('vsBody').innerHTML=
+    '<div class="vs-card">'
+      +'<h2>📄 Vertrag lesen</h2>'
+      +'<iframe class="pdf-frame" src="/api/vertrag/pdf/'+_token+'#toolbar=0" title="'+esc(titel)+'"></iframe>'
+      +'<p class="pdf-note">Bitte den Vertrag vollständig durchlesen, bevor Sie unterschreiben.</p>'
+    +'</div>'
+    +'<div class="vs-card">'
+      +'<h2>👤 Ihre Daten</h2>'
+      +'<label class="f-lbl" for="sigName">Vor- und Nachname</label>'
+      +'<input class="f-inp" type="text" id="sigName" placeholder="Max Mustermann" autocomplete="name">'
+    +'</div>'
+    +'<div class="vs-card">'
+      +'<h2>✍️ Unterschrift</h2>'
+      +'<p style="font-size:.78rem;color:#64748b;margin:0 0 10px;">Bitte unten mit dem Finger oder Stift unterschreiben:</p>'
+      +'<div class="sig-wrap" id="sigWrap">'
+        +'<canvas id="sigCanvas" class="sig-canvas" height="180"></canvas>'
+        +'<div class="sig-hint" id="sigHint">Hier unterschreiben</div>'
+        +'<button class="sig-clear" onclick="clearSig()">✕ Löschen</button>'
+      +'</div>'
+    +'</div>'
+    +'<div class="vs-card">'
+      +'<div class="check-row">'
+        +'<input type="checkbox" id="sigCheck">'
+        +'<label for="sigCheck">Ich bestätige, den oben angezeigten Vertrag vollständig gelesen zu haben und stimme den darin enthaltenen Bedingungen zu.</label>'
+      +'</div>'
+    +'</div>'
+    +'<button class="btn-sign" id="signBtn" onclick="submitSig()">✅ Verbindlich unterschreiben</button>';
+
+  initCanvas();
+}
+
+function initCanvas(){
+  _sigCanvas = document.getElementById('sigCanvas');
+  _sigCtx    = _sigCanvas.getContext('2d');
+  _sigCanvas.width = _sigCanvas.offsetWidth * window.devicePixelRatio;
+  _sigCanvas.height = 180 * window.devicePixelRatio;
+  _sigCanvas.style.height = '180px';
+  _sigCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  _sigCtx.strokeStyle = '#0f2744';
+  _sigCtx.lineWidth   = 2.5;
+  _sigCtx.lineCap     = 'round';
+  _sigCtx.lineJoin    = 'round';
+
+  function pos(e){
+    var r = _sigCanvas.getBoundingClientRect();
+    var src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - r.left, y: src.clientY - r.top };
+  }
+  function start(e){ e.preventDefault(); _drawing=true; var p=pos(e); _lastX=p.x; _lastY=p.y; _sigCtx.beginPath(); _sigCtx.moveTo(p.x,p.y); }
+  function move(e){ if(!_drawing) return; e.preventDefault(); var p=pos(e); _sigCtx.lineTo(p.x,p.y); _sigCtx.stroke(); _lastX=p.x; _lastY=p.y; _hasSig=true; document.getElementById('sigHint').style.display='none'; }
+  function end(e){ _drawing=false; }
+
+  _sigCanvas.addEventListener('mousedown',start);
+  _sigCanvas.addEventListener('mousemove',move);
+  _sigCanvas.addEventListener('mouseup',end);
+  _sigCanvas.addEventListener('touchstart',start,{passive:false});
+  _sigCanvas.addEventListener('touchmove',move,{passive:false});
+  _sigCanvas.addEventListener('touchend',end);
+}
+
+function clearSig(){
+  _sigCtx.clearRect(0,0,_sigCanvas.width/_sigCanvas.devicePixelRatio||_sigCanvas.width,180);
+  _sigCtx.clearRect(0,0,5000,5000);
+  _hasSig=false;
+  document.getElementById('sigHint').style.display='';
+}
+
+function submitSig(){
+  var name = (document.getElementById('sigName').value||'').trim();
+  if(!name){ alert('Bitte Ihren Namen eingeben.'); return; }
+  if(!_hasSig){ alert('Bitte erst unterschreiben.'); return; }
+  if(!document.getElementById('sigCheck').checked){ alert('Bitte das Kästchen bestätigen.'); return; }
+  var data = _sigCanvas.toDataURL('image/png');
+  var btn = document.getElementById('signBtn');
+  btn.disabled=true; btn.textContent='⏳ Wird gespeichert…';
+  fetch('/api/vertrag/signieren/'+_token,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({patient_name:name, unterschrift:data})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){
+      document.getElementById('vsBody').innerHTML=
+        '<div class="vs-success">'
+          +'<div class="ico">🎉</div>'
+          +'<h2>Erfolgreich unterschrieben!</h2>'
+          +'<p>Vielen Dank, <strong>'+esc(name)+'</strong>.<br>Ihre Unterschrift wurde gespeichert.</p>'
+          +'<div class="sig-preview">'
+            +'<img src="'+data+'" alt="Ihre Unterschrift">'
+            +'<div class="lbl">Unterschrift gespeichert · '+fmt(d.signiert_am)+'</div>'
+          +'</div>'
+        +'</div>';
+    } else {
+      btn.disabled=false; btn.textContent='✅ Verbindlich unterschreiben';
+      alert('Fehler: '+(d.error||'Unbekannt'));
+    }
+  })
+  .catch(function(){
+    btn.disabled=false; btn.textContent='✅ Verbindlich unterschreiben';
+    alert('Verbindungsfehler. Bitte versuchen Sie es erneut.');
+  });
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(dt){ if(!dt) return ''; return dt.replace('T',' ').slice(0,16); }
+
+window.addEventListener('load', init);
+window.addEventListener('resize', function(){
+  if(_sigCanvas){ _sigCanvas.width = _sigCanvas.offsetWidth * window.devicePixelRatio; }
+});
+</script>
+</body>
+</html>

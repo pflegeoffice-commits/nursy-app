@@ -1,0 +1,1441 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Dashboard Pflegekraft</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="leaflet.css?v=3" />
+  <script src="leaflet.js?v=3"></script>
+  <style>.leaflet-container img.leaflet-tile{mix-blend-mode:normal!important}</style>
+  <style>
+    @keyframes mapPulse{0%{transform:scale(1);opacity:.75}70%{transform:scale(2.8);opacity:0}100%{transform:scale(2.8);opacity:0}}
+    .my-loc-dot{width:14px;height:14px;background:#3f6fe8;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(63,111,232,.5);position:relative;}
+    .my-loc-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:rgba(63,111,232,.30);animation:mapPulse 2.2s ease-out infinite;}
+  </style>
+  <style>
+    #dashTourCard{margin-top:20px;padding:18px 22px;}
+    .tour-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+    .tour-head h3{margin:0;font-size:15px;font-weight:700;}
+    .tour-km{font-size:13px;color:#7a8faa;}
+    .tour-km__driven{color:#3f6fe8;font-weight:700;}
+    .tour-stops-wrap{display:flex;align-items:stretch;flex-wrap:wrap;gap:0;margin-bottom:14px;}
+    .tour-stop{display:flex;gap:9px;padding:10px 11px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;min-width:110px;max-width:175px;transition:all .2s;}
+    .tour-stop--done{opacity:.65;border-color:#22c55e44;background:#f0fdf4;}
+    .tour-stop--active{border-color:#3f6fe8;background:#eef2fb;box-shadow:0 2px 10px rgba(63,111,232,.13);}
+    .tour-stop--pending{opacity:.45;}
+    .tour-stop__circle{width:24px;height:24px;border-radius:50%;background:#3f6fe8;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+    .tour-stop--done .tour-stop__circle{background:#22c55e;}
+    .tour-stop--pending .tour-stop__circle{background:#cbd5e1;}
+    .tour-stop__body{flex:1;min-width:0;}
+    .tour-stop__name{font-size:12px;font-weight:700;color:#1e2d40;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .tour-stop__plan{font-size:11px;color:#7a8faa;margin-top:1px;}
+    .tour-stop__log{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
+    .tour-t{font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;border:none;}
+    .tour-t--an{background:#dbeafe;color:#1e3a8a;}
+    .tour-t--ab{background:#fce7f3;color:#831843;}
+    .tour-t--edit{cursor:pointer;opacity:.9;transition:opacity .1s,box-shadow .1s;}
+    .tour-t--edit:hover{opacity:1;box-shadow:0 0 0 2px #3f6fe888;}
+    .tour-undo-btn{background:none;border:1.5px solid #cbd5e1;border-radius:6px;color:#64748b;font-size:11px;font-weight:600;padding:3px 9px;cursor:pointer;transition:background .12s,color .12s;}
+    .tour-undo-btn:hover{background:#f1f5f9;color:#1e2d40;}
+    .tour-stop--start{background:#eff6ff;border:1.5px dashed #93c5fd;}
+    .tour-stop__circle--start{background:#dbeafe;color:#1d4ed8;font-size:14px;width:28px;height:28px;}
+    .tour-gps-btn{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:6px;color:#1d4ed8;font-size:11px;font-weight:700;padding:3px 9px;cursor:pointer;transition:background .12s;}
+    .tour-gps-btn:hover{background:#dbeafe;}
+    .tour-gps-btn:disabled{opacity:.55;cursor:default;}
+    .tour-gps-btn--home{background:#f0fdf4;border-color:#86efac;color:#166534;}
+    .tour-gps-btn--home:hover{background:#dcfce7;}
+    .tour-conn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;gap:1px;align-self:center;min-width:46px;}
+    .tour-conn--pause{min-width:54px;}
+    .tour-conn__km{font-size:10px;color:#7a8faa;white-space:nowrap;}
+    .tour-conn__arrow{color:#3f6fe8;font-size:17px;line-height:1;}
+    .tour-conn__pause{font-size:10px;color:#d97706;font-weight:700;white-space:nowrap;margin-bottom:1px;}
+    .tour-action-wrap{margin-top:2px;}
+    .tour-btn{background:#3f6fe8;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;}
+    .tour-btn:hover{background:#2d5bd4;}
+    .tour-btn--next{background:#059669;}
+    .tour-btn--next:hover{background:#047857;}
+    .tour-done-badge{display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1.5px solid #22c55e44;color:#166534;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;}
+    @media(max-width:640px){
+      .tour-stops-wrap{flex-direction:column;}
+      .tour-conn{flex-direction:row;padding:3px 0;gap:4px;}
+      .tour-conn__arrow{transform:rotate(90deg);}
+      .tour-stop{max-width:100%;min-width:0;width:100%;}
+      .tour-btn,.tour-gps-btn{width:100%;padding:11px 18px;font-size:14px;}
+      .tour-action-wrap{display:flex;gap:8px;flex-wrap:wrap;}
+    }
+  </style>
+    <link rel="manifest" href="/manifest-nursy.json">
+    <link rel="apple-touch-icon" href="/icon-nursy-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Nursy Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Hauptnavigation">
+        <button id="headerAbmeldenBtn" style="background:none;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 16px;font-size:.88rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit;">Abmelden</button>
+      </nav>
+    </div>
+  </header>
+
+<main class="container">
+  <section class="section">
+    <div class="section__head">
+      <h2>Dashboard</h2>
+      <p class="muted">Dein Überblick für heute.</p>
+    </div>
+
+    <div class="dash-top">
+      <div class="card dash-profile">
+        <div class="dash-profile__inner">
+          <div class="avatar" id="dashAvatar" aria-label="Profilfoto">
+            <span>Foto</span>
+          </div>
+
+          <div class="dash-profile__meta">
+            <h3 class="dash-profile__title">Profil</h3>
+            <div class="dash-profile__lines">
+              <div><strong>Name:</strong> <span id="dashName">Test Pflegekraft</span></div>
+              <div><strong>Bezirk:</strong> <span id="dashBezirk">Beispielbezirk</span></div>
+              <div><strong>Meine Zeiten:</strong> <span id="dashTodayTime">Heute 08:00–16:00</span></div>
+              <div><strong>Morgen:</strong> <span id="dashTomorrowTime">Morgen —</span></div>
+            </div>
+
+            <div class="dash-profile__actions">
+              <a class="control btn" href="profile-care.html">Profil öffnen</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card dash-map">
+        <div class="dash-map__head">
+          <h3>Karte</h3>
+          <span class="muted" id="mapStatusLabel">Lade Karte…</span>
+        </div>
+        <div class="dash-map__frame" id="dashMapFrame">
+          <div id="dashMap"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="dashTourCard" style="display:none"></div>
+
+    <div class="card dash-today">
+      <div class="dash-rowhead">
+        <h3>Meine heutigen Einsätze</h3>
+        <a class="control btn" href="patients.html">Alle ansehen</a>
+      </div>
+
+      <div class="today-list" id="dashTodayList"></div>
+      <p class="muted" id="dashTodayEmpty" style="padding:10px 0 4px;" hidden>Heute sind keine Einsätze eingetragen.</p>
+    </div>
+
+
+    <div class="dash-sections">
+
+      <!-- ── Anfragen & Neue Patienten (inline) ── -->
+      <div class="card dash-section" id="matchingSection" style="border:1.5px solid #3f6fe8;background:linear-gradient(135deg,#eff2fd 0%,#fff 100%);display:block;padding-bottom:4px;">
+        <div class="dash-row" style="margin-bottom:10px;">
+          <div>
+            <h3 style="color:#3f6fe8;">📋 Anfragen <span id="anfragenBadge" style="display:none;margin-left:6px;background:#ef4444;color:#fff;font-size:.68rem;font-weight:800;padding:2px 7px;border-radius:10px;"></span></h3>
+            <p class="muted" style="margin:0;">Gezielte und offene Patientenanfragen direkt annehmen.</p>
+          </div>
+          <a class="control btn primary" href="anfragen.html" style="flex-shrink:0;">Alle ansehen</a>
+        </div>
+        <div id="matchingLoading" class="muted" style="font-size:.82rem;padding:8px 0 12px;">Wird geladen …</div>
+        <div id="matchingListe" style="display:none;"></div>
+        <div id="matchingEmpty" style="display:none;padding:14px 0 10px;text-align:center;color:#94a3b8;font-size:.82rem;">Aktuell keine offenen Anfragen.</div>
+      </div>
+
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Meine Patienten</h3>
+            <p class="muted">Alle Klienten, Kontaktdaten und Einsatzübersicht.</p>
+          </div>
+          <a class="control btn" href="patients.html">Öffnen</a>
+        </div>
+      </div>
+
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Pflegeplanung</h3>
+            <p class="muted">Planung, Ziele, Maßnahmen und Evaluierung.</p>
+          </div>
+          <a class="control btn" href="pflegeplanung.html">Öffnen</a>
+        </div>
+      </div>
+
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Vitalzeichen</h3>
+            <p class="muted">Erfassung und Übersicht der aktuellen Vitalwerte.</p>
+          </div>
+          <a class="control btn" href="vitalzeichen.html">Öffnen</a>
+        </div>
+      </div>
+
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Durchführungsnachweis</h3>
+            <p class="muted">Leistungen, Maßnahmen und Nachweise direkt einsehen.</p>
+          </div>
+          <a class="control btn" href="durchfuehrungsnachweis.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Dokumentation</h3>
+            <p class="muted">Durchführungsnachweis & tägliche Dokumentation.</p>
+          </div>
+          <a class="control btn" href="dokumentation.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>Meine Rechnungen</h3>
+            <p class="muted">Rechnungsübersicht, Status und Export.</p>
+          </div>
+          <a class="control btn" href="invoices.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>📄 Meine Verträge</h3>
+            <p class="muted">Verträge hochladen & von Patienten digital unterschreiben lassen.</p>
+          </div>
+          <a class="control btn" href="vertraege.html">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>📋 Notformular</h3>
+            <p class="muted">Offline-Notfallformular für Einsätze ohne Verbindung.</p>
+          </div>
+          <a class="control btn" href="notformular.html" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;">Öffnen</a>
+        </div>
+      </div>
+
+      <div class="card dash-section">
+        <div class="dash-row">
+          <div>
+            <h3>☁️ Dokumentation sichern</h3>
+            <p class="muted">Alle Dokumentationsdaten auf den Server sichern.</p>
+          </div>
+          <button onclick="if(window.triggerManualBackup)window.triggerManualBackup()" class="control btn" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;">Backup starten</button>
+        </div>
+      </div>
+
+      <!-- Datensicherung -->
+      <div class="card dash-section" style="border:1.5px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff 0%,#f8faff 100%);">
+        <div class="dash-row" style="flex-wrap:wrap;gap:12px;">
+          <div style="flex:1;min-width:200px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-size:1.3rem;">💾</span>
+              <h3 style="margin:0;">Datensicherung</h3>
+            </div>
+            <p class="muted" style="font-size:.82rem;">Alle Patientendaten, Dokumentationen &amp; Nachweise als Datei sichern – z.B. auf die Nursy-Festplatte.</p>
+            <div id="exportStatus" style="font-size:.75rem;color:#64748b;margin-top:4px;min-height:16px;"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;">
+            <button onclick="nursy_exportDaten()" class="control btn" id="exportBtn"
+              style="background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:800;min-width:180px;">
+              ⬇️ Export herunterladen
+            </button>
+            <label class="control btn" style="background:#fff;color:#374151;border-color:#d1d5db;cursor:pointer;min-width:180px;text-align:center;">
+              ⬆️ Backup wiederherstellen
+              <input type="file" accept=".json" style="display:none;" onchange="nursy_importDaten(this)">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer class="footer">
+    <div class="container footer__inner">
+      <span class="muted">© Nursy – Fürsorge mit Herz</span>
+      <div class="footer__links">
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+<script src="script.js"></script>
+
+<!-- ── Beenden-Modal (Dashboard) ── -->
+<div id="dashBeendenModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:18px 18px 0 0;padding:24px 20px 32px;width:100%;max-width:480px;box-shadow:0 -4px 24px rgba(0,0,0,.15);">
+    <h3 style="margin:0 0 4px;font-size:1.05rem;color:#1e293b;" id="dashBeendenTitle">Patienten beenden</h3>
+    <p style="margin:0 0 16px;font-size:.85rem;color:#64748b;">Bitte Grund für die Beendigung auswählen:</p>
+    <div id="dashBeendenError" style="color:#b91c1c;font-size:.83rem;margin-bottom:8px;min-height:18px;"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;"><input type="radio" name="dashBeendenGrund" value="Stationäre Aufnahme"> Stationäre Aufnahme</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;"><input type="radio" name="dashBeendenGrund" value="Verstorben"> Verstorben</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;"><input type="radio" name="dashBeendenGrund" value="Anderer Anbieter"> Anderer Anbieter</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;"><input type="radio" name="dashBeendenGrund" value="Auf eigenen Wunsch"> Auf eigenen Wunsch</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:.9rem;cursor:pointer;"><input type="radio" name="dashBeendenGrund" value="Sonstiges"> Sonstiges</label>
+    </div>
+    <div id="dashBeendenSonstDiv" style="display:none;margin-bottom:14px;">
+      <input id="dashBeendenSonstText" type="text" placeholder="Grund eingeben…" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button id="dashBeendenCancel" style="flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;font-size:.9rem;font-weight:700;cursor:pointer;color:#64748b;">Abbrechen</button>
+      <button id="dashBeendenSave" style="flex:1;padding:12px;border:none;border-radius:12px;background:#b91c1c;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">Beenden</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var modal     = document.getElementById('dashBeendenModal');
+  var titleEl   = document.getElementById('dashBeendenTitle');
+  var errorEl   = document.getElementById('dashBeendenError');
+  var sonstDiv  = document.getElementById('dashBeendenSonstDiv');
+  var sonstText = document.getElementById('dashBeendenSonstText');
+  var saveBtn   = document.getElementById('dashBeendenSave');
+  var cancelBtn = document.getElementById('dashBeendenCancel');
+  var _pid = '', _pname = '';
+
+  function openModal(pid, pname){
+    _pid = pid; _pname = pname;
+    titleEl.textContent = pname + ' beenden';
+    errorEl.textContent = '';
+    sonstDiv.style.display = 'none';
+    sonstText.value = '';
+    document.querySelectorAll('input[name="dashBeendenGrund"]').forEach(function(r){ r.checked = false; });
+    modal.style.display = 'flex';
+  }
+  function closeModal(){ modal.style.display = 'none'; }
+
+  /* Sonstiges-Feld ein-/ausblenden */
+  document.querySelectorAll('input[name="dashBeendenGrund"]').forEach(function(r){
+    r.addEventListener('change', function(){
+      sonstDiv.style.display = r.value === 'Sonstiges' ? 'block' : 'none';
+    });
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+
+  saveBtn.addEventListener('click', async function(){
+    errorEl.textContent = '';
+    var chosen = document.querySelector('input[name="dashBeendenGrund"]:checked');
+    if(!chosen){ errorEl.textContent = 'Bitte einen Grund wählen.'; return; }
+    var grund = chosen.value;
+    if(grund === 'Sonstiges'){
+      var txt = (sonstText.value||'').trim();
+      if(!txt){ errorEl.textContent = 'Bitte Grund für „Sonstiges" eingeben.'; return; }
+      grund = 'Sonstiges: ' + txt;
+    }
+    saveBtn.disabled = true;
+    /* 1. Zuerst Server beenden */
+    try {
+      await fetch('/api/care/meine-patienten/' + encodeURIComponent(_pid), {
+        method: 'DELETE', credentials: 'include'
+      });
+    } catch(e) {}
+    /* 2. Lokal entfernen */
+    try {
+      var key = window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1';
+      var acc = JSON.parse(localStorage.getItem(key)||'[]');
+      acc = acc.filter(function(a){ return a.id !== _pid; });
+      localStorage.setItem(key, JSON.stringify(acc));
+    } catch(e) {}
+    saveBtn.disabled = false;
+    closeModal();
+    /* 3. Dashboard neu rendern */
+    if(typeof render === 'function') render();
+    /* Toast */
+    var toast = document.createElement('div');
+    toast.textContent = (_pname||'Patient') + ' wurde beendet.';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#b91c1c;color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);white-space:nowrap;';
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.remove(); }, 3000);
+  });
+
+  /* Klick auf Beenden-Button in Patientenkarten */
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.dash-beenden-btn');
+    if(!btn) return;
+    openModal(btn.dataset.pid, btn.dataset.pname);
+  });
+})();
+</script>
+<script>
+document.getElementById('headerAbmeldenBtn').addEventListener('click', function(){
+  fetch('/api/logout', {method:'POST', credentials:'include'})
+    .finally(function(){ window.location.href = 'index.html'; });
+});
+</script>
+</body>
+</html>
+
+<script>
+(function(){
+  function isoToday(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function loadTodayPatients(){
+    var today=isoToday(), list=[], seen={};
+    /* Nur angenommene Patienten – keine Demo-Patienten */
+    try{
+      var acc=JSON.parse(localStorage.getItem(window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1')||'[]');
+      acc.forEach(function(ap){
+        if(ap.active===false) return;
+        var visits=Array.isArray(ap.visits)&&ap.visits.length ? ap.visits : (ap.visitDate?[{date:ap.visitDate,from:ap.visitFrom||'',to:ap.visitTo||''}]:[]);
+        var todayVisits=visits.filter(function(v){return v.date===today&&!v.cancelled;});
+        todayVisits.forEach(function(v){
+          if(!seen[ap.id+v.from]){ seen[ap.id+v.from]=1;
+            list.push({id:ap.id,name:ap.name,address:ap.address||'',from:v.from,to:v.to,hauptgrund:ap.hauptgrund||'',gender:ap.gender||''});
+          }
+        });
+      });
+    }catch(e){}
+    return list;
+  }
+
+  function attachDocLinks(container){
+    container.querySelectorAll('[data-open-doc]').forEach(function(link){
+      link.addEventListener('click',function(){
+        var item=link.closest('.today-item'); if(!item) return;
+        try{
+          localStorage.setItem('nursy_current_patient_id', item.getAttribute('data-patient-id')||'');
+          localStorage.setItem('nursy_current_patient_name', item.getAttribute('data-patient-name')||'');
+          localStorage.setItem('nursy_current_patient_birth','');
+        }catch(e){}
+      });
+    });
+  }
+
+  /* ── DN-Status für Dashboard-Patienten ── */
+  var DF_MEASURE_TIMES_DASH = [
+    {id:1,t:'07:00'},{id:2,t:'07:30'},{id:3,t:'08:00'},{id:4,t:'08:00'},
+    {id:5,t:'09:00'},{id:6,t:'10:00'},{id:7,t:'10:00'},{id:8,t:'11:00'},
+    {id:9,t:'12:00'},{id:10,t:'12:00'},{id:11,t:'13:00'},{id:12,t:'14:00'},
+    {id:13,t:'15:00'},{id:14,t:'16:00'},{id:15,t:'18:00'},
+    {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
+    {id:19,t:'21:00'},{id:20,t:'21:30'},
+  ];
+
+  function dashDfStatus(patId, from, to){
+    var today=isoToday(), now=new Date();
+    function toMin(s){ var p=(s||'00:00').split(':'); return +p[0]*60+ +p[1]; }
+    var nowMin=now.getHours()*60+now.getMinutes();
+    var fromMin=toMin(from), toMin_=toMin(to);
+    if(nowMin < fromMin) return 'upcoming';
+
+    /* Patientenindex – nur angenommene Patienten */
+    var allAcc=[];  try{ allAcc =JSON.parse(localStorage.getItem(window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1')||'[]'); }catch(e){}
+    var merged=[];
+    allAcc.forEach(function(ap){ if(ap.active!==false){ merged.push(ap); } });
+    merged.sort(function(a,b){
+      function hasT(p){ return (p.visits||[]).some(function(v){ return v.date===today&&!v.cancelled; })||(p.visitDate===today); }
+      var aT=hasT(a), bT=hasT(b);
+      if(aT&&!bT) return -1; if(!aT&&bT) return 1;
+      return (a.name||'').localeCompare(b.name||'');
+    });
+    var dfData={};
+    try{ dfData=JSON.parse(localStorage.getItem('nursy_df_v1_'+patId+'_'+today)||'{}'); }catch(e){}
+    var signedIds={};
+    Object.keys(dfData).forEach(function(k){ signedIds[+k]=1; });
+    var signedCount=Object.keys(signedIds).length;
+    if(signedCount>=20) return 'done';
+
+    var overdue=DF_MEASURE_TIMES_DASH.filter(function(m){ return toMin(m.t)<=nowMin && !signedIds[m.id]; });
+    return overdue.length>0 ? 'overdue' : 'done';
+  }
+
+  function render(){
+    var list=document.getElementById('dashTodayList');
+    var empty=document.getElementById('dashTodayEmpty');
+    if(!list) return;
+    var patients=loadTodayPatients();
+    list.innerHTML='';
+    if(patients.length===0){ empty.hidden=false; return; }
+    empty.hidden=true;
+    patients.forEach(function(p){
+      var timeStr=(p.from&&p.to)?' · '+p.from+' – '+p.to:(p.from?' · '+p.from:'');
+      var mapsUrl='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.address);
+      var div=document.createElement('div');
+      div.className='today-item';
+      div.setAttribute('data-patient-id',p.id);
+      div.setAttribute('data-patient-name',p.name);
+      div.setAttribute('data-patient-birth','');
+
+      /* Status-Dot */
+      var status=dashDfStatus(p.id, p.from, p.to);
+      var dotColor= status==='upcoming' ? '#f59e0b' : status==='done' ? '#22c55e' : status==='overdue' ? '#ef4444' : '';
+      var dotTitle= status==='upcoming' ? 'Einsatz noch bevorstehend'
+                  : status==='done'     ? 'Alle fälligen Maßnahmen abgezeichnet'
+                  : status==='overdue'  ? 'Überfällige Maßnahmen nicht abgezeichnet!'
+                  : '';
+      var dotHtml= dotColor
+        ? '<span title="'+dotTitle+'" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+dotColor+';border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);margin-right:6px;flex-shrink:0;align-self:center;"></span>'
+        : '';
+
+      var hauptgrundHtml = p.hauptgrund
+        ? '<div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;">'+
+            '<span style="display:inline-block;padding:5px 12px;border-radius:20px;background:#eef2fb;color:#3f6fe8;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;" title="'+p.hauptgrund+'">'+p.hauptgrund+'</span>'+
+          '</div>'
+        : '<div style="flex:1;"></div>';
+      div.innerHTML=
+        dotHtml+
+        '<div class="today-item__main">'+
+          '<div class="today-item__name">'+p.name+'</div>'+
+          '<div class="muted">'+p.address+timeStr+'</div>'+
+        '</div>'+
+        hauptgrundHtml+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;">'+
+          '<a class="control btn" href="dokumentation.html" data-open-doc>Dokumentation</a>'+
+          '<a class="control btn primary" href="'+mapsUrl+'" target="_blank" rel="noopener">Navigation</a>'+
+          '<button class="control btn btn--danger dash-beenden-btn" data-pid="'+p.id+'" data-pname="'+p.name.replace(/"/g,'&quot;')+'" style="background:#b91c1c;color:#fff;border:none;">Beenden</button>'+
+        '</div>';
+      list.appendChild(div);
+    });
+    attachDocLinks(list);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    render();
+
+    /* Profil-Daten vom Server laden → dashName / dashBezirk aktualisieren */
+    fetch('/api/care/profil', {credentials:'include'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if (!d || !d.ok || !d.profil) return;
+        var p = d.profil;
+        /* UID setzen → Schlüssel isoliert pro Pfleger */
+        if(p.id && window.setCareUid) window.setCareUid(p.id);
+        var nameEl = document.getElementById('dashName');
+        var bezEl  = document.getElementById('dashBezirk');
+        var todayEl= document.getElementById('dashTodayTime');
+        var tomEl  = document.getElementById('dashTomorrowTime');
+        if (nameEl && (p.firstName || p.lastName))
+          nameEl.textContent = [p.firstName, p.lastName].filter(Boolean).join(' ');
+        if (bezEl && p.district) bezEl.textContent = p.district;
+        if (p.availability && typeof p.availability === 'object') {
+          var avail = p.availability;
+          var DAYS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+          var todayKey = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+          var tomKey   = DAYS[new Date().getDay() % 7 === 0 ? 6 : new Date().getDay() % 7 === 0 ? 5 : new Date().getDay() % 7 - 1];
+          var t = avail[todayKey];
+          var m = avail[tomKey];
+          if (todayEl && t && t.start) todayEl.textContent = 'Heute ' + t.start + '–' + (t.end || '');
+          if (tomEl   && m && m.start) tomEl.textContent   = 'Morgen ' + m.start + '–' + (m.end || '');
+        }
+        try { localStorage.setItem('nursy_profile_care_v1', JSON.stringify(p)); } catch(e) {}
+      }).catch(function(){});
+
+    /* Patienten-Liste vom Server synchronisieren und neu rendern */
+    fetch('/api/care/meine-patienten', {credentials:'include'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || !d.ok) return;
+        if(d.caregiver_id && window.setCareUid) window.setCareUid(d.caregiver_id);
+        if(!Array.isArray(d.patients)) return;
+        var key = window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1';
+        try{ localStorage.setItem(key, JSON.stringify(d.patients)); }catch(e){}
+        render();
+      }).catch(function(){});
+
+    /* Automatische Aktualisierung: alle 60 s neu rendern (orange→rot bei Zeitüberschreitung) */
+    setInterval(render, 60000);
+
+    /* Sofort-Aktualisierung wenn Durchführungsnachweis-Daten geändert werden */
+    window.addEventListener('storage', function(e){
+      if(e.key && e.key.indexOf('nursy_df_v1_') === 0) render();
+    });
+
+    /* ── Automatischer Server-Backup aller Dokumentationsdaten ── */
+    (function(){
+      var _backupRunning = false;
+      var _lastBackup = 0;
+
+      function collectBackupData(){
+        var carePatKey = window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1';
+        var patients = [];
+        try{ patients = JSON.parse(localStorage.getItem(carePatKey)||'[]'); }catch(e){}
+        if(!patients.length) return null;
+
+        var df_eintraege = [];
+        var wunddoku    = [];
+        var pflegeplanung = [];
+        var TODAY = new Date().toISOString().slice(0,10);
+
+        patients.forEach(function(p){
+          var pid = p.id;
+          if(!pid) return;
+
+          /* DN-Einträge: heute + Archiv */
+          /* Heutiger Eintrag */
+          var dayKey = 'nursy_df_v1_' + pid + '_' + TODAY;
+          try{
+            var ds = JSON.parse(localStorage.getItem(dayKey)||'{}');
+            if(Object.keys(ds).length) df_eintraege.push({patient_id:pid, datum:TODAY, state:ds});
+          }catch(e){}
+          /* Archiv vergangener Tage */
+          for(var i=0; i<localStorage.length; i++){
+            var k = localStorage.key(i);
+            if(k && k.startsWith('nursy_df_v1_'+pid+'_')){
+              var datum = k.slice(('nursy_df_v1_'+pid+'_').length);
+              if(datum && datum < TODAY){
+                try{
+                  var ds2 = JSON.parse(localStorage.getItem(k)||'{}');
+                  if(Object.keys(ds2).length) df_eintraege.push({patient_id:pid, datum:datum, state:ds2});
+                }catch(e){}
+              }
+            }
+          }
+
+          /* Wunddokumentation */
+          var wdRaw = localStorage.getItem('nursy_wunddoku_v1');
+          if(wdRaw){
+            try{
+              var wd = JSON.parse(wdRaw);
+              if(wd && wd.savedAt){
+                wunddoku.push({patient_id:pid, datum:(wd.savedAt||TODAY).slice(0,10), data:wd});
+              }
+            }catch(e){}
+          }
+
+          /* Pflegeplanung / Wundplan */
+          var ppRaw = localStorage.getItem('nursy_pp_wund_v1_'+pid);
+          if(ppRaw){
+            try{
+              var pp = JSON.parse(ppRaw);
+              if(pp) pflegeplanung.push({patient_id:pid, wundPlan:pp});
+            }catch(e){}
+          }
+        });
+
+        if(!df_eintraege.length && !wunddoku.length && !pflegeplanung.length) return null;
+        return {df_eintraege:df_eintraege, wunddoku:wunddoku, pflegeplanung:pflegeplanung};
+      }
+
+      function runBackup(showToast){
+        if(_backupRunning) return;
+        var now = Date.now();
+        if(now - _lastBackup < 30000) return; /* max alle 30s */
+        var data = collectBackupData();
+        if(!data) return;
+        _backupRunning = true;
+        fetch('/api/care/backup', {
+          method:'POST', credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(data)
+        }).then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          _lastBackup = Date.now();
+          if(showToast && d && d.ok){
+            var t = document.createElement('div');
+            t.textContent = '☁️ Backup gespeichert (' + (d.count||0) + ' Einträge)';
+            t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0f766e;color:#fff;padding:8px 18px;border-radius:999px;font-size:.82rem;font-weight:700;z-index:9999;box-shadow:0 2px 12px rgba(0,0,0,.18);';
+            document.body.appendChild(t);
+            setTimeout(function(){ t.remove(); }, 2800);
+          }
+        })
+        .catch(function(){})
+        .finally(function(){ _backupRunning = false; });
+      }
+
+      /* Backup beim Start (nach 3s) + alle 5 Minuten automatisch */
+      setTimeout(function(){ runBackup(false); }, 3000);
+      setInterval(function(){ runBackup(false); }, 5 * 60 * 1000);
+
+      /* Backup auslösen wenn DN-Daten gespeichert werden */
+      window.addEventListener('storage', function(e){
+        if(e.key && (e.key.indexOf('nursy_df_v1_') === 0 || e.key.indexOf('nursy_wunddoku') === 0 || e.key.indexOf('nursy_pp_wund') === 0)){
+          setTimeout(function(){ runBackup(false); }, 1500);
+        }
+      });
+
+      /* Manuelle Backup-Funktion global verfügbar */
+      window.triggerManualBackup = function(){ runBackup(true); };
+    })();
+  });
+})();
+
+/* ── Datensicherung: Export & Import ── */
+function nursy_exportDaten(){
+  var btn = document.getElementById('exportBtn');
+  var status = document.getElementById('exportStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Wird erstellt…';
+  status.textContent = '';
+  fetch('/api/care/export')
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      var cd = r.headers.get('Content-Disposition') || '';
+      var m  = cd.match(/filename="([^"]+)"/);
+      var filename = m ? m[1] : 'nursy_backup.json';
+      return r.blob().then(function(blob){ return {blob:blob, filename:filename}; });
+    })
+    .then(function(obj){
+      var url = URL.createObjectURL(obj.blob);
+      var a   = document.createElement('a');
+      a.href  = url;
+      a.download = obj.filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 2000);
+      status.innerHTML = '<span style="color:#15803d;">✓ Export erfolgreich – Datei in den Download-Ordner gespeichert. Bitte auf die Nursy-Festplatte kopieren.</span>';
+      btn.disabled = false;
+      btn.textContent = '⬇️ Export herunterladen';
+    })
+    .catch(function(e){
+      status.innerHTML = '<span style="color:#dc2626;">✗ Fehler beim Export: ' + e.message + '</span>';
+      btn.disabled = false;
+      btn.textContent = '⬇️ Export herunterladen';
+    });
+}
+
+function nursy_importDaten(input){
+  var status = document.getElementById('exportStatus');
+  var file = input.files[0];
+  if(!file){ return; }
+  status.textContent = '⏳ Datei wird gelesen…';
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var data;
+    try{ data = JSON.parse(e.target.result); }
+    catch(err){
+      status.innerHTML = '<span style="color:#dc2626;">✗ Ungültige JSON-Datei</span>';
+      input.value = '';
+      return;
+    }
+    if(!data._meta || data._meta.source !== 'Nursy Pflege-Marketplace'){
+      status.innerHTML = '<span style="color:#dc2626;">✗ Keine gültige Nursy-Backupdatei</span>';
+      input.value = '';
+      return;
+    }
+    var exportDate = data._meta.export_date || '';
+    var patCount   = (data.patienten || []).length;
+    var dfCount    = (data.df_eintraege || []).length;
+    if(!confirm('Backup vom ' + exportDate + ' wiederherstellen?\n' + patCount + ' Patienten, ' + dfCount + ' DN-Einträge werden importiert.\n\nBestehende Daten werden dabei überschrieben.')){
+      status.textContent = '';
+      input.value = '';
+      return;
+    }
+    status.textContent = '⏳ Wird importiert…';
+    fetch('/api/care/import', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res.ok){
+        status.innerHTML = '<span style="color:#15803d;">✓ ' + (res.message || 'Import erfolgreich') + '</span>';
+        setTimeout(function(){ location.reload(); }, 2500);
+      } else {
+        status.innerHTML = '<span style="color:#dc2626;">✗ ' + (res.error || 'Import fehlgeschlagen') + '</span>';
+      }
+      input.value = '';
+    })
+    .catch(function(e){
+      status.innerHTML = '<span style="color:#dc2626;">✗ Netzwerkfehler: ' + e.message + '</span>';
+      input.value = '';
+    });
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+/* ── Karte & Tour (Leaflet / OpenStreetMap / OSRM) ── */
+(function(){
+  var _map = null;
+  var _markers = [];
+  var _geoCache = {};   // address → {lat, lon}
+  var _tourLog = null, _tourStops = [], _tourSegDists = [], _tourTotalKm = 0;
+  var _currentPos = null;   // {lat, lon} from navigator.geolocation or geocoded home
+  var _gpsToFirstKm = 0;    // distance start-position → first stop
+  var _startLabel = 'Mein Standort'; // label for the start stop
+  var _myLocMarker = null;  // live GPS marker on the map
+  var _myLocFirstFix = true; // whether map has been centered on first GPS fix
+
+  var ICONS = ['1','2','3','4','5','6','7'];
+  function numIcon(n){
+    return L.divIcon({
+      className: '',
+      html: '<div style="background:#3f6fe8;color:#fff;font-weight:800;font-size:13px;'+
+            'width:30px;height:30px;border-radius:50%;display:flex;align-items:center;'+
+            'justify-content:center;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);">'
+            + n + '</div>',
+      iconSize: [30,30],
+      iconAnchor: [15,15],
+      popupAnchor: [0,-16]
+    });
+  }
+
+  function isoToday(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  /* Nur angenommene Patienten für Kartendarstellung */
+  function loadTodayAddresses(){
+    var today=isoToday(), out=[], seen={};
+    try{
+      var acc=JSON.parse(localStorage.getItem(window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1')||'[]');
+      acc.forEach(function(ap){
+        if(ap.active===false) return;
+        var visits=Array.isArray(ap.visits)&&ap.visits.length?ap.visits:(ap.visitDate?[{date:ap.visitDate,from:ap.visitFrom||'',to:ap.visitTo||''}]:[]);
+        var v=visits.find(function(x){return x.date===today&&!x.cancelled;});
+        if(v&&ap.address&&!seen[ap.id]){ seen[ap.id]=1; out.push({name:ap.name,address:ap.address,from:v.from,to:v.to}); }
+      });
+    }catch(e){}
+    out.sort(function(a,b){ return (a.from||'').localeCompare(b.from||''); });
+    return out;
+  }
+
+  /* ── Alle heutigen Einsätze (sortiert nach Uhrzeit) – nur angenommene Patienten ── */
+  function loadAllTodayVisits(){
+    var today=isoToday(), list=[];
+    try{
+      var acc=JSON.parse(localStorage.getItem(window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1')||'[]');
+      acc.forEach(function(ap){
+        if(ap.active===false) return;
+        var visits=Array.isArray(ap.visits)&&ap.visits.length?ap.visits:(ap.visitDate?[{date:ap.visitDate,from:ap.visitFrom||'',to:ap.visitTo||''}]:[]);
+        visits.forEach(function(v){
+          if(v.date===today&&!v.cancelled)
+            list.push({id:ap.id,name:ap.name,address:ap.address||'',from:v.from,to:v.to,hauptgrund:ap.hauptgrund||''});
+        });
+      });
+    }catch(e){}
+    list.sort(function(a,b){return (a.from||'').localeCompare(b.from||'');});
+    return list;
+  }
+
+  /* ── Geocode ── */
+  function geocode(address, cb){
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=at&q='
+      + encodeURIComponent(address);
+    fetch(url, {headers:{'Accept-Language':'de','User-Agent':'Nursy-Demo/1.0'}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(data&&data[0]) cb(parseFloat(data[0].lat), parseFloat(data[0].lon));
+        else cb(null,null);
+      })
+      .catch(function(){ cb(null,null); });
+  }
+
+  /* ── Tour-Tracking ── */
+  function tourLogKey(){ return 'nursy_tour_log_'+isoToday(); }
+
+  function loadTourLog(){
+    try{
+      var s=JSON.parse(localStorage.getItem(tourLogKey())||'null');
+      if(s&&s.stops&&s.stops.length===_tourStops.length) return s;
+    }catch(e){}
+    return {
+      currentIdx:0,
+      stops:_tourStops.map(function(s){ return {id:s.id,name:s.name,ankunft:null,abfahrt:null}; })
+    };
+  }
+
+  function saveTourLog(log){
+    try{ localStorage.setItem(tourLogKey(),JSON.stringify(log)); }catch(e){}
+    fetch('/api/care/tourenlog/' + isoToday(), {
+      method:'PUT', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({log: log})
+    }).catch(function(){});
+  }
+
+  function fmtNow(){
+    var n=new Date();
+    return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  }
+
+  function renderTourCard(){
+    var card=document.getElementById('dashTourCard');
+    if(!card||!_tourStops.length) return;
+    _tourLog=loadTourLog();
+    var log=_tourLog;
+
+    /* Gefahrene km (inkl. GPS→Stop0 wenn currentIdx>=1) */
+    var gefahrenKm=(_gpsToFirstKm&&log.currentIdx>=1?_gpsToFirstKm:0);
+    for(var i=0;i<log.currentIdx&&i<_tourSegDists.length;i++)
+      gefahrenKm+=(_tourSegDists[i]||0);
+
+    /* Map-Label aktualisieren */
+    var label=document.getElementById('mapStatusLabel');
+    var n=_tourStops.length;
+    var kmStr=_tourTotalKm?' · '+(_tourTotalKm+'').replace('.',',')+' km':'';
+    if(label) label.textContent=n+(n===1?' Einsatz':' Einsätze')+' heute'+kmStr;
+
+    /* Stops HTML */
+    var stopsHtml='';
+
+    /* Startpunkt als echter Stop vor erstem Patienten */
+    if(_currentPos){
+      var d0km=_gpsToFirstKm?(_gpsToFirstKm+'').replace('.',',')+'&#8202;km':'···';
+      stopsHtml+='<div class="tour-stop tour-stop--start">';
+      stopsHtml+='<div class="tour-stop__circle tour-stop__circle--start">S</div>';
+      stopsHtml+='<div class="tour-stop__body">';
+      stopsHtml+='<div class="tour-stop__name" style="color:#1d4ed8;">'+_startLabel+'</div>';
+      stopsHtml+='</div></div>';
+      stopsHtml+='<div class="tour-conn"><span class="tour-conn__km">'+d0km+'</span><span class="tour-conn__arrow">→</span></div>';
+    } else {
+      /* Heimadresse aus Profil lesen */
+      var homeAddr='';
+      try{
+        var prof=JSON.parse(localStorage.getItem('nursy_profile_care_v1')||'{}');
+        if(prof.street&&prof.city) homeAddr=(prof.street+', '+(prof.zip?prof.zip+' ':'')+prof.city).trim();
+      }catch(e){}
+      if(!homeAddr){
+        fetch('/api/care/profil', {credentials:'include'})
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){
+            if(!d||!d.ok||!d.profil) return;
+            var p=d.profil;
+            try{ localStorage.setItem('nursy_profile_care_v1', JSON.stringify(p)); }catch(e){}
+          }).catch(function(){});
+      }
+      stopsHtml+='<div class="tour-stop tour-stop--start" style="cursor:default;">';
+      stopsHtml+='<div class="tour-stop__circle tour-stop__circle--start" style="opacity:.45;">S</div>';
+      stopsHtml+='<div class="tour-stop__body">';
+      stopsHtml+='<div class="tour-stop__name" style="color:#94a3b8;">Abfahrtsort</div>';
+      stopsHtml+='<div style="display:flex;flex-direction:column;gap:4px;margin-top:5px;">';
+      if(navigator.geolocation)
+        stopsHtml+='<button class="tour-gps-btn" id="tourGpsBtn">Aktueller Standort</button>';
+      if(homeAddr)
+        stopsHtml+='<button class="tour-gps-btn tour-gps-btn--home" id="tourHomeBtn" data-addr="'+homeAddr.replace(/"/g,"&quot;")+'">Heimadresse</button>';
+      stopsHtml+='</div>';
+      stopsHtml+='</div></div>';
+      stopsHtml+='<div class="tour-conn"><span class="tour-conn__km">···</span><span class="tour-conn__arrow">→</span></div>';
+    }
+
+    _tourStops.forEach(function(s,i){
+      var ls=log.stops[i]||{};
+      var done=!!ls.abfahrt;
+      var active=!done&&log.currentIdx===i;
+      var cls=done?'done':active?'active':'pending';
+      stopsHtml+='<div class="tour-stop tour-stop--'+cls+'">';
+      stopsHtml+='<div class="tour-stop__circle">'+(i+1)+'</div>';
+      stopsHtml+='<div class="tour-stop__body">';
+      stopsHtml+='<div class="tour-stop__name">'+s.name+'</div>';
+      if(s.from) stopsHtml+='<div class="tour-stop__plan">'+s.from+(s.to?' – '+s.to:'')+'</div>';
+      stopsHtml+='<div class="tour-stop__log">';
+      if(ls.ankunft) stopsHtml+='<button class="tour-t tour-t--an tour-t--edit" data-edit-stop="'+i+'" data-edit-type="ankunft" title="Zeit bearbeiten">&#8595;&nbsp;'+ls.ankunft+'&nbsp;&#9998;</button>';
+      if(ls.abfahrt) stopsHtml+='<button class="tour-t tour-t--ab tour-t--edit" data-edit-stop="'+i+'" data-edit-type="abfahrt" title="Zeit bearbeiten">&#8593;&nbsp;'+ls.abfahrt+'&nbsp;&#9998;</button>';
+      stopsHtml+='</div></div></div>';
+      if(i<_tourStops.length-1){
+        var km=(_tourSegDists[i]!=null)?(_tourSegDists[i]+'').replace('.',',')+' km':'···';
+        /* Pause-Erkennung: Lücke zwischen Ende dieses Stops und Beginn des nächsten */
+        var pauseHtml2='';
+        var nextS=_tourStops[i+1];
+        if(s.to&&nextS&&nextS.from){
+          var toMin2=function(t){var p=t.split(':');return parseInt(p[0])*60+(parseInt(p[1])||0);};
+          var gap=toMin2(nextS.from)-toMin2(s.to);
+          if(gap>90){
+            var gh=Math.floor(gap/60), gm=gap%60;
+            var gStr=gh>0?(gh+(gm>0?','+String(Math.round(gm/6)):'')+'&#8202;Std.'):(gap+'&#8202;Min.');
+            pauseHtml2='<span class="tour-conn__pause">&#9208; '+gStr+' Pause</span>';
+          }
+        }
+        stopsHtml+='<div class="tour-conn'+(pauseHtml2?' tour-conn--pause':'')+'">'+pauseHtml2+'<span class="tour-conn__km">'+km+'</span><span class="tour-conn__arrow">→</span></div>';
+      }
+    });
+
+    /* Aktion-Button */
+    var ci=log.currentIdx;
+    var btnHtml='';
+    if(ci<_tourStops.length){
+      var ls2=log.stops[ci]||{};
+      if(!ls2.ankunft){
+        btnHtml='<button class="btn tour-btn" id="tourActionBtn">Angekommen bei '+_tourStops[ci].name+'</button>';
+      } else {
+        var nextLabel=ci+1<_tourStops.length
+          ?'Nächster Patient: '+_tourStops[ci+1].name+' &rarr;'
+          :'Tour beenden';
+        btnHtml='<button class="btn tour-btn tour-btn--next" id="tourActionBtn">'+nextLabel+'</button>';
+      }
+    } else {
+      btnHtml='<div class="tour-done-badge">&#10003; Tour abgeschlossen</div>';
+    }
+
+    /* Rückgängig-Button: nur wenn schon etwas erfasst wurde */
+    var hasAnyRecord=log.stops.some(function(ls){ return ls.ankunft||ls.abfahrt; });
+    var undoHtml=hasAnyRecord
+      ?'<button class="tour-undo-btn" id="tourUndoBtn" title="Letzten Schritt rückgängig">&#8592; Rückgängig</button>'
+      :'';
+
+    var gpsHtml=''; /* Button jetzt in der Stop-Liste, nicht mehr im Kopf */
+
+    /* km-Fortschritt */
+    var progHtml='';
+    if(_tourTotalKm){
+      var gStr=gefahrenKm.toFixed(1).replace('.',',');
+      var tStr=(_tourTotalKm+'').replace('.',',');
+      progHtml='<div class="tour-km"><span class="tour-km__driven">'+gStr+' km gefahren</span>'
+        +'<span> / </span><span>'+tStr+' km geplant</span></div>';
+    }
+
+    card.innerHTML=
+      '<div class="tour-head"><h3>Tour heute</h3><div style="display:flex;align-items:center;gap:8px;">'+progHtml+gpsHtml+undoHtml+'</div></div>'+
+      '<div class="tour-stops-wrap">'+stopsHtml+'</div>'+
+      '<div class="tour-action-wrap">'+btnHtml+'</div>';
+    card.style.display='';
+
+    /* Haupt-Aktionsbutton */
+    var btn=document.getElementById('tourActionBtn');
+    if(btn){
+      btn.addEventListener('click',function(){
+        var ci2=_tourLog.currentIdx;
+        if(ci2>=_tourLog.stops.length) return;
+        var ls3=_tourLog.stops[ci2];
+        var now=fmtNow();
+        if(!ls3.ankunft){ ls3.ankunft=now; }
+        else if(!ls3.abfahrt){
+          ls3.abfahrt=now;
+          _tourLog.currentIdx=Math.min(ci2+1,_tourLog.stops.length);
+        }
+        saveTourLog(_tourLog);
+        renderTourCard();
+      });
+    }
+
+    /* Rückgängig-Button */
+    var undoBtn=document.getElementById('tourUndoBtn');
+    if(undoBtn){
+      undoBtn.addEventListener('click',function(){
+        /* Letzten gesetzten Eintrag löschen */
+        var ci2=_tourLog.currentIdx;
+        /* Schritt zurück: wenn aktueller Stop ankunft hat aber keine abfahrt → ankunft löschen */
+        var curStop=_tourLog.stops[ci2]||{};
+        if(ci2<_tourLog.stops.length&&curStop.ankunft&&!curStop.abfahrt){
+          curStop.ankunft=null;
+        } else if(ci2>0){
+          /* Vorheriger Stop hatte abfahrt → abfahrt löschen und Index zurück */
+          _tourLog.currentIdx=ci2-1;
+          var prevStop=_tourLog.stops[_tourLog.currentIdx];
+          if(prevStop) prevStop.abfahrt=null;
+        } else if(ci2===_tourLog.stops.length){
+          /* Tour war als beendet markiert → letzten Stop abfahrt löschen */
+          _tourLog.currentIdx=_tourLog.stops.length-1;
+          var lastStop=_tourLog.stops[_tourLog.currentIdx];
+          if(lastStop) lastStop.abfahrt=null;
+        }
+        saveTourLog(_tourLog);
+        renderTourCard();
+      });
+    }
+
+    /* GPS-Standort-Button */
+    var gpsBtn=document.getElementById('tourGpsBtn');
+    if(gpsBtn){
+      gpsBtn.addEventListener('click',function(){
+        gpsBtn.disabled=true;
+        gpsBtn.textContent='Wird ermittelt…';
+        /* Falls watchPosition bereits einen Fix hat, direkt nutzen */
+        if(_currentPos){
+          _startLabel='Mein Standort';
+          gpsBtn.textContent='GPS aktiv ✓';
+          gpsBtn.disabled=false;
+          fetchRouteAndRender();
+        } else {
+          navigator.geolocation.getCurrentPosition(
+            function(pos){
+              _startLabel='Mein Standort';
+              _currentPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
+              /* Marker nur hinzufügen falls watchPosition noch keinen gesetzt hat */
+              if(_map&&!_myLocMarker){
+                L.circleMarker([_currentPos.lat,_currentPos.lon],{
+                  radius:8,color:'#3f6fe8',fillColor:'#3f6fe8',fillOpacity:0.85,weight:2
+                }).addTo(_map).bindPopup('<strong>Mein Standort</strong>');
+              }
+              gpsBtn.textContent='GPS aktiv ✓';
+              gpsBtn.disabled=false;
+              fetchRouteAndRender();
+            },
+            function(){
+              gpsBtn.disabled=false;
+              gpsBtn.textContent='Aktueller Standort';
+              alert('Standort konnte nicht ermittelt werden. Bitte Standortfreigabe in den Browsereinstellungen prüfen.');
+            },
+            {timeout:10000, maximumAge:60000, enableHighAccuracy:false}
+          );
+        }
+      });
+    }
+
+    /* Heimadresse-Button */
+    var homeBtn=document.getElementById('tourHomeBtn');
+    if(homeBtn){
+      homeBtn.addEventListener('click',function(){
+        var addr=homeBtn.dataset.addr;
+        if(!addr) return;
+        homeBtn.disabled=true;
+        homeBtn.textContent='Wird geladen…';
+        geocode(addr,function(lat,lon){
+          if(lat===null){
+            homeBtn.disabled=false;
+            homeBtn.textContent='Heimadresse';
+            alert('Heimadresse konnte nicht gefunden werden. Bitte Adresse im Profil prüfen.');
+            return;
+          }
+          _startLabel='Heimadresse';
+          _currentPos={lat:lat,lon:lon};
+          if(_map){
+            L.circleMarker([lat,lon],{
+              radius:8,color:'#059669',fillColor:'#059669',fillOpacity:0.85,weight:2
+            }).addTo(_map).bindPopup('<strong>Heimadresse</strong><br><small>'+addr+'</small>');
+          }
+          fetchRouteAndRender();
+        });
+      });
+    }
+
+    /* Klickbare Zeit-Badges → Inline-Editor */
+    card.querySelectorAll('.tour-t--edit').forEach(function(badge){
+      badge.addEventListener('click',function(){
+        var idx=parseInt(badge.dataset.editStop);
+        var type=badge.dataset.editType;
+        var ls=_tourLog.stops[idx];
+        if(!ls) return;
+        var curr=ls[type]||'';
+        /* Badge durch Inline-Editor ersetzen */
+        var wrap=document.createElement('span');
+        wrap.style.cssText='display:inline-flex;align-items:center;gap:4px;vertical-align:middle;';
+        wrap.innerHTML=
+          '<input type="time" value="'+curr+'" style="border:1.5px solid #3f6fe8;border-radius:5px;padding:2px 5px;font-size:12px;width:82px;outline:none;">'
+          +'<button style="background:#3f6fe8;color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;cursor:pointer;">&#10003;</button>'
+          +'<button style="background:#e2e8f0;color:#475569;border:none;border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer;">&#10005;</button>';
+        badge.parentNode.replaceChild(wrap,badge);
+        var inp=wrap.querySelector('input');
+        var saveB=wrap.querySelectorAll('button')[0];
+        var cancelB=wrap.querySelectorAll('button')[1];
+        inp.focus();
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter') saveB.click(); if(e.key==='Escape') cancelB.click(); });
+        saveB.addEventListener('click',function(){
+          var t=inp.value;
+          if(t){ _tourLog.stops[idx][type]=t; saveTourLog(_tourLog); }
+          renderTourCard();
+        });
+        cancelB.addEventListener('click',function(){ renderTourCard(); });
+      });
+    });
+  }
+
+  function fetchRouteAndRender(){
+    var allCached=_tourStops.every(function(s){ return s.address && _geoCache[s.address]; });
+    if(!allCached){ renderTourCard(); return; }
+    var stopCoords=_tourStops.map(function(s){ var g=_geoCache[s.address]; return g.lon+','+g.lat; });
+    /* GPS-Position als erster Wegpunkt wenn vorhanden */
+    var fullCoords=_currentPos
+      ?[_currentPos.lon+','+_currentPos.lat].concat(stopCoords)
+      :stopCoords;
+    if(fullCoords.length<2){ renderTourCard(); return; }
+    fetch('https://router.project-osrm.org/route/v1/driving/'+fullCoords.join(';')+'?overview=false&steps=false')
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(data&&data.routes&&data.routes[0]){
+          var legs=data.routes[0].legs||[];
+          var kmLegs=legs.map(function(l){ return Math.round(l.distance/100)/10; });
+          _tourTotalKm=Math.round(data.routes[0].distance/100)/10;
+          if(_currentPos&&kmLegs.length>0){
+            _gpsToFirstKm=kmLegs[0];
+            _tourSegDists=kmLegs.slice(1); // stop-to-stop only
+          } else {
+            _gpsToFirstKm=0;
+            _tourSegDists=kmLegs;
+          }
+        }
+        renderTourCard();
+      })
+      .catch(function(){ renderTourCard(); });
+  }
+
+  function initTour(){
+    _tourStops=loadAllTodayVisits();
+    if(!_tourStops.length) return;
+
+    function doGeocode(){
+      /* Fehlende Adressen nachladen */
+      var missing=[], seen={};
+      _tourStops.forEach(function(s){
+        if(s.address&&!_geoCache[s.address]&&!seen[s.address]){
+          seen[s.address]=1; missing.push(s.address);
+        }
+      });
+      if(!missing.length){ fetchRouteAndRender(); return; }
+      var left=missing.length;
+      missing.forEach(function(addr){
+        geocode(addr,function(lat,lon){
+          if(lat!==null) _geoCache[addr]={lat:lat,lon:lon};
+          if(--left===0) fetchRouteAndRender();
+        });
+      });
+    }
+
+    doGeocode();
+  }
+
+  /* ── PLZ-Zentrum aus Profil laden ── */
+  function centerMapOnProfile(){
+    if(!_map) return;
+    /* 1. Versuche localStorage-Cache */
+    var zip='', city='';
+    try{
+      var prof=JSON.parse(localStorage.getItem('nursy_profile_care_v1')||'{}');
+      zip=prof.zip||''; city=prof.city||'';
+    }catch(e){}
+
+    function doGeocode(q){
+      if(!q) return;
+      geocode(q, function(lat, lon){
+        if(lat!==null && _map){
+          _map.setView([lat, lon], 12);
+          L.circleMarker([lat,lon],{
+            radius:6, color:'#3f6fe8', fillColor:'#3f6fe8', fillOpacity:0.5, weight:1.5
+          }).addTo(_map).bindPopup('<strong>Mein Bezirk</strong><br><small>'+q+'</small>');
+        }
+      });
+    }
+
+    if(zip||city){
+      doGeocode([(zip+' '+city).trim(), 'Österreich'].join(', '));
+    } else {
+      /* 2. Profil vom Server nachladen */
+      fetch('/api/care/profil',{credentials:'include'})
+        .then(function(r){ return r.ok?r.json():null; })
+        .then(function(d){
+          if(!d||!d.profil) return;
+          var p=d.profil;
+          try{ localStorage.setItem('nursy_profile_care_v1', JSON.stringify(p)); }catch(e){}
+          var q=[(p.zip||'')+' '+(p.city||''), 'Österreich'].join(', ').trim();
+          if(q.length>5) doGeocode(q);
+        }).catch(function(){});
+    }
+  }
+
+  /* ── Karte initialisieren ── */
+  function initMap(){
+    if(typeof L==='undefined') return;
+    var mapEl = document.getElementById('dashMap');
+    if(!mapEl||_map) return;
+
+    /* Österreich-Mitte als sicherer Fallback; wird gleich auf PLZ angepasst */
+    _map = L.map('dashMap',{zoomControl:true,attributionControl:true}).setView([47.516,14.550],7);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:18,
+      attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+    }).addTo(_map);
+    /* Kacheln nach tatsächlicher Containergrösse nachladen – mehrfach für Tablet/PWA */
+    [200,500,1000,2000,4000].forEach(function(ms){
+      setTimeout(function(){ if(_map){ _map.invalidateSize(); } }, ms);
+    });
+    /* ResizeObserver für dynamische Layout-Änderungen */
+    if(typeof ResizeObserver !== 'undefined'){
+      new ResizeObserver(function(){ if(_map) _map.invalidateSize(); })
+        .observe(mapEl);
+    }
+    window.addEventListener('resize', function(){ if(_map) _map.invalidateSize(); });
+
+    /* ── Automatischer GPS-Standort-Marker (pulsierender blauer Punkt) ── */
+    if(navigator.geolocation){
+      var _myLocIcon = L.divIcon({
+        html:'<div class="my-loc-dot"></div>',
+        className:'',
+        iconSize:[14,14],
+        iconAnchor:[7,7]
+      });
+      navigator.geolocation.watchPosition(function(pos){
+        var lat=pos.coords.latitude, lng=pos.coords.longitude;
+        _currentPos={lat:lat,lon:lng};
+        if(!_myLocMarker){
+          _myLocMarker=L.marker([lat,lng],{icon:_myLocIcon,zIndexOffset:1000})
+            .addTo(_map)
+            .bindPopup('<strong>Mein Standort</strong><br><small>GPS aktiv</small>');
+          /* Beim ersten Fix: Kartenansicht anpassen */
+          if(_myLocFirstFix){
+            _myLocFirstFix=false;
+            if(_markers.length){
+              /* Patienten-Marker vorhanden → Bounds um GPS erweitern */
+              var b=_markers.map(function(m){return m.getLatLng();});
+              b.push([lat,lng]);
+              _map.fitBounds(b,{padding:[40,40]});
+            } else {
+              /* Keine Patienten → auf GPS-Standort zentrieren */
+              _map.setView([lat,lng],14);
+            }
+          }
+          /* GPS-Button im Tour-Bereich als aktiv markieren */
+          var gpsBtn=document.getElementById('tourGpsBtn');
+          if(gpsBtn&&!gpsBtn.disabled) gpsBtn.textContent='GPS aktiv ✓';
+        } else {
+          _myLocMarker.setLatLng([lat,lng]);
+        }
+      },function(){/* Standort verweigert – kein Fehler zeigen */},{
+        enableHighAccuracy:true,
+        maximumAge:15000,
+        timeout:20000
+      });
+    }
+
+    var patients = loadTodayAddresses();
+    var label = document.getElementById('mapStatusLabel');
+
+    if(!patients.length){
+      if(label) label.textContent = 'Keine heutigen Einsätze';
+      /* Karte auf PLZ des Pflegers zentrieren */
+      centerMapOnProfile();
+      /* Tour noch anzeigen (ohne km) */
+      initTour();
+      return;
+    }
+    if(label) label.textContent = 'Lade Adressen…';
+
+    var pending = patients.length, done = 0, bounds = [];
+
+    patients.forEach(function(p, i){
+      geocode(p.address, function(lat, lon){
+        done++;
+        if(lat!==null){
+          /* Cache für Tour-Routing */
+          _geoCache[p.address]={lat:lat,lon:lon};
+          var marker = L.marker([lat,lon],{icon:numIcon(i+1)}).addTo(_map);
+          var popup = '<strong>'+p.name+'</strong>'
+            + (p.from?'<br>'+p.from+(p.to?' – '+p.to:''):'')
+            + '<br><span style="font-size:11px;color:#7a8faa;">'+p.address+'</span>'
+            + '<br><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.address)+'" target="_blank" style="font-size:11px;">Navigation öffnen ↗</a>';
+          marker.bindPopup(popup);
+          _markers.push(marker);
+          bounds.push([lat,lon]);
+        }
+        if(done===pending){
+          if(bounds.length>1) _map.fitBounds(bounds,{padding:[40,40]});
+          else if(bounds.length===1) _map.setView(bounds[0],14);
+          /* Tour starten (berechnet km via OSRM, aktualisiert dann auch das Label) */
+          initTour();
+          /* Fallback-Label falls keine Stops */
+          if(!_tourStops.length){
+            var n=patients.length;
+            if(label) label.textContent=n+(n===1?' Einsatz':' Einsätze')+' heute';
+          }
+        }
+      });
+    });
+  }
+
+  /* Script läuft nach </html> → DOMContentLoaded schon gefeuert → direkt aufrufen */
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initMap);
+  } else {
+    initMap();
+  }
+})();
+
+/* ── Matching: Anfragen inline laden ── */
+(function(){
+  function qs(sel){ return document.querySelector(sel); }
+  function setDisplay(el, show){ if(el) el.style.display = show ? '' : 'none'; }
+
+  function renderKarte(a, typ){
+    var istGezielt = typ === 'eingehend';
+    var style = istGezielt
+      ? 'border:1.5px solid #a5b4fc;background:#f8f8ff;border-radius:12px;padding:13px 14px;margin-bottom:9px;'
+      : 'border:1.5px solid #e2e8f0;background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:9px;';
+    var typBadge = istGezielt
+      ? '<span style="background:#ede9fe;color:#6d28d9;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:6px;">📨 Gezielt</span>'
+      : '<span style="background:#eff2fd;color:#3f6fe8;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:6px;">🌐 Offen</span>';
+    var chips = (a.leistungen||[]).map(function(l){
+      return '<span style="background:#eff2fd;color:#3f6fe8;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid #c7d2fe;">'+l+'</span>';
+    }).join('');
+    var schichten = (a.schicht_wunsch||[]).map(function(s){
+      return '<span style="background:#fef9c3;color:#854d0e;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid #fde68a;">'+s+'</span>';
+    }).join('');
+    var ablBtn = istGezielt
+      ? '<button onclick="careAblehnen(\''+a.id+'\')" style="background:none;border:1.5px solid #e2e8f0;border-radius:8px;padding:5px 12px;font-size:.78rem;font-weight:700;color:#64748b;cursor:pointer;font-family:inherit;">Ablehnen</button>'
+      : '';
+    return '<div style="'+style+'overflow:hidden;width:100%;box-sizing:border-box;">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:7px;">'
+      + '<div style="min-width:0;flex:1;">'+typBadge+'<span style="font-size:.88rem;font-weight:700;color:#1e293b;word-break:break-word;overflow-wrap:anywhere;">'+(a.pflegebedarf||'Kein Pflegebedarf')+'</span></div>'
+      + '</div>'
+      + '<div style="font-size:.76rem;color:#64748b;margin-bottom:8px;word-break:break-word;overflow-wrap:anywhere;">📍 '+(a.bezirk||'–')+' · Eingang: '+(a.created_at||'').slice(0,10)+'</div>'
+      + (chips||schichten ? '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">'+chips+schichten+'</div>' : '')
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+      + '<button onclick="careAnnehmen(\''+a.id+'\')" style="background:#3f6fe8;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ Annehmen</button>'
+      + ablBtn
+      + '</div></div>';
+  }
+
+  function ladeMatchingDash(){
+    Promise.all([
+      fetch('/api/care/matching/eingehende', {credentials:'include'}).then(function(r){return r.json();}),
+      fetch('/api/care/matching/offene',     {credentials:'include'}).then(function(r){return r.json();})
+    ]).then(function(results){
+      setDisplay(qs('#matchingLoading'), false);
+      var ein = (results[0].ok && results[0].anfragen) ? results[0].anfragen : [];
+      var off = (results[1].ok && results[1].anfragen) ? results[1].anfragen : [];
+      var total = ein.length + off.length;
+
+      var badge = qs('#anfragenBadge');
+      if(total > 0){ badge.textContent = total; setDisplay(badge, true); }
+
+      if(!total){ setDisplay(qs('#matchingEmpty'), true); return; }
+
+      var html = '';
+      if(ein.length){
+        html += '<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#6d28d9;margin-bottom:7px;">📨 Gezielt an Sie ('+ein.length+')</div>';
+        html += ein.map(function(a){ return renderKarte(a,'eingehend'); }).join('');
+      }
+      if(off.length){
+        html += '<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#3f6fe8;margin:'+(ein.length?'14px':'0')+'px 0 7px;">🌐 Offene Anfragen ('+off.length+')</div>';
+        html += off.map(function(a){ return renderKarte(a,'offen'); }).join('');
+      }
+      qs('#matchingListe').innerHTML = html;
+      setDisplay(qs('#matchingListe'), true);
+    }).catch(function(){
+      setDisplay(qs('#matchingLoading'), false);
+      setDisplay(qs('#matchingEmpty'), true);
+    });
+  }
+
+  window.careAnnehmen = function(id){
+    if(!confirm('Diesen Patienten annehmen?')) return;
+    fetch('/api/care/matching/annehmen/'+id, {method:'POST',credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.ok){ alert('✅ Patient angenommen! Unter "Meine Patienten" sichtbar.'); ladeMatchingDash(); }
+        else { alert(d.error||'Fehler'); }
+      });
+  };
+  window.careAblehnen = function(id){
+    if(!confirm('Anfrage ablehnen?')) return;
+    fetch('/api/care/matching/ablehnen/'+id, {method:'POST',credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d.ok) ladeMatchingDash(); else alert(d.error||'Fehler'); });
+  };
+
+  document.addEventListener('DOMContentLoaded', ladeMatchingDash);
+})();
+</script>

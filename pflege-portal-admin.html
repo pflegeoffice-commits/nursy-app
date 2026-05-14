@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Nursy – Portal-Verwaltung</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { font-family:ui-sans-serif,system-ui,sans-serif; }
+
+    /* Header */
+    .pa-header { background:#fff; border-bottom:1px solid rgba(63,111,232,.18); position:sticky; top:0; z-index:20; }
+    .pa-header-top { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; max-width:1000px; margin:0 auto; }
+    .pa-header-top h1 { margin:0; font-size:1.1rem; font-weight:900; color:#0f1a33; }
+    .pa-header-top .sub { font-size:.72rem; color:#7a8faa; }
+    .pa-tabs { display:flex; overflow-x:auto; gap:0; max-width:1000px; margin:0 auto; padding:0 16px; border-top:1px solid rgba(63,111,232,.08); }
+    .pa-tabs::-webkit-scrollbar { display:none; }
+    .pa-tab { height:40px; padding:0 16px; font-size:.82rem; font-weight:700; color:#7a8faa; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; font-family:inherit; transition:all .15s; }
+    .pa-tab:hover { color:var(--primary); }
+    .pa-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .pa-badge { background:#ef4444; color:#fff; font-size:.6rem; font-weight:800; border-radius:10px; padding:1px 5px; margin-left:4px; vertical-align:middle; }
+
+    .pa-body { max-width:1000px; margin:0 auto; padding:22px 20px 60px; }
+    .pa-page { display:none; }
+    .pa-page.active { display:block; }
+
+    /* Stats */
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+    @media(max-width:640px){ .stat-grid{ grid-template-columns:1fr 1fr; } }
+    .stat-card { background:#fff; border:1px solid #dde6f2; border-radius:12px; padding:12px 14px; }
+    .stat-lbl { font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:#7a8faa; margin-bottom:4px; }
+    .stat-val { font-size:1.6rem; font-weight:900; color:#0f1a33; }
+    .stat-val.blue { color:var(--primary); }
+    .stat-val.red  { color:#ef4444; }
+
+    /* Table */
+    .pa-card { background:#fff; border:1px solid #dde6f2; border-radius:14px; box-shadow:0 2px 8px rgba(15,26,51,.05); margin-bottom:16px; }
+    .pa-card-head { padding:14px 16px 10px; border-bottom:1px solid #f0f4fa; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .pa-card-head h3 { margin:0; font-size:.9rem; font-weight:800; }
+    .pa-card-body { overflow-x:auto; }
+    .pa-table { width:100%; border-collapse:collapse; font-size:.8rem; }
+    .pa-table th { padding:8px 12px; text-align:left; font-size:.67rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:#7a8faa; background:#f8faff; border-bottom:1px solid #eef2fb; }
+    .pa-table td { padding:9px 12px; border-bottom:1px solid #f5f7fb; vertical-align:middle; }
+    .pa-table tr:last-child td { border-bottom:none; }
+    .pa-table tr:hover td { background:#fafbff; }
+
+    /* Badges */
+    .badge { display:inline-block; padding:2px 9px; border-radius:10px; font-size:.65rem; font-weight:800; }
+    .badge-ausstehend { background:#fef3c7; color:#92400e; }
+    .badge-gespräch   { background:#dbeafe; color:#1e40af; }
+    .badge-freigegeben{ background:#dcfce7; color:#166534; }
+    .badge-abgelehnt  { background:#fee2e2; color:#991b1b; }
+    .badge-eingetragen{ background:#ede9fe; color:#4c1d95; }
+    .badge-bestätigt  { background:#dcfce7; color:#166534; }
+    .badge-storniert  { background:#f1f5f9; color:#64748b; }
+    .badge-schulung   { background:#ede9fe; color:#5b21b6; }
+    .badge-event      { background:#dcfce7; color:#166534; }
+    .badge-info       { background:#dbeafe; color:#1e3a8a; }
+    .badge-warning    { background:#fef3c7; color:#92400e; }
+    .badge-wichtig    { background:#fee2e2; color:#991b1b; }
+    .badge-success    { background:#dcfce7; color:#166534; }
+
+    /* Buttons */
+    .btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:8px; font-size:.75rem; font-weight:700; border:none; cursor:pointer; transition:all .15s; font-family:inherit; white-space:nowrap; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-primary:hover { background:#2d5bd4; }
+    .btn-green  { background:#166534; color:#fff; }
+    .btn-green:hover { background:#14532d; }
+    .btn-red    { background:#fff; color:#ef4444; border:1.5px solid #ef4444; }
+    .btn-red:hover { background:#fef2f2; }
+    .btn-outline{ background:#fff; color:var(--primary); border:1.5px solid var(--primary); }
+    .btn-outline:hover { background:#eef2fb; }
+    .btn-amber  { background:#fff; color:#d97706; border:1.5px solid #f59e0b; }
+    .btn-amber:hover { background:#fffbeb; }
+    .btn-send   { background:#fff; color:#6d28d9; border:1.5px solid #8b5cf6; }
+    .btn-send:hover { background:#f5f3ff; }
+
+    /* Split layout for Bewerbungen */
+    .bew-split { display:grid; grid-template-columns:300px 1fr; gap:14px; }
+    @media(max-width:760px){ .bew-split{ grid-template-columns:1fr; } }
+    .bew-list { border:1px solid #dde6f2; border-radius:12px; background:#fff; overflow:hidden; }
+    .bew-item { padding:12px 14px; border-bottom:1px solid #f0f4fa; cursor:pointer; transition:background .12s; }
+    .bew-item:last-child { border-bottom:none; }
+    .bew-item:hover { background:#f8faff; }
+    .bew-item.active { background:#eef2fb; border-left:3px solid var(--primary); }
+    .bew-item-name   { font-size:.83rem; font-weight:800; color:#0f1a33; margin-bottom:2px; }
+    .bew-item-sub    { font-size:.68rem; color:#7a8faa; }
+
+    .bew-detail { background:#fff; border:1px solid #dde6f2; border-radius:12px; padding:16px; }
+    .bew-detail-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid #f0f4fa; }
+    .bew-avatar { width:44px; height:44px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:.9rem; flex-shrink:0; }
+    .bew-detail-name { font-size:1rem; font-weight:900; color:#0f1a33; }
+    .bew-detail-sub  { font-size:.72rem; color:#7a8faa; margin-top:2px; }
+
+    .detail-grid { display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin-bottom:14px; }
+    .detail-grid dt { font-size:.7rem; color:#9ca3af; font-weight:700; }
+    .detail-grid dd { font-size:.8rem; color:#0f1a33; margin:0; }
+
+    .action-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+
+    .link-box { background:#f5f3ff; border:1px solid #c4b5fd; border-radius:10px; padding:12px 14px; margin-top:10px; }
+    .link-box-title { font-size:.75rem; font-weight:800; color:#4c1d95; margin-bottom:6px; }
+    .link-url { font-size:.72rem; color:#6d28d9; word-break:break-all; background:#fff; border:1px solid #e9d5ff; border-radius:6px; padding:6px 10px; display:block; margin:6px 0; }
+    .link-actions { display:flex; gap:6px; }
+
+    /* Form inline */
+    .form-inline { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+    .form-group { display:flex; flex-direction:column; gap:4px; }
+    .form-label { font-size:.7rem; font-weight:700; color:#374151; }
+    .form-inp, .form-sel, .form-textarea { border-radius:8px; border:1.5px solid #dde6f2; padding:6px 10px; font-size:.8rem; font-family:inherit; background:#fff; transition:border .15s; }
+    .form-inp:focus, .form-sel:focus, .form-textarea:focus { outline:none; border-color:var(--primary); }
+    .form-inp-sm { height:34px; width:160px; }
+    .form-sel-sm { height:34px; width:130px; }
+    .form-textarea { min-height:70px; resize:vertical; width:100%; }
+    .form-full { width:100%; }
+
+    .alert { border-radius:9px; padding:9px 12px; font-size:.75rem; margin-bottom:10px; }
+    .alert-ok  { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
+    .alert-err { background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; }
+
+    .empty { text-align:center; padding:30px; color:#9ca3af; font-size:.83rem; }
+    .notizen-box { background:#f8faff; border:1px solid #dde6f2; border-radius:8px; padding:10px 12px; font-size:.75rem; color:#374151; white-space:pre-wrap; max-height:120px; overflow-y:auto; margin-top:6px; }
+  </style>
+    <link rel="manifest" href="/manifest-portal.json">
+    <link rel="apple-touch-icon" href="/icon-portal-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<div class="pa-header">
+  <div class="pa-header-top">
+    <div>
+      <h1>🏥 Akut Plus Pflegeportal – Verwaltung</h1>
+      <div class="sub">Admin &amp; Admiral · Bewerbungen, Dienste, Schulungen, Informationen</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button onclick="portalBackup()" class="btn btn-outline" style="font-size:.75rem;padding:6px 12px;color:#1d4ed8;border-color:#93c5fd;" title="Datensicherung herunterladen">💾 Backup</button>
+      <a href="admin.html" class="btn btn-outline" style="font-size:.75rem;padding:6px 12px">← Admin</a>
+      <a href="leitstelle-ansicht.html" class="btn btn-outline" style="font-size:.75rem;padding:6px 12px">← Leitstelle</a>
+    </div>
+  </div>
+  <div class="pa-tabs">
+    <button class="pa-tab active" onclick="showTab('bewerbungen',this)">Bewerbungen <span class="pa-badge" id="bewBadge">0</span></button>
+    <button class="pa-tab" onclick="showTab('dienste',this)">Dienstplan</button>
+    <button class="pa-tab" onclick="showTab('events',this)">Schulungen &amp; Events</button>
+    <button class="pa-tab" onclick="showTab('info',this)">Informationen</button>
+  </div>
+</div>
+
+<div class="pa-body">
+  <!-- Stats -->
+  <div class="stat-grid" id="statGrid">
+    <div class="stat-card"><div class="stat-lbl">Offene Bewerbungen</div><div class="stat-val red" id="statOffen">–</div></div>
+    <div class="stat-card"><div class="stat-lbl">Freigegebene Pfleger</div><div class="stat-val blue" id="statFreig">–</div></div>
+    <div class="stat-card"><div class="stat-lbl">Dienste (ab heute)</div><div class="stat-val" id="statDienste">–</div></div>
+    <div class="stat-card"><div class="stat-lbl">Aktive Events</div><div class="stat-val" id="statEvents">–</div></div>
+  </div>
+
+  <!-- Bewerbungen -->
+  <div class="pa-page active" id="tab-bewerbungen">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button class="btn btn-primary" onclick="openNeuModal()">+ Neuen Pfleger anlegen</button>
+    </div>
+    <div class="bew-split">
+      <div class="bew-list" id="bewList"><div class="empty">Lade…</div></div>
+      <div class="bew-detail" id="bewDetail"><div class="empty">Bewerbung auswählen</div></div>
+    </div>
+  </div>
+
+  <!-- Modal: Neuen Pfleger anlegen -->
+  <div id="neuModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:18px;padding:24px 28px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.25);margin:16px;position:relative;">
+      <h3 style="margin:0 0 16px;font-size:1rem;font-weight:900;color:#0f1a33;">Neuen Pfleger anlegen</h3>
+      <div id="neuAlert"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="form-group">
+          <label class="form-label">Vorname *</label>
+          <input type="text" class="form-inp" id="neuVorname" placeholder="Vorname" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nachname *</label>
+          <input type="text" class="form-inp" id="neuNachname" placeholder="Nachname" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">E-Mail *</label>
+        <input type="email" class="form-inp" id="neuEmail" placeholder="E-Mail Adresse" autocomplete="off"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="form-group">
+          <label class="form-label">Passwort *</label>
+          <input type="password" class="form-inp" id="neuPassword" placeholder="Passwort" autocomplete="new-password"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefon</label>
+          <input type="tel" class="form-inp" id="neuTelefon" placeholder="Telefon" autocomplete="off"/>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div class="form-group">
+          <label class="form-label">Qualifikation</label>
+          <select class="form-sel" id="neuQualifikation">
+            <option value="">– wählen –</option>
+            <option value="DGKP">DGKP</option>
+            <option value="PFA">PFA</option>
+            <option value="PA">PA</option>
+            <option value="Heimhilfe">Heimhilfe</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bezirk</label>
+          <input type="text" class="form-inp" id="neuBezirk" placeholder="Bevorzugter Bezirk" autocomplete="off"/>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-outline" onclick="closeNeuModal()">Abbrechen</button>
+        <button class="btn btn-primary" id="neuSaveBtn" onclick="saveNeuPfleger()">Pfleger anlegen ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dienstplan -->
+  <div class="pa-page" id="tab-dienste">
+    <div class="pa-card">
+      <div class="pa-card-head">
+        <h3>📅 Eingetragene Dienste</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="month" class="form-inp form-inp-sm" id="dienstMonat" onchange="loadDienste()"/>
+        </div>
+      </div>
+      <div class="pa-card-body">
+        <div id="diensteAlert"></div>
+        <table class="pa-table">
+          <thead>
+            <tr><th>Datum</th><th>Diensttyp</th><th>Pflegeperson</th><th>Fahrzeug</th><th>Bezirk</th><th>Status</th><th>Aktionen</th></tr>
+          </thead>
+          <tbody id="diensteTbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af">Lade…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div class="pa-page" id="tab-events">
+    <div class="pa-card" style="margin-bottom:16px">
+      <div class="pa-card-head"><h3>➕ Neue Schulung / Event anlegen</h3></div>
+      <div class="pa-card-body" style="padding:14px 16px">
+        <div id="eventAlert"></div>
+        <div class="form-inline">
+          <div class="form-group"><label class="form-label">Titel *</label><input type="text" class="form-inp" id="evTitel" placeholder="EKG-Grundkurs" style="width:200px"/></div>
+          <div class="form-group"><label class="form-label">Datum *</label><input type="date" class="form-inp form-inp-sm" id="evDatum"/></div>
+          <div class="form-group"><label class="form-label">Von</label><input type="time" class="form-inp" id="evVon" style="width:90px"/></div>
+          <div class="form-group"><label class="form-label">Bis</label><input type="time" class="form-inp" id="evBis" style="width:90px"/></div>
+          <div class="form-group"><label class="form-label">Typ</label>
+            <select class="form-sel form-sel-sm" id="evTyp"><option>Schulung</option><option>Event</option><option>Meeting</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Ort</label><input type="text" class="form-inp" id="evOrt" placeholder="Wien, Zentrale" style="width:160px"/></div>
+          <div class="form-group"><label class="form-label">Max. Plätze</label><input type="number" class="form-inp" id="evSlots" placeholder="0" min="0" style="width:80px"/></div>
+          <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary" onclick="createEvent()">Anlegen</button></div>
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <label class="form-label">Beschreibung</label>
+          <textarea class="form-inp form-textarea form-full" id="evBeschr" placeholder="Kurze Beschreibung des Events…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="pa-card">
+      <div class="pa-card-head"><h3>📚 Alle Schulungen &amp; Events</h3></div>
+      <div class="pa-card-body">
+        <table class="pa-table">
+          <thead><tr><th>Datum</th><th>Titel</th><th>Typ</th><th>Ort</th><th>Anmeldungen</th><th>Aktionen</th></tr></thead>
+          <tbody id="eventsTbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af">Lade…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="pa-page" id="tab-info">
+    <div class="pa-card" style="margin-bottom:16px">
+      <div class="pa-card-head"><h3>➕ Neue Information erstellen</h3></div>
+      <div class="pa-card-body" style="padding:14px 16px">
+        <div id="infoAlert"></div>
+        <div class="form-inline" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-label">Titel *</label><input type="text" class="form-inp" id="infoTitel" placeholder="Wichtige Mitteilung" style="width:260px"/></div>
+          <div class="form-group"><label class="form-label">Typ</label>
+            <select class="form-sel form-sel-sm" id="infoTyp">
+              <option value="info">ℹ️ Information</option>
+              <option value="warning">⚠️ Warnung</option>
+              <option value="wichtig">🚨 Wichtig</option>
+              <option value="success">✅ Positiv</option>
+            </select>
+          </div>
+          <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary" onclick="createInfo()">Veröffentlichen</button></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Text *</label>
+          <textarea class="form-inp form-textarea form-full" id="infoText" placeholder="Inhalt der Information…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="pa-card">
+      <div class="pa-card-head"><h3>🔔 Veröffentlichte Informationen</h3></div>
+      <div class="pa-card-body">
+        <table class="pa-table">
+          <thead><tr><th>Datum</th><th>Titel</th><th>Typ</th><th>Von</th><th>Aktionen</th></tr></thead>
+          <tbody id="infoTbody"><tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af">Lade…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+let bewerbungen = [];
+let selectedBew = null;
+
+async function loadStats() {
+  const r = await fetch('/api/admin/portal/stats');
+  if (!r.ok) return;
+  const d = await r.json();
+  document.getElementById('statOffen').textContent   = d.offen;
+  document.getElementById('statFreig').textContent   = d.freigegeben;
+  document.getElementById('statDienste').textContent = d.dienste;
+  document.getElementById('statEvents').textContent  = d.events;
+  document.getElementById('bewBadge').textContent    = d.offen;
+  if (!d.offen) document.getElementById('bewBadge').style.display='none';
+}
+
+async function loadBewerbungen() {
+  const r = await fetch('/api/admin/portal/bewerbungen');
+  if (!r.ok) { document.getElementById('bewList').innerHTML='<div class="empty">Kein Zugriff</div>'; return; }
+  bewerbungen = (await r.json()).bewerbungen || [];
+  const list = document.getElementById('bewList');
+  if (!bewerbungen.length) { list.innerHTML='<div class="empty">Keine Bewerbungen</div>'; return; }
+  list.innerHTML = bewerbungen.map(b =>
+    `<div class="bew-item${selectedBew===b.id?' active':''}" id="bi-${b.id}" onclick="selectBew('${b.id}')">
+      <div style="display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;">
+        <div class="bew-item-name">${b.vorname} ${b.nachname}</div>
+        ${b.dienstnummer?`<span style="font-size:.8rem;font-weight:700;color:#1d4ed8;letter-spacing:.05em;white-space:nowrap">${b.dienstnummer}</span>`:''}
+      </div>
+      <div class="bew-item-sub">
+        <span class="badge badge-${b.status}">${b.status}</span>
+        ${b.qualifikation?' · '+b.qualifikation:''}
+      </div>
+      <div style="font-size:.62rem;color:#9ca3af;margin-top:2px">${b.bezirk||'–'} · ${(b.created_at||'').split(' ')[0]}</div>
+    </div>`
+  ).join('');
+  if (selectedBew) selectBew(selectedBew);
+}
+
+function selectBew(id) {
+  selectedBew = id;
+  document.querySelectorAll('.bew-item').forEach(el=>el.classList.remove('active'));
+  const item = document.getElementById('bi-'+id);
+  if (item) item.classList.add('active');
+  const b = bewerbungen.find(x=>x.id===id);
+  if (!b) return;
+  const det = document.getElementById('bewDetail');
+  const initials = (b.vorname[0]||'')+(b.nachname[0]||'');
+  det.innerHTML = `
+    <div class="bew-detail-head">
+      <div class="bew-avatar">${initials.toUpperCase()}</div>
+      <div>
+        <div class="bew-detail-name">${b.vorname} ${b.nachname}</div>
+        <div class="bew-detail-sub">${b.email} · ${b.telefon||'–'}</div>
+      </div>
+      <span class="badge badge-${b.status}" style="margin-left:auto">${b.status}</span>
+    </div>
+    <div class="detail-grid">
+      <dt>Qualifikation</dt><dd>${b.qualifikation||'–'}</dd>
+      <dt>Bezirk</dt><dd>${b.bezirk||'–'}</dd>
+      <dt>Fzg. Präferenz</dt><dd>${b.fahrzeug_pref||'–'}</dd>
+      <dt>Erfahrung</dt><dd>${b.erfahrung_jahre||0} Jahre</dd>
+      <dt>Eingereicht</dt><dd>${(b.created_at||'').split(' ')[0]}</dd>
+      ${b.dienstnummer?`<dt>Dienstnummer</dt><dd><strong style="color:#1d4ed8;font-size:1rem;letter-spacing:.04em">${b.dienstnummer}</strong></dd>`:''}
+    </div>
+    ${b.notizen?`<div style="margin-bottom:14px"><div class="form-label">Notizen / Bewerbungsantworten</div><div class="notizen-box">${b.notizen}</div></div>`:''}
+    <div class="action-row">
+      <button class="btn btn-green"  onclick="updateStatus('${b.id}','freigegeben')">✓ Freigeben</button>
+      <button class="btn btn-amber"  onclick="updateStatus('${b.id}','gespräch')">📅 Gespräch</button>
+      <button class="btn btn-red"    onclick="deleteBewerbung('${b.id}','${b.vorname} ${b.nachname}')">✕ Ablehnen &amp; Löschen</button>
+      <button class="btn btn-send"   onclick="sendLink('${b.id}')">📧 Bewerbungslink senden</button>
+    </div>
+    <div id="linkBox-${b.id}"></div>
+    <div id="bewDetAlert"></div>`;
+}
+
+async function updateStatus(id, status) {
+  const r = await fetch(`/api/admin/portal/bewerbungen/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})
+  });
+  const json = await r.json();
+  if (json.ok) {
+    await loadBewerbungen();
+    await loadStats();
+    if (status === 'freigegeben' && json.dienstnummer) {
+      const alertBox = document.getElementById('bewDetAlert');
+      if (alertBox) {
+        alertBox.innerHTML = `<div style="margin-top:12px;padding:10px 14px;background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;font-size:.85rem;color:#1e3a8a;">
+          ✅ Pfleger freigegeben · Dienstnummer: <strong style="font-size:1rem;letter-spacing:.05em">${json.dienstnummer}</strong>
+          <span style="color:#374151;font-size:.75rem;display:block;margin-top:4px;">Login unter <em>Auftragslage</em> mit dieser Dienstnummer möglich.</span>
+        </div>`;
+      }
+    }
+  }
+}
+
+async function deleteBewerbung(id, name) {
+  if (!confirm(`Bewerbung von ${name} wirklich ablehnen und endgültig löschen?`)) return;
+  const r = await fetch(`/api/admin/portal/bewerbungen/${id}`, { method:'DELETE' });
+  if ((await r.json()).ok) {
+    selectedBew = null;
+    document.getElementById('bewDetail').innerHTML = '<div class="empty">Bitte eine Bewerbung auswählen.</div>';
+    await loadBewerbungen();
+    await loadStats();
+  }
+}
+
+async function sendLink(id) {
+  const r = await fetch(`/api/admin/portal/bewerbungen/${id}/link-senden`, {method:'POST'});
+  const d = await r.json();
+  if (!d.ok) { document.getElementById('bewDetAlert').innerHTML=`<div class="alert alert-err">${d.error}</div>`; return; }
+  const box = document.getElementById('linkBox-'+id);
+  const absURL = location.origin + d.link;
+  box.innerHTML = `
+    <div class="link-box">
+      <div class="link-box-title">📧 Bewerbungslink für ${d.name}</div>
+      <div style="font-size:.72rem;color:#6d28d9;margin-bottom:4px">An: ${d.email}</div>
+      <div class="link-url" id="linkUrl-${id}">${absURL}</div>
+      <div class="link-actions">
+        <button class="btn btn-send" onclick="navigator.clipboard.writeText('${absURL}').then(()=>this.textContent='✓ Kopiert!')">📋 Link kopieren</button>
+        <a href="${d.link}" target="_blank" class="btn btn-outline">🔗 Öffnen</a>
+      </div>
+      <div style="font-size:.68rem;color:#7c3aed;margin-top:6px">Hinweis: In der Produktionsversion wird dieser Link automatisch per E-Mail versandt.</div>
+    </div>`;
+}
+
+// ── Dienste ──────────────────────────────────────────────────────────────────
+function padM(n){ return String(n).padStart(2,'0'); }
+
+async function loadDienste() {
+  const monat = document.getElementById('dienstMonat').value;
+  const url = '/api/admin/portal/dienste' + (monat ? `?monat=${monat}` : '');
+  const r = await fetch(url);
+  if (!r.ok) return;
+  const {dienste} = await r.json();
+  const MONTHS=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  const tbody = document.getElementById('diensteTbody');
+  if (!dienste.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af">Keine Dienste eingetragen</td></tr>'; return; }
+  tbody.innerHTML = dienste.map(d => {
+    const [y,m,day] = d.datum.split('-');
+    const dateStr = `${day}. ${MONTHS[parseInt(m)-1]} ${y}`;
+    return `<tr>
+      <td><strong>${dateStr}</strong></td>
+      <td>${d.art}</td>
+      <td>${d.user_name}</td>
+      <td>${d.fahrzeug||'–'}</td>
+      <td>${d.bezirk||'–'}</td>
+      <td><span class="badge badge-${d.status}">${d.status}</span></td>
+      <td style="display:flex;gap:4px">
+        <select class="form-sel" style="height:28px;font-size:.7rem;width:110px" onchange="updateDienst('${d.id}',{status:this.value})">
+          <option${d.status==='eingetragen'?' selected':''}>eingetragen</option>
+          <option${d.status==='bestätigt'?' selected':''}>bestätigt</option>
+          <option${d.status==='storniert'?' selected':''}>storniert</option>
+        </select>
+        <button class="btn btn-red" style="padding:3px 8px;font-size:.68rem" onclick="deleteDienst('${d.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function updateDienst(id, data) {
+  await fetch(`/api/admin/portal/dienste/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  showAlert('diensteAlert','Status aktualisiert.','ok');
+}
+async function deleteDienst(id) {
+  if (!confirm('Dienst wirklich löschen?')) return;
+  const r = await fetch(`/api/admin/portal/dienste/${id}`, {method:'DELETE'});
+  if ((await r.json()).ok) loadDienste();
+}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+async function loadEvents() {
+  const r = await fetch('/api/admin/portal/events');
+  if (!r.ok) return;
+  const {events} = await r.json();
+  const tbody = document.getElementById('eventsTbody');
+  if (!events.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af">Keine Events</td></tr>'; return; }
+  tbody.innerHTML = events.map(ev => {
+    const [,m,d] = ev.datum.split('-');
+    return `<tr>
+      <td>${d}.${m}.</td>
+      <td><strong>${ev.titel}</strong>${ev.beschreibung?`<div style="font-size:.68rem;color:#7a8faa">${ev.beschreibung.slice(0,60)}…</div>`:''}</td>
+      <td><span class="badge badge-${ev.typ.toLowerCase()}">${ev.typ}</span></td>
+      <td>${ev.ort||'–'}</td>
+      <td>${ev.angemeldet_count}/${ev.slots>0?ev.slots:'∞'}</td>
+      <td><button class="btn btn-red" style="padding:3px 8px;font-size:.68rem" onclick="deleteEvent('${ev.id}')">✕ Löschen</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function createEvent() {
+  const body = {
+    titel: document.getElementById('evTitel').value.trim(),
+    datum: document.getElementById('evDatum').value,
+    von:   document.getElementById('evVon').value,
+    bis:   document.getElementById('evBis').value,
+    typ:   document.getElementById('evTyp').value,
+    ort:   document.getElementById('evOrt').value.trim(),
+    slots: parseInt(document.getElementById('evSlots').value)||0,
+    beschreibung: document.getElementById('evBeschr').value.trim(),
+  };
+  if (!body.titel || !body.datum) { showAlert('eventAlert','Titel und Datum sind Pflichtfelder.','err'); return; }
+  const r = await fetch('/api/admin/portal/events', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const d = await r.json();
+  if (d.ok) {
+    showAlert('eventAlert','Event erfolgreich angelegt.','ok');
+    ['evTitel','evDatum','evVon','evBis','evOrt','evSlots','evBeschr'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    loadEvents(); loadStats();
+  } else showAlert('eventAlert',d.error||'Fehler','err');
+}
+async function deleteEvent(id) {
+  if (!confirm('Event löschen?')) return;
+  const r = await fetch(`/api/admin/portal/events/${id}`, {method:'DELETE'});
+  if ((await r.json()).ok) { loadEvents(); loadStats(); }
+}
+
+// ── Info ──────────────────────────────────────────────────────────────────────
+async function loadInfo() {
+  const r = await fetch('/api/admin/portal/info');
+  if (!r.ok) return;
+  const {info} = await r.json();
+  const tbody = document.getElementById('infoTbody');
+  if (!info.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af">Keine Informationen</td></tr>'; return; }
+  const icons = {info:'ℹ️',warning:'⚠️',wichtig:'🚨',success:'✅'};
+  tbody.innerHTML = info.map(i => `<tr>
+    <td>${(i.created_at||'').split(' ')[0]}</td>
+    <td><strong>${i.titel}</strong><div style="font-size:.68rem;color:#7a8faa">${i.text.slice(0,60)}…</div></td>
+    <td><span class="badge badge-${i.typ}">${icons[i.typ]||'ℹ️'} ${i.typ}</span></td>
+    <td>${i.erstellt_von||'Admin'}</td>
+    <td><button class="btn btn-red" style="padding:3px 8px;font-size:.68rem" onclick="deleteInfo('${i.id}')">✕</button></td>
+  </tr>`).join('');
+}
+
+async function createInfo() {
+  const body = {
+    titel: document.getElementById('infoTitel').value.trim(),
+    text:  document.getElementById('infoText').value.trim(),
+    typ:   document.getElementById('infoTyp').value,
+  };
+  if (!body.titel || !body.text) { showAlert('infoAlert','Titel und Text sind Pflichtfelder.','err'); return; }
+  const r = await fetch('/api/admin/portal/info', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const d = await r.json();
+  if (d.ok) {
+    showAlert('infoAlert','Information veröffentlicht.','ok');
+    document.getElementById('infoTitel').value='';
+    document.getElementById('infoText').value='';
+    loadInfo();
+  } else showAlert('infoAlert',d.error||'Fehler','err');
+}
+async function deleteInfo(id) {
+  if (!confirm('Information löschen?')) return;
+  const r = await fetch(`/api/admin/portal/info/${id}`, {method:'DELETE'});
+  if ((await r.json()).ok) loadInfo();
+}
+
+function showAlert(elId, msg, type) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => { el.innerHTML=''; }, 3000);
+}
+
+function openNeuModal() {
+  ['neuVorname','neuNachname','neuEmail','neuPassword','neuTelefon','neuBezirk'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.value='';
+  });
+  document.getElementById('neuQualifikation').value='';
+  document.getElementById('neuAlert').innerHTML='';
+  const sb = document.getElementById('neuSaveBtn');
+  sb.disabled=false;
+  sb.textContent='Pfleger anlegen ✓';
+  sb.onclick=saveNeuPfleger;
+  const m = document.getElementById('neuModal');
+  m.style.display='flex';
+}
+function closeNeuModal() {
+  document.getElementById('neuModal').style.display='none';
+}
+async function saveNeuPfleger() {
+  const alertEl = document.getElementById('neuAlert');
+  alertEl.innerHTML='';
+  const vor  = document.getElementById('neuVorname').value.trim();
+  const nach = document.getElementById('neuNachname').value.trim();
+  const em   = document.getElementById('neuEmail').value.trim();
+  const pw   = document.getElementById('neuPassword').value;
+  if (!vor||!nach||!em||!pw) {
+    alertEl.innerHTML='<div class="alert alert-err">Vorname, Nachname, E-Mail und Passwort sind Pflichtfelder.</div>'; return;
+  }
+  if (pw.length < 6) {
+    alertEl.innerHTML='<div class="alert alert-err">Passwort mindestens 6 Zeichen.</div>'; return;
+  }
+  const btn = document.getElementById('neuSaveBtn');
+  btn.disabled=true; btn.textContent='Wird angelegt…';
+  const r = await fetch('/api/admin/portal/pfleger-anlegen', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      vorname: vor, nachname: nach, email: em, password: pw,
+      telefon: document.getElementById('neuTelefon').value.trim(),
+      qualifikation: document.getElementById('neuQualifikation').value,
+      bezirk: document.getElementById('neuBezirk').value.trim(),
+    })
+  });
+  const d = await r.json();
+  if (d.ok) {
+    await loadBewerbungen();
+    await loadStats();
+    alertEl.innerHTML=`<div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:14px 16px;color:#1e3a8a;margin-bottom:4px;">
+      <div style="font-weight:700;font-size:.95rem;margin-bottom:6px;">✅ Pfleger erfolgreich angelegt!</div>
+      <div style="font-size:.85rem;margin-bottom:4px;">Dienstnummer: <strong style="font-size:1.15rem;letter-spacing:.07em;color:#1d4ed8">${d.dienstnummer||'–'}</strong></div>
+      <div style="font-size:.75rem;color:#374151;">Login bei der Auftragslage mit dieser Dienstnummer und dem gesetzten Passwort möglich.</div>
+    </div>`;
+    btn.textContent='Schließen';
+    btn.disabled=false;
+    btn.onclick=closeNeuModal;
+  } else {
+    btn.disabled=false; btn.textContent='Pfleger anlegen ✓';
+    alertEl.innerHTML=`<div class="alert alert-err">${d.error||'Fehler beim Anlegen.'}</div>`;
+  }
+}
+document.getElementById('neuModal').addEventListener('click', function(e){
+  if (e.target===this) closeNeuModal();
+});
+
+function showTab(id, btn) {
+  document.querySelectorAll('.pa-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.pa-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='dienste') loadDienste();
+  if (id==='events')  loadEvents();
+  if (id==='info')    loadInfo();
+}
+
+// Init month filter to current month
+const now = new Date();
+document.getElementById('dienstMonat').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+loadStats();
+loadBewerbungen();
+loadEvents();
+loadInfo();
+
+/* ── Backup ── */
+function portalBackup(){
+  window.location.href='/api/admin/portal/backup';
+}
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/portal/sw.js',{scope:'/portal/'});}</script>
+</body>
+</html>

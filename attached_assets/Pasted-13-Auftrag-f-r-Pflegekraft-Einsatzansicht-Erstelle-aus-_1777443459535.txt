@@ -1,0 +1,122 @@
+13. Auftrag für Pflegekraft / Einsatzansicht
+
+Erstelle aus den Leitstellen-Daten automatisch einen klaren Auftrag, den die Pflegekraft sehen kann.
+
+Der Auftrag soll als eigene Karte oder eigene Ansicht dargestellt werden mit dem Titel:
+„Einsatzauftrag für Pflegekraft“
+
+Die Pflegekraft soll folgende Informationen sehen:
+
+1. Einsatzübersicht
+- Einsatznummer
+- Einsatzart
+- Dringlichkeit
+- geplanter Einsatzbeginn
+- empfohlene Einsatzdauer
+- benötigte Qualifikation
+
+2. Patientendaten
+- Nachname und Vorname
+- Geburtsdatum
+- Sozialversicherungsnummer, wenn freigegeben
+- Telefonnummer Patient
+
+3. Einsatzadresse
+- Straße
+- Hausnummer
+- Stock
+- Tür
+- PLZ
+- Wohnort
+- Bezirk
+- Schlüsselsafe vorhanden: Ja / Nein
+- Schlüsselsafe-Code nur anzeigen, wenn vorhanden
+- wichtige Hinweise zur Adresse
+
+4. Kontaktperson / Angehörige
+- Name Angehöriger
+- Beziehung zum Patienten
+- Telefonnummer
+- E-Mail
+
+5. Lagebild
+- Was ist das akute Problem?
+- Beginn der Problematik
+- Ist der Patient alleine?
+- Ist akute Gefahr erkennbar?
+
+6. Pflegeauftrag
+Automatisch aus der Ersteinschätzung zusammenfassen:
+- Unterstützung bei Mobilität
+- Unterstützung bei Körperpflege
+- Unterstützung bei An- und Auskleiden
+- Unterstützung bei Ernährung
+- Unterstützung bei Ausscheidung
+- Versorgung ableitender Systeme / Stoma
+- Haut- und Wundbeobachtung
+- Pflegehilfsmittel beachten
+
+7. Medizinische Hinweise
+- bekannte Erkrankungen
+- Allergien
+- Medikamente
+- ärztliche Anordnungen
+- Infektionshinweise / multiresistente Keime
+- sonstige wichtige medizinische Informationen
+
+8. Sicherheits- und Risikohinweise
+Automatisch markieren, wenn vorhanden:
+- Sturzgefahr
+- Schluckstörung
+- Dekubitusverdacht
+- akute Gefahr
+- Infektionsrisiko
+- Patient alleine
+- Schlüsselsafe notwendig
+- Rettung / Arztkontakt empfohlen
+
+9. Interne Leitstellen-Anweisung
+- Freitextfeld aus der Leitstelle anzeigen
+
+10. Aktionen für Pflegekraft
+Buttons:
+- „Einsatz übernehmen“
+- „Navigation starten“
+- „Patient kontaktieren“
+- „Angehörige kontaktieren“
+- „Einsatz begonnen“
+- „Einsatz abgeschlossen“
+- „Rückmeldung an Leitstelle“
+
+11. Rückmeldung der Pflegekraft
+Nach Abschluss soll die Pflegekraft dokumentieren können:
+- Einsatz durchgeführt: Ja / Nein
+- Tatsächliche Einsatzdauer
+- Durchgeführte Maßnahmen
+- Zustand des Patienten bei Ankunft
+- Zustand des Patienten bei Verlassen
+- Besonderheiten
+- Weitere Versorgung notwendig?
+  - Ja
+  - Nein
+  - Unklar
+- Empfehlung:
+  - weiterer Pflegeeinsatz
+  - Arztkontakt
+  - Rettung verständigen
+  - Angehörige informieren
+  - keine weitere Maßnahme notwendig
+
+Technische Umsetzung:
+- Der Auftrag soll automatisch aus dem Alarmierungsformular generiert werden.
+- Button in der Leitstellenansicht: „Auftrag für Pflegekraft generieren“
+- Die Einsatzansicht soll übersichtlich, mobil optimiert und gut am Smartphone lesbar sein.
+- Sensible Daten wie Sozialversicherungsnummer und Schlüsselsafe-Code sollen visuell hervorgehoben und nicht unnötig groß dargestellt werden.
+- Der Auftrag soll in LocalStorage gespeichert werden.
+- Erstelle Demo-Status:
+  - Neu
+  - Übernommen
+  - Unterwegs
+  - Vor Ort
+  - Abgeschlossen
+- Der Status soll per Button geändert werden können.

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Einsatzarchiv – Nursy</title>
+<link rel="stylesheet" href="styles.css">
+<script src="nursy-auth.js"></script>
+<style>
+body { visibility: hidden; background: var(--bg, #f1f5f9); min-height: 100vh; margin: 0; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+body.ready { visibility: visible; }
+
+/* ── LAYOUT ── */
+.arch-wrap { display: flex; height: 100vh; overflow: hidden; }
+.arch-sidebar { width: 340px; min-width: 280px; max-width: 380px; background: #fff; border-right: 1.5px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+.arch-main { flex: 1; overflow-y: auto; padding: 28px 28px 40px; background: var(--bg, #f1f5f9); }
+
+/* ── TOPBAR ── */
+.arch-topbar { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1.5px solid #e2e8f0; background: #fff; }
+.arch-topbar__logo { font-size: 1.3rem; }
+.arch-topbar__title { font-size: .95rem; font-weight: 900; color: #0f1a33; flex: 1; }
+.arch-topbar__back { font-size: .75rem; font-weight: 700; color: #64748b; text-decoration: none; padding: 5px 10px; border-radius: 7px; background: #f1f5f9; border: 1.5px solid #e2e8f0; white-space: nowrap; }
+.arch-topbar__back:hover { background: #e2e8f0; }
+
+/* ── SIDEBAR FILTERS ── */
+.arch-filters { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 8px; }
+.arch-filters input, .arch-filters select { width: 100%; box-sizing: border-box; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 7px 10px; font-size: .8rem; color: #0f1a33; background: #f8fafc; outline: none; }
+.arch-filters input:focus, .arch-filters select:focus { border-color: var(--primary, #2563eb); }
+.arch-filter-row { display: flex; gap: 8px; }
+.arch-filter-row input, .arch-filter-row select { flex: 1; }
+
+/* ── SIDEBAR LIST ── */
+.arch-list { flex: 1; overflow-y: auto; padding: 10px 0; }
+.arch-item { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background .12s; }
+.arch-item:hover { background: #f8fafc; }
+.arch-item.active { background: #eff6ff; border-left: 3px solid var(--primary, #2563eb); }
+.arch-item__name { font-size: .87rem; font-weight: 800; color: #0f1a33; }
+.arch-item__sub { font-size: .72rem; color: #64748b; margin-top: 2px; }
+.arch-item__badge { font-size: .68rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: #dcfce7; color: #166534; display: inline-block; margin-top: 4px; }
+.arch-empty { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: .83rem; }
+
+/* ── DETAIL PANEL ── */
+.arch-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; color: #94a3b8; gap: 12px; }
+.arch-placeholder__ico { font-size: 3rem; }
+.arch-placeholder__text { font-size: .9rem; font-weight: 600; }
+
+.arch-detail-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.arch-detail-head__left { flex: 1; }
+.arch-detail-head__name { font-size: 1.35rem; font-weight: 900; color: #0f1a33; }
+.arch-detail-head__meta { font-size: .8rem; color: #64748b; margin-top: 4px; }
+.arch-detail-head__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+
+/* ── CARDS ── */
+.acard { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+.acard__head { font-size: .78rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: 12px; }
+.acard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px 20px; }
+.acard-field { display: flex; flex-direction: column; gap: 2px; }
+.acard-field__lbl { font-size: .7rem; color: #94a3b8; font-weight: 600; }
+.acard-field__val { font-size: .85rem; font-weight: 700; color: #0f1a33; }
+.acard-field__val.empty { color: #94a3b8; font-weight: 400; font-style: italic; }
+
+/* ── TIMELINE ── */
+.timeline { position: relative; padding-left: 20px; }
+.timeline::before { content:''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; }
+.tl-item { position: relative; margin-bottom: 14px; }
+.tl-item::before { content:''; position: absolute; left: -17px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary, #2563eb); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--primary,#2563eb); }
+.tl-item.tl-beendet::before { background: #16a34a; box-shadow: 0 0 0 1.5px #16a34a; }
+.tl-item.tl-alarm::before { background: #dc2626; box-shadow: 0 0 0 1.5px #dc2626; }
+.tl-item__title { font-size: .85rem; font-weight: 800; color: #0f1a33; }
+.tl-item__sub { font-size: .73rem; color: #64748b; margin-top: 2px; }
+
+/* ── STATUS TIMELINE ── */
+.status-timeline { display: flex; gap: 0; flex-wrap: wrap; margin-bottom: 16px; }
+.st-step { flex: 1; min-width: 70px; text-align: center; position: relative; }
+.st-step:not(:first-child)::before { content:''; position: absolute; left: 0; top: 13px; width: 100%; height: 2px; background: #e2e8f0; z-index: 0; }
+.st-dot { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; border: 2px solid #fff; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: .85rem; position: relative; z-index: 1; }
+.st-dot.done { background: var(--primary, #2563eb); }
+.st-dot.beendet { background: #16a34a; }
+.st-label { font-size: .65rem; font-weight: 700; color: #94a3b8; }
+.st-label.done, .st-label.beendet { color: #0f1a33; }
+.st-time { font-size: .65rem; color: #64748b; }
+
+/* ── FOLGEEINSATZ MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-box { background: #fff; border-radius: 18px; padding: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.modal-head__title { font-size: 1rem; font-weight: 900; color: #0f1a33; }
+.modal-head__close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b; line-height: 1; }
+.modal-lbl { font-size: .78rem; font-weight: 700; color: #374151; margin-bottom: 4px; display: block; }
+.modal-inp { width: 100%; box-sizing: border-box; border: 1.5px solid #e2e8f0; border-radius: 9px; padding: 9px 12px; font-size: .87rem; outline: none; margin-bottom: 12px; }
+.modal-inp:focus { border-color: var(--primary,#2563eb); }
+.modal-info { background: #eff6ff; border-radius: 10px; padding: 12px; font-size: .8rem; color: #1d4ed8; margin-bottom: 14px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+/* ── BUTTONS ── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9px; font-size: .83rem; font-weight: 800; cursor: pointer; border: none; transition: opacity .15s; }
+.btn:hover { opacity: .88; }
+.btn--primary { background: var(--primary,#2563eb); color: #fff; }
+.btn--danger { background: #dc2626; color: #fff; }
+.btn--ghost { background: #f1f5f9; color: #374151; border: 1.5px solid #e2e8f0; }
+.btn--amber { background: #92400e; color: #fff; }
+.btn--sm { padding: 6px 13px; font-size: .78rem; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 720px) {
+  .arch-wrap { flex-direction: column; height: auto; overflow: visible; }
+  .arch-sidebar { width: 100%; max-width: 100%; border-right: none; border-bottom: 1.5px solid #e2e8f0; max-height: 55vh; }
+  .arch-main { padding: 16px; }
+}
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<!-- FOLGEEINSATZ MODAL -->
+<div class="modal-overlay" id="modalOverlay" style="display:none;" onclick="if(event.target===this)modalClose()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head__title">🔁 Folgeeinsatz erstellen</div>
+      <button class="modal-head__close" onclick="modalClose()">×</button>
+    </div>
+    <div class="modal-info" id="modalInfo">Patientendaten werden aus dem Archiveinsatz übernommen.</div>
+    <label class="modal-lbl">Einsatznummer (optional)</label>
+    <input class="modal-inp" type="text" id="fgNummer" placeholder="z.B. E-2026-099">
+    <label class="modal-lbl">Fahrzeug</label>
+    <input class="modal-inp" type="text" id="fgFahrzeug" placeholder="z.B. W-01" autocomplete="off">
+    <label class="modal-lbl">Problem / Anlass (kann angepasst werden)</label>
+    <textarea class="modal-inp" id="fgProblem" rows="3" style="resize:vertical;"></textarea>
+    <label class="modal-lbl">Interne Notiz</label>
+    <input class="modal-inp" type="text" id="fgNotiz" placeholder="Optionale Notiz…">
+    <div class="modal-actions">
+      <button class="btn btn--ghost" onclick="modalClose()">Abbrechen</button>
+      <button class="btn btn--amber" id="fgSendBtn" onclick="modalSend()">🔁 Folgeeinsatz anlegen</button>
+    </div>
+    <div id="modalErr" style="color:#dc2626;font-size:.8rem;margin-top:8px;display:none;"></div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="arch-wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="arch-sidebar">
+    <div class="arch-topbar">
+      <span class="arch-topbar__logo">🗂️</span>
+      <span class="arch-topbar__title">Einsatzarchiv</span>
+      <a href="admin.html" class="arch-topbar__back">← Zurück</a>
+    </div>
+
+    <div class="arch-filters">
+      <input type="search" id="searchInp" placeholder="🔍 Patient, Fahrzeug, Art…" oninput="filterList()">
+      <div class="arch-filter-row">
+        <input type="date" id="filterVon" onchange="filterList()" title="Von">
+        <input type="date" id="filterBis" onchange="filterList()" title="Bis">
+      </div>
+      <select id="filterArt" onchange="filterList()">
+        <option value="">Alle Einsatzarten</option>
+        <option>HKP</option>
+        <option>Akuteinsatz</option>
+        <option>Heimbesuch</option>
+        <option>Transport</option>
+      </select>
+    </div>
+
+    <div class="arch-list" id="archList">
+      <div class="arch-empty">Wird geladen…</div>
+    </div>
+  </aside>
+
+  <!-- MAIN DETAIL -->
+  <main class="arch-main">
+    <div class="arch-placeholder" id="placeholder">
+      <div class="arch-placeholder__ico">🗂️</div>
+      <div class="arch-placeholder__text">Einsatz aus der Liste auswählen</div>
+    </div>
+    <div id="detailPanel" style="display:none;"></div>
+  </main>
+
+</div>
+
+<script>
+// ── AUTH ──
+(function(){
+  var tok = sessionStorage.getItem('nursy_tok_admin') || sessionStorage.getItem('nursy_tok_ls');
+  if (!tok) { window.location.replace('admin-login.html'); return; }
+  fetch('/api/leitstelle/me', { headers: { 'Authorization': 'Bearer ' + tok } })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) { window.location.replace('admin-login.html'); return; }
+      var role = d.user && d.user.rolle;
+      if (role && role !== 'admiral' && role !== 'disponent') {
+        // also allow admin session-based
+        fetch('/api/admin/me').then(function(r2){ return r2.json(); }).then(function(d2){
+          if (!d2.ok) window.location.replace('admin-login.html');
+          else document.body.classList.add('ready');
+        }).catch(function(){ window.location.replace('admin-login.html'); });
+        return;
+      }
+      document.body.classList.add('ready');
+    })
+    .catch(function(){
+      fetch('/api/admin/me').then(function(r){ return r.json(); }).then(function(d){
+        if (!d.ok) window.location.replace('admin-login.html');
+        else document.body.classList.add('ready');
+      }).catch(function(){ window.location.replace('admin-login.html'); });
+    });
+})();
+
+// ── DATA ──
+var allEinsaetze = [];
+var activeEid = null;
+
+function loadData() {
+  fetch('/api/archiv/einsaetze')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      allEinsaetze = d.einsaetze || [];
+      renderList(allEinsaetze);
+    })
+    .catch(function(){
+      document.getElementById('archList').innerHTML = '<div class="arch-empty">Fehler beim Laden.</div>';
+    });
+}
+
+// ── FILTER ──
+function filterList() {
+  var q  = document.getElementById('searchInp').value.toLowerCase().trim();
+  var von = document.getElementById('filterVon').value;
+  var bis = document.getElementById('filterBis').value;
+  var art = document.getElementById('filterArt').value;
+  var filtered = allEinsaetze.filter(function(e){
+    var haystack = ((e.patient_name||'') + ' ' + (e.fahrzeug||'') + ' ' + (e.art||'') + ' ' + (e.disponent||'')).toLowerCase();
+    if (q && haystack.indexOf(q) === -1) return false;
+    if (von && e.datum < von) return false;
+    if (bis && e.datum > bis) return false;
+    if (art && e.art !== art) return false;
+    return true;
+  });
+  renderList(filtered);
+}
+
+// ── RENDER SIDEBAR LIST ──
+function renderList(list) {
+  var el = document.getElementById('archList');
+  if (!list.length) {
+    el.innerHTML = '<div class="arch-empty">Keine Einsätze gefunden.</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(e){
+    var active = e.id === activeEid ? ' active' : '';
+    return '<div class="arch-item' + active + '" onclick="selectEinsatz(' + JSON.stringify(e.id) + ')" id="item_' + e.id + '">' +
+      '<div class="arch-item__name">' + esc(e.patient_name || '–') + '</div>' +
+      '<div class="arch-item__sub">' + esc(e.art||'–') + ' · ' + fmtDate(e.datum) + ' · ' + esc(e.fahrzeug||'–') + '</div>' +
+      '<span class="arch-item__badge">✅ Archiviert</span>' +
+    '</div>';
+  }).join('');
+}
+
+// ── SELECT + DETAIL ──
+function selectEinsatz(eid) {
+  activeEid = eid;
+  // Update active state in list
+  document.querySelectorAll('.arch-item').forEach(function(el){ el.classList.remove('active'); });
+  var it = document.getElementById('item_' + eid);
+  if (it) it.classList.add('active');
+  var e = allEinsaetze.find(function(x){ return x.id === eid; });
+  if (!e) return;
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('detailPanel').style.display = 'block';
+  renderDetail(e);
+  loadProtokolll(eid);
+}
+
+function renderDetail(e) {
+  var risiken = Array.isArray(e.risiken) ? e.risiken.join(', ') : (e.risiken||'');
+  document.getElementById('detailPanel').innerHTML =
+    // HEAD
+    '<div class="arch-detail-head">' +
+      '<div class="arch-detail-head__left">' +
+        '<div class="arch-detail-head__name">' + esc(e.patient_name||'–') + '</div>' +
+        '<div class="arch-detail-head__meta">' + esc(e.art||'–') + ' · ' + fmtDate(e.datum) + ' ' + (e.zeit||'') + ' · Disponent: ' + esc(e.disponent||'–') + '</div>' +
+        '<div style="margin-top:6px;font-size:.75rem;color:#64748b;">Archiviert: ' + fmtTs(e.archiviert_am) + '</div>' +
+      '</div>' +
+      '<div class="arch-detail-head__actions">' +
+        '<button class="btn btn--amber" onclick="modalOpen(' + JSON.stringify(e.id) + ')">🔁 Folgeeinsatz</button>' +
+        '<button class="btn btn--ghost btn--sm" onclick="window.print()">🖨️ Drucken</button>' +
+      '</div>' +
+    '</div>' +
+
+    // STATUS TIMELINE
+    '<div class="acard" style="margin-bottom:16px;">' +
+      '<div class="acard__head">Status-Verlauf</div>' +
+      renderStatusTimeline(e) +
+    '</div>' +
+
+    // PATIENT
+    '<div class="acard">' +
+      '<div class="acard__head">🧑 Patientendaten</div>' +
+      '<div class="acard-grid">' +
+        field('Name', e.patient_name) +
+        field('Geburtsdatum', fmtDate(e.patient_geburt)) +
+        field('SV-Nummer', e.patient_sv) +
+        field('Telefon', e.patient_tel) +
+        field('Adresse', (e.patient_adresse||'') + (e.patient_plz ? ', '+e.patient_plz+' '+(e.patient_ort||'') : '')) +
+        field('Bezirk', e.bezirk) +
+      '</div>' +
+    '</div>' +
+
+    // EINSATZ
+    '<div class="acard">' +
+      '<div class="acard__head">📋 Einsatzdaten</div>' +
+      '<div class="acard-grid">' +
+        field('Einsatz-Nr.', e.nummer) +
+        field('Art', e.art) +
+        field('Dringlichkeit', e.dringlichkeit) +
+        field('Qualifikation', e.qualifikation) +
+        field('Fahrzeug', e.fahrzeug) +
+        field('Schlüssel', e.schluessel) +
+      '</div>' +
+      (e.problem ? '<div style="margin-top:12px;"><div class="acard-field__lbl">Problem</div><div style="font-size:.85rem;color:#0f1a33;margin-top:3px;">' + esc(e.problem) + '</div></div>' : '') +
+      (risiken ? '<div style="margin-top:8px;"><div class="acard-field__lbl">Risiken</div><div style="font-size:.85rem;color:#dc2626;font-weight:700;margin-top:3px;">' + esc(risiken) + '</div></div>' : '') +
+      (e.allergien ? '<div style="margin-top:8px;"><div class="acard-field__lbl">Allergien</div><div style="font-size:.85rem;color:#0f1a33;margin-top:3px;">' + esc(e.allergien) + '</div></div>' : '') +
+    '</div>' +
+
+    // PROTOKOLL
+    '<div class="acard" id="protoCard">' +
+      '<div class="acard__head">📋 Einsatzprotokoll</div>' +
+      '<div id="protoContent"><div style="color:#94a3b8;font-size:.82rem;">Wird geladen…</div></div>' +
+    '</div>';
+}
+
+function renderStatusTimeline(e) {
+  var steps = [
+    { key: 'alarmiert',    label: 'Alarmiert',    ico: '🔴', time: e.zeit },
+    { key: 'unterwegs',    label: 'Unterwegs',    ico: '🚗', time: e.zeit_unterwegs },
+    { key: 'eingetroffen', label: 'Eingetroffen', ico: '🏠', time: e.zeit_eingetroffen },
+    { key: 'beendet',      label: 'Beendet',      ico: '✅', time: e.zeit_beendet },
+  ];
+  var reached = false;
+  var html = '<div class="status-timeline">';
+  for (var i = 0; i < steps.length; i++) {
+    var s = steps[i];
+    var done = s.time ? true : false;
+    if (s.key === 'beendet') done = !!e.zeit_beendet;
+    html += '<div class="st-step">' +
+      '<div class="st-dot ' + (s.key==='beendet'&&done?'beendet':(done?'done':'')) + '">' + s.ico + '</div>' +
+      '<div class="st-label ' + (done?s.key==='beendet'?'beendet':'done':'') + '">' + s.label + '</div>' +
+      (s.time ? '<div class="st-time">' + esc(s.time) + ' Uhr</div>' : '') +
+    '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function field(lbl, val) {
+  var empty = !val || val === '–';
+  return '<div class="acard-field">' +
+    '<div class="acard-field__lbl">' + esc(lbl) + '</div>' +
+    '<div class="acard-field__val ' + (empty?'empty':'') + '">' + esc(val||'–') + '</div>' +
+  '</div>';
+}
+
+function loadProtokolll(eid) {
+  fetch('/api/einsaetze/' + eid + '/protokoll')
+    .then(function(r){ return r.json(); })
+    .then(function(rows) {
+      var el = document.getElementById('protoContent');
+      if (!el) return;
+      if (!rows.length) {
+        el.innerHTML = '<div style="color:#94a3b8;font-size:.82rem;text-align:center;padding:12px 0;">Kein Protokoll vorhanden.</div>';
+        return;
+      }
+      var icons = { status:'🔄', erstellt:'📝', gps:'📍', bemerkung:'💬', nachweis:'📄', default:'·' };
+      var colors = { 'Alarmiert':'#dc2626', 'Unterwegs':'#d97706', 'Eingetroffen':'#2563eb', 'Einsatz beendet':'#16a34a' };
+      el.innerHTML = '<div class="timeline">' +
+        rows.map(function(p){
+          var ico = icons[p.aktion] || icons.default;
+          var ts = p.zeitpunkt ? p.zeitpunkt.slice(0,16).replace('T',' ') : '';
+          var color = colors[p.details] || '';
+          return '<div class="tl-item ' + (p.details==='Einsatz beendet'?'tl-beendet':p.details==='Alarmiert'?'tl-alarm':'') + '">' +
+            '<div class="tl-item__title" style="' + (color?'color:'+color+';':'') + '">' + ico + ' ' + esc(p.details||p.aktion) + '</div>' +
+            '<div class="tl-item__sub">' + esc(ts) + (p.akteur ? ' · ' + esc(p.akteur) : '') + (p.akteur_typ ? ' (' + esc(p.akteur_typ) + ')' : '') + '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    })
+    .catch(function(){
+      var el = document.getElementById('protoContent');
+      if (el) el.innerHTML = '<div style="color:#dc2626;font-size:.82rem;">Fehler beim Laden.</div>';
+    });
+}
+
+// ── FOLGEEINSATZ MODAL ──
+var _modalEid = null;
+
+function modalOpen(eid) {
+  _modalEid = eid;
+  var e = allEinsaetze.find(function(x){ return x.id === eid; });
+  if (e) {
+    document.getElementById('modalInfo').textContent = 'Patient: ' + (e.patient_name||'–') + ' · ' + (e.patient_adresse||'–') + ' · ' + (e.art||'–');
+    document.getElementById('fgProblem').value = e.problem || '';
+    document.getElementById('fgFahrzeug').value = e.fahrzeug || '';
+  }
+  document.getElementById('fgNummer').value = '';
+  document.getElementById('fgNotiz').value = '';
+  document.getElementById('modalErr').style.display = 'none';
+  document.getElementById('fgSendBtn').disabled = false;
+  document.getElementById('fgSendBtn').textContent = '🔁 Folgeeinsatz anlegen';
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function modalClose() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  _modalEid = null;
+}
+
+function modalSend() {
+  if (!_modalEid) return;
+  var btn = document.getElementById('fgSendBtn');
+  var errEl = document.getElementById('modalErr');
+  btn.disabled = true;
+  btn.textContent = 'Wird angelegt…';
+  errEl.style.display = 'none';
+
+  fetch('/api/archiv/einsaetze/' + _modalEid + '/folgeeinsatz', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nummer: document.getElementById('fgNummer').value.trim(),
+      fahrzeug: document.getElementById('fgFahrzeug').value.trim().toUpperCase(),
+      problem: document.getElementById('fgProblem').value.trim(),
+      notiz: document.getElementById('fgNotiz').value.trim()
+    })
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+  .then(function(res){
+    if (res.ok && res.data.ok) {
+      modalClose();
+      showToast('✅ Folgeeinsatz ' + (res.data.id||'') + ' wurde angelegt!', 'success');
+    } else {
+      errEl.textContent = res.data.error || 'Fehler beim Anlegen.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '🔁 Folgeeinsatz anlegen';
+    }
+  })
+  .catch(function(){
+    errEl.textContent = 'Verbindungsfehler.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '🔁 Folgeeinsatz anlegen';
+  });
+}
+
+// ── TOAST ──
+function showToast(msg, type) {
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:' +
+    (type==='success'?'#16a34a':'#dc2626') + ';color:#fff;padding:12px 20px;border-radius:12px;font-size:.87rem;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.2);max-width:340px;';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 4500);
+}
+
+// ── UTILS ──
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtDate(d) {
+  if (!d) return '–';
+  var p = String(d).split('-');
+  return p.length===3 ? p[2]+'.'+p[1]+'.'+p[0] : d;
+}
+function fmtTs(ts) {
+  if (!ts) return '–';
+  return String(ts).slice(0,16).replace('T',' ');
+}
+
+// ── BOOT ──
+window.addEventListener('DOMContentLoaded', function(){
+  loadData();
+});
+</script>
+</body>
+</html>

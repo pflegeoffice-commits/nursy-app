@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Matching Pflegekraft</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="/manifest-nursy.json">
+  <link rel="apple-touch-icon" href="/icon-nursy-192.png">
+  <meta name="theme-color" content="#0f2744">
+  <style>
+    .mp-page { padding: 24px 0 80px; }
+
+    .mp-tabs { display: flex; gap: 6px; margin-bottom: 22px; flex-wrap: wrap; }
+    .mp-tab {
+      padding: 9px 18px; border-radius: 10px; font-size: .85rem; font-weight: 700;
+      border: 2px solid #dbe2f0; background: #fff; color: #64748b; cursor: pointer;
+      transition: all .15s; font-family: inherit;
+    }
+    .mp-tab.active { border-color: #3f6fe8; background: #eff2fd; color: #3f6fe8; }
+    .mp-tab .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 9px; background: #ef4444;
+      color: #fff; font-size: .68rem; font-weight: 800; margin-left: 5px; padding: 0 4px;
+    }
+    .mp-panel { display: none; }
+    .mp-panel.active { display: block; }
+
+    /* ── Stats-Row ── */
+    .mp-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 22px; }
+    @media(max-width:480px){ .mp-stats { grid-template-columns: 1fr; } }
+    .mp-stat {
+      border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 16px 14px;
+      background: #fff; text-align: center;
+    }
+    .mp-stat__num { font-size: 1.8rem; font-weight: 800; color: #3f6fe8; line-height: 1; margin-bottom: 4px; }
+    .mp-stat__lbl { font-size: .75rem; color: #64748b; font-weight: 600; }
+    .mp-stat--warn .mp-stat__num { color: #f59e0b; }
+    .mp-stat--ok   .mp-stat__num { color: #22c55e; }
+
+    /* ── Anfrage-Karte ── */
+    .anf-card {
+      border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 18px 16px;
+      background: #fff; margin-bottom: 12px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .anf-card:hover { border-color: #93c5fd; box-shadow: 0 2px 10px rgba(63,111,232,.08); }
+    .anf-card--gezielt { border-color: #a5b4fc; background: #f8f8ff; }
+    .anf-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .anf-card__pflegebedarf { font-weight: 700; font-size: .95rem; color: #1e293b; margin: 0; word-break: break-word; overflow-wrap: anywhere; }
+    .anf-card__meta { font-size: .78rem; color: #64748b; margin: 6px 0 10px; word-break: break-word; overflow-wrap: anywhere; }
+    .anf-card__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .anf-chip {
+      padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 600;
+      background: #eff2fd; color: #3f6fe8; border: 1px solid #c7d2fe;
+    }
+    .anf-chip--schicht { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
+    .anf-chip--gezielt { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+    .anf-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Abschnittstrennlinie ── */
+    .anf-section-lbl {
+      font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+      color: #94a3b8; margin: 18px 0 10px; padding-bottom: 6px;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+    .anf-section-lbl:first-child { margin-top: 0; }
+
+    /* ── Leer-State ── */
+    .mp-empty { text-align: center; padding: 48px 20px; color: #94a3b8; }
+    .mp-empty__icon { font-size: 40px; margin-bottom: 12px; }
+    .mp-empty__title { font-weight: 700; font-size: 1rem; color: #64748b; margin: 0 0 6px; }
+    .mp-empty__sub { font-size: .85rem; }
+
+    /* ── Alert ── */
+    .mp-alert { border-radius: 10px; padding: 12px 16px; font-size: .85rem; font-weight: 600; margin-bottom: 14px; display: none; }
+    .mp-alert.visible { display: block; }
+    .mp-alert--err { background: #fef2f2; color: #dc2626; border: 1.5px solid #fca5a5; }
+    .mp-alert--ok  { background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; }
+
+    /* ── Verbundene Patienten ── */
+    .pat-card {
+      border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 18px 16px;
+      background: #fff; margin-bottom: 12px;
+    }
+    .pat-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .pat-card__avatar {
+      width: 44px; height: 44px; border-radius: 50%; background: #059669;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; flex-shrink: 0;
+    }
+    .pat-card__name { font-weight: 800; font-size: .95rem; color: #1e293b; margin: 0 0 2px; }
+    .pat-card__sub  { font-size: .78rem; color: #64748b; margin: 0; }
+    .pat-card__rows { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; }
+    .pat-card__row  { display: flex; gap: 8px; }
+    .pat-card__label { font-weight: 700; color: #374151; min-width: 80px; flex-shrink: 0; }
+    .pat-card__rows span:not(.pat-card__label) { word-break: break-word; overflow-wrap: anywhere; min-width: 0; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="dashboard-care.html">Dashboard</a>
+      <a href="#" id="navLogoutPfleger">Abmelden</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container mp-page">
+
+  <div class="section__head" style="margin-bottom:20px;">
+    <h2>Matching – Anfragen</h2>
+    <p class="muted">Gezielte und offene Patientenanfragen annehmen.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="mp-stats">
+    <div class="mp-stat mp-stat--warn">
+      <div class="mp-stat__num" id="statAnfragen">–</div>
+      <div class="mp-stat__lbl">Anfragen gesamt</div>
+    </div>
+    <div class="mp-stat">
+      <div class="mp-stat__num" id="statEingehende">–</div>
+      <div class="mp-stat__lbl">Gezielt an mich</div>
+    </div>
+    <div class="mp-stat mp-stat--ok">
+      <div class="mp-stat__num" id="statVerbunden">–</div>
+      <div class="mp-stat__lbl">Verbundene Patienten</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="mp-tabs">
+    <button class="mp-tab active" data-tab="anfragen">📋 Anfragen <span class="badge" id="badgeAnfragen" style="display:none;">0</span></button>
+    <button class="mp-tab" data-tab="verbunden">✅ Meine Patienten</button>
+  </div>
+
+  <!-- ── Tab: Anfragen (Eingehende + Offene zusammen) ── -->
+  <div class="mp-panel active" id="tab-anfragen">
+    <div id="alertAnfragen" class="mp-alert mp-alert--err"></div>
+    <div id="anfragenLoading" class="muted" style="text-align:center;padding:24px;">Wird geladen …</div>
+    <div id="anfragenListe"></div>
+    <div id="anfragenEmpty" class="mp-empty" style="display:none;">
+      <div class="mp-empty__icon">📋</div>
+      <p class="mp-empty__title">Keine Anfragen vorhanden</p>
+      <p class="mp-empty__sub">Aktuell liegen weder gezielte noch offene Patientenanfragen vor.</p>
+    </div>
+  </div>
+
+  <!-- ── Tab: Verbundene Patienten ── -->
+  <div class="mp-panel" id="tab-verbunden">
+    <p class="muted" style="font-size:.82rem;margin-bottom:14px;">
+      ✅ Verbundene Patienten — Sie haben deren Anfrage angenommen und haben Zugriff auf alle Details.
+    </p>
+    <div id="verbundenLoading" class="muted" style="text-align:center;padding:24px;">Wird geladen …</div>
+    <div id="verbundenListe"></div>
+    <div id="verbundenEmpty" class="mp-empty" style="display:none;">
+      <div class="mp-empty__icon">✅</div>
+      <p class="mp-empty__title">Noch keine verbundenen Patienten</p>
+      <p class="mp-empty__sub">Nehmen Sie eine Anfrage an, um verbunden zu werden.</p>
+    </div>
+  </div>
+
+  <!-- ── Konto verwalten ── -->
+  <div style="margin-top:32px;border-top:1.5px solid #e2e8f0;padding-top:24px;">
+    <p style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:0 0 14px;">Konto verwalten</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button id="btnLogoutPfleger" class="btn btn--soft" style="font-size:.85rem;">Abmelden</button>
+      <button id="btnDeletePfleger" style="padding:8px 18px;border-radius:9px;border:1.5px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer;font-family:inherit;font-size:.85rem;font-weight:600;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">Account löschen</button>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  function qs(sel){ return document.querySelector(sel); }
+  function setDisplay(el, show){ if(el) el.style.display = show ? '' : 'none'; }
+
+  function datumKurz(str){
+    if(!str) return '–';
+    return str.substring(0,10);
+  }
+
+  /* ── Tabs ── */
+  document.querySelectorAll('.mp-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var tab = btn.dataset.tab;
+      document.querySelectorAll('.mp-tab').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.mp-panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      var panel = document.getElementById('tab-' + tab);
+      if(panel) panel.classList.add('active');
+      if(tab === 'anfragen')  ladeAnfragen();
+      if(tab === 'verbunden') ladeVerbunden();
+    });
+  });
+
+  /* ── Status-Zahlen ── */
+  function ladeStatus(){
+    fetch('/api/care/matching/status', { credentials: 'include' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d.ok) return;
+        var total = (d.offene || 0) + (d.eingehende || 0);
+        qs('#statAnfragen').textContent   = total;
+        qs('#statEingehende').textContent = d.eingehende;
+        qs('#statVerbunden').textContent  = d.verbindungen;
+        var b = qs('#badgeAnfragen');
+        if(total > 0){ b.textContent = total; setDisplay(b, true); }
+        else { setDisplay(b, false); }
+      });
+  }
+
+  /* ── Alle Anfragen laden (Eingehende zuerst, dann Offene) ── */
+  function ladeAnfragen(){
+    var loading = qs('#anfragenLoading');
+    var liste   = qs('#anfragenListe');
+    var empty   = qs('#anfragenEmpty');
+    setDisplay(loading, true); setDisplay(empty, false); liste.innerHTML = '';
+
+    Promise.all([
+      fetch('/api/care/matching/eingehende', { credentials: 'include' }).then(function(r){ return r.json(); }),
+      fetch('/api/care/matching/offene',     { credentials: 'include' }).then(function(r){ return r.json(); })
+    ]).then(function(results){
+      setDisplay(loading, false);
+      var eingehende = (results[0].ok && results[0].anfragen) ? results[0].anfragen : [];
+      var offene     = (results[1].ok && results[1].anfragen) ? results[1].anfragen : [];
+
+      if(!eingehende.length && !offene.length){
+        setDisplay(empty, true);
+        return;
+      }
+
+      var html = '';
+
+      if(eingehende.length){
+        html += '<div class="anf-section-lbl">📨 Gezielt an Sie gerichtet (' + eingehende.length + ')</div>';
+        html += eingehende.map(function(a){ return renderAnfragenKarte(a, 'eingehend'); }).join('');
+      }
+
+      if(offene.length){
+        html += '<div class="anf-section-lbl">🌐 Offene Anfragen (' + offene.length + ')</div>';
+        html += '<p class="muted" style="font-size:.8rem;margin-bottom:12px;">🔒 <strong>Datenschutz:</strong> Name und Adresse des Patienten sind verborgen. Nach dem <strong>First-Come-Prinzip</strong> — wer zuerst annimmt, erhält den Patienten.</p>';
+        html += offene.map(function(a){ return renderAnfragenKarte(a, 'offen'); }).join('');
+      }
+
+      liste.innerHTML = html;
+    }).catch(function(){
+      setDisplay(loading, false);
+      setDisplay(empty, true);
+    });
+  }
+
+  /* ── Anfragen-Karte rendern ── */
+  function renderAnfragenKarte(a, typ){
+    var chips = (a.leistungen||[]).map(function(l){
+      return '<span class="anf-chip">' + l + '</span>';
+    }).join('');
+    var schichten = (a.schicht_wunsch||[]).map(function(s){
+      return '<span class="anf-chip anf-chip--schicht">' + s + '</span>';
+    }).join('');
+    var typChip = typ === 'eingehend'
+      ? '<span class="anf-chip anf-chip--gezielt">📨 Gezielt an Sie</span>'
+      : '';
+    var aktionen = typ === 'eingehend'
+      ? '<button class="btn primary" style="font-size:.82rem;" onclick="annehmen(\'' + a.id + '\')">✅ Annehmen</button>' +
+        '<button class="btn btn--soft" style="font-size:.82rem;" onclick="ablehnen(\'' + a.id + '\')">✗ Ablehnen</button>'
+      : '<button class="btn primary" style="font-size:.82rem;" onclick="annehmen(\'' + a.id + '\')">✅ Annehmen</button>';
+    var cardClass = typ === 'eingehend' ? 'anf-card anf-card--gezielt' : 'anf-card';
+
+    return '<div class="' + cardClass + '">' +
+      '<div class="anf-card__head">' +
+      '<p class="anf-card__pflegebedarf">' + (a.pflegebedarf||'Kein Pflegebedarf angegeben') + '</p>' +
+      '</div>' +
+      '<p class="anf-card__meta">📍 ' + (a.bezirk||'–') + ' · Eingang: ' + datumKurz(a.created_at) + '</p>' +
+      (typChip || chips || schichten ? '<div class="anf-card__chips">' + typChip + chips + schichten + '</div>' : '') +
+      '<div class="anf-card__actions">' + aktionen + '</div>' +
+      '</div>';
+  }
+
+  /* ── Annehmen ── */
+  window.annehmen = function(anfragenId){
+    if(!confirm('Diesen Patienten annehmen? Sie werden direkt verbunden und erhalten Zugriff auf alle Patientendaten.')) return;
+    fetch('/api/care/matching/annehmen/' + anfragenId, { method: 'POST', credentials: 'include' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok){
+          alert('✅ Patient erfolgreich angenommen! Sie finden ihn unter "Meine Patienten".');
+          ladeStatus();
+          document.querySelector('.mp-tab[data-tab="verbunden"]').click();
+        } else {
+          alert(d.error || 'Fehler beim Annehmen');
+        }
+      });
+  };
+
+  /* ── Ablehnen ── */
+  window.ablehnen = function(anfragenId){
+    if(!confirm('Anfrage ablehnen? Der Patient kann dann einen anderen Pfleger wählen.')) return;
+    fetch('/api/care/matching/ablehnen/' + anfragenId, { method: 'POST', credentials: 'include' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok){
+          ladeAnfragen();
+          ladeStatus();
+        } else {
+          alert(d.error || 'Fehler');
+        }
+      });
+  };
+
+  /* ── Verbundene Patienten laden ── */
+  function ladeVerbunden(){
+    var loading = qs('#verbundenLoading');
+    var liste   = qs('#verbundenListe');
+    var empty   = qs('#verbundenEmpty');
+    setDisplay(loading, true); setDisplay(empty, false); liste.innerHTML = '';
+
+    fetch('/api/care/meine-patienten', { credentials: 'include' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        setDisplay(loading, false);
+        var pats = d.patients || [];
+        if(!pats.length){ setDisplay(empty, true); return; }
+        liste.innerHTML = pats.map(function(p){
+          var ini = ((p.vorname||'')[0]+(p.nachname||'')[0]).toUpperCase() || '?';
+          var addr = [p.address,p.plz,p.ort].filter(Boolean).join(', ') || '–';
+          return '<div class="pat-card">' +
+            '<div class="pat-card__head">' +
+            '<div class="pat-card__avatar">' + ini + '</div>' +
+            '<div><p class="pat-card__name">' + (p.vorname||'') + ' ' + (p.nachname||'') + '</p>' +
+            '<p class="pat-card__sub">' + (p.hauptgrund||'Pflegebedarf nicht angegeben') + '</p>' +
+            '</div></div>' +
+            '<div class="pat-card__rows">' +
+            '<div class="pat-card__row"><span class="pat-card__label">E-Mail</span><span>' + (p.email||'–') + '</span></div>' +
+            '<div class="pat-card__row"><span class="pat-card__label">Adresse</span><span>' + addr + '</span></div>' +
+            '<div class="pat-card__row"><span class="pat-card__label">Geburtsdatum</span><span>' + (p.birth||'–') + '</span></div>' +
+            '<div class="pat-card__row"><span class="pat-card__label">Bezirk</span><span>' + (p.bezirk||'–') + '</span></div>' +
+            '</div>' +
+            '<div style="margin-top:12px;padding-top:10px;border-top:1.5px solid #f1f5f9;display:flex;gap:8px;flex-wrap:wrap;">' +
+            '<a class="btn" style="font-size:.8rem;" href="patients.html">Zur Patientenakte</a>' +
+            '</div></div>';
+        }).join('');
+      })
+      .catch(function(){ setDisplay(loading, false); setDisplay(empty, true); });
+  }
+
+  /* ── Init ── */
+  ladeStatus();
+  ladeAnfragen();
+
+  /* ── Abmelden + Account löschen ── */
+  function doLogoutPfleger(){
+    fetch('/api/logout', {method:'POST', credentials:'include'})
+      .then(function(){ location.href='login-care.html'; })
+      .catch(function(){ location.href='login-care.html'; });
+  }
+  var nlp = document.getElementById('navLogoutPfleger');
+  if(nlp) nlp.addEventListener('click', function(e){ e.preventDefault(); doLogoutPfleger(); });
+  var blp = document.getElementById('btnLogoutPfleger');
+  if(blp) blp.addEventListener('click', doLogoutPfleger);
+  var bdp = document.getElementById('btnDeletePfleger');
+  if(bdp) bdp.addEventListener('click', function(){
+    if(!confirm('Account wirklich löschen?\n\nAlle Verbindungen und Patientendaten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+    fetch('/api/care/account', {method:'DELETE', credentials:'include'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok) location.href='index.html';
+        else alert(d.error || 'Fehler beim Löschen');
+      });
+  });
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Akut Plus Pflegeportal – Registrierung</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { font-family:ui-sans-serif,system-ui,sans-serif; min-height:100vh; background:linear-gradient(160deg,#1a2744,#243560 60%,#1e3a6e); padding:30px 16px 60px; }
+    .reg-wrap { max-width:580px; margin:0 auto; }
+    .reg-logo  { text-align:center; color:#fff; margin-bottom:24px; }
+    .reg-logo h1 { margin:0; font-size:2rem; font-weight:900; letter-spacing:-.5px; }
+    .reg-logo p  { margin:4px 0 0; font-size:.8rem; color:#a8c4e8; }
+
+    /* Stepper */
+    .stepper { display:flex; justify-content:center; align-items:center; margin-bottom:24px; gap:0; }
+    .step-item { display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
+    .step-item:not(:last-child)::after { content:''; position:absolute; top:16px; left:50%; right:-50%; height:2px; background:rgba(255,255,255,.2); z-index:0; }
+    .step-item.done::after { background:#3f6fe8; }
+    .step-circle { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; z-index:1; border:2px solid rgba(255,255,255,.3); background:rgba(255,255,255,.1); color:rgba(255,255,255,.5); }
+    .step-item.active .step-circle { background:#fff; color:#1a2744; border-color:#fff; }
+    .step-item.done   .step-circle { background:#3f6fe8; color:#fff; border-color:#3f6fe8; }
+    .step-label { font-size:.6rem; color:rgba(255,255,255,.5); margin-top:5px; text-align:center; font-weight:600; }
+    .step-item.active .step-label { color:#fff; }
+    .step-item.done   .step-label { color:#a8c4e8; }
+
+    .reg-card { background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden; }
+    .reg-card-head { padding:20px 24px 16px; border-bottom:1px solid #f0f4fa; }
+    .reg-card-head h2 { margin:0 0 3px; font-size:1rem; font-weight:800; color:#0f1a33; }
+    .reg-card-head p  { margin:0; font-size:.75rem; color:#7a8faa; }
+    .reg-card-body { padding:20px 24px; }
+    .reg-card-foot { padding:14px 24px 20px; border-top:1px solid #f0f4fa; display:flex; justify-content:space-between; align-items:center; }
+
+    .form-group  { margin-bottom:14px; }
+    .form-label  { display:block; font-size:.75rem; font-weight:700; color:#374151; margin-bottom:5px; }
+    .form-inp, .form-sel { width:100%; height:42px; border-radius:10px; border:1.5px solid #dde6f2; padding:0 13px; font-size:.85rem; font-family:inherit; box-sizing:border-box; transition:border .15s; background:#fff; }
+    .form-inp:focus, .form-sel:focus { outline:none; border-color:#3f6fe8; }
+    .form-row2  { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:480px){ .form-row2{ grid-template-columns:1fr; } }
+    .req { color:#ef4444; }
+    .check-group { display:flex; flex-wrap:wrap; gap:8px; }
+    .check-label { display:flex; align-items:center; gap:6px; background:#f8faff; border:1.5px solid #dde6f2; border-radius:9px; padding:7px 12px; cursor:pointer; font-size:.78rem; font-weight:600; transition:all .15s; }
+    .check-label:has(input:checked) { border-color:#3f6fe8; background:#eef2fb; color:#1e3a8a; }
+    .check-label input { width:14px; height:14px; }
+
+    /* Rolle-Auswahl Karten */
+    .rolle-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:4px; }
+    .rolle-card { border:2px solid #dde6f2; border-radius:14px; padding:18px 14px; cursor:pointer; text-align:center; transition:all .18s; background:#f8faff; }
+    .rolle-card:hover { border-color:#3f6fe8; background:#eef2fb; }
+    .rolle-card.selected { border-color:#3f6fe8; background:#eef2fb; box-shadow:0 0 0 3px rgba(63,111,232,.15); }
+    .rolle-card .rk-icon { font-size:2rem; margin-bottom:8px; }
+    .rolle-card .rk-title { font-size:.88rem; font-weight:800; color:#0f1a33; margin-bottom:3px; }
+    .rolle-card .rk-desc  { font-size:.72rem; color:#7a8faa; line-height:1.4; }
+    .rolle-card.selected .rk-title { color:#1e3a8a; }
+
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:10px; font-size:.83rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; font-family:inherit; }
+    .btn-primary { background:#3f6fe8; color:#fff; }
+    .btn-primary:hover { background:#2d5bd4; }
+    .btn-primary:disabled { opacity:.6; cursor:default; }
+    .btn-ghost  { background:none; color:#7a8faa; border:1.5px solid #dde6f2; }
+    .btn-ghost:hover { background:#f8faff; }
+
+    .alert { border-radius:9px; padding:10px 14px; font-size:.78rem; margin-bottom:12px; }
+    .alert-err { background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; }
+
+    .success-wrap { text-align:center; padding:30px 20px; }
+    .success-icon { font-size:3.5rem; margin-bottom:12px; }
+    .success-wrap h2 { font-size:1.2rem; font-weight:900; color:#0f1a33; margin:0 0 8px; }
+    .success-wrap p  { font-size:.83rem; color:#6b7280; margin:0 0 16px; line-height:1.6; }
+    .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px 16px; text-align:left; font-size:.78rem; color:#1e3a8a; line-height:1.5; }
+
+    .step-content { display:none; }
+    .step-content.active { display:block; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<div class="reg-wrap">
+  <div class="reg-logo">
+    <h1>Akut Plus</h1>
+    <p>Pflegedienste auf höchstem Niveau · Neues Konto erstellen</p>
+  </div>
+
+  <!-- Stepper (dynamisch befüllt) -->
+  <div class="stepper" id="stepper"></div>
+
+  <div class="reg-card">
+    <div class="reg-card-head" id="regCardHead">
+      <h2>Persönliche Daten</h2>
+      <p>Schritt 1 von 2 – Basisinformationen</p>
+    </div>
+    <div class="reg-card-body">
+      <div id="regAlert"></div>
+
+      <!-- Schritt 1: Persönliche Daten -->
+      <div class="step-content active" id="sc1">
+        <div class="form-row2">
+          <div class="form-group">
+            <label class="form-label">Vorname <span class="req">*</span></label>
+            <input type="text" class="form-inp" id="vorname" placeholder="Vorname" autocomplete="off"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nachname <span class="req">*</span></label>
+            <input type="text" class="form-inp" id="nachname" placeholder="Nachname" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-Mail Adresse <span class="req">*</span></label>
+          <input type="email" class="form-inp" id="email" placeholder="E-Mail Adresse" autocomplete="off"/>
+        </div>
+        <div class="form-row2">
+          <div class="form-group">
+            <label class="form-label">Telefon</label>
+            <input type="tel" class="form-inp" id="telefon" placeholder="Telefonnummer" autocomplete="off"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Wohnort / Adresse</label>
+            <input type="text" class="form-inp" id="adresse" placeholder="Wohnort / Adresse" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passwort <span class="req">*</span></label>
+          <input type="password" class="form-inp" id="password" placeholder="Passwort" autocomplete="new-password"/>
+        </div>
+      </div>
+
+      <!-- Schritt 2: Qualifikation (nur Pfleger) -->
+      <div class="step-content" id="sc2">
+        <div class="form-group">
+          <label class="form-label">Pflegeausbildung <span class="req">*</span></label>
+          <select class="form-sel" id="qualifikation">
+            <option value="">– bitte wählen –</option>
+            <option value="DGKP">Diplomierte Gesundheits- und Krankenpflege (DGKP)</option>
+            <option value="PFA">Pflegefachassistenz (PFA)</option>
+            <option value="PA">Pflegeassistenz (PA)</option>
+            <option value="Heimhilfe">Heimhilfe</option>
+          </select>
+        </div>
+        <div class="form-row2">
+          <div class="form-group">
+            <label class="form-label">Berufserfahrung (Jahre)</label>
+            <input type="number" class="form-inp" id="erfahrung" placeholder="0" min="0" max="50"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bevorzugter Bezirk <span class="req">*</span></label>
+            <input type="text" class="form-inp" id="bezirk" placeholder="Bevorzugter Bezirk" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bevorzugtes Fahrzeug (optional)</label>
+          <select class="form-sel" id="fahrzeugPref">
+            <option value="">– kein bevorzugtes –</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gewünschte Dienstarten</label>
+          <div class="check-group">
+            <label class="check-label"><input type="checkbox" name="da" value="Frühdienst" checked> 🌅 Frühdienst</label>
+            <label class="check-label"><input type="checkbox" name="da" value="Spätdienst" checked> 🌆 Spätdienst</label>
+            <label class="check-label"><input type="checkbox" name="da" value="Nachtdienst"> 🌙 Nachtdienst</label>
+            <label class="check-label"><input type="checkbox" name="da" value="Wochenende"> 📅 Wochenende</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schritt Abschluss -->
+      <div class="step-content" id="scDone">
+        <div class="success-wrap">
+          <div class="success-icon">✅</div>
+          <h2 id="doneTitle">Konto erstellt!</h2>
+          <p id="doneText">Ihre Registrierung war erfolgreich. Sie können sich jetzt direkt anmelden.</p>
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;align-items:center;">
+            <a href="/portal/app" class="btn btn-primary" style="width:200px;justify-content:center;">→ Zum Portal</a>
+            <a href="/portal" style="color:#7a8faa;font-size:.78rem;text-decoration:none;">Zum Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reg-card-foot" id="regFoot">
+      <button class="btn btn-ghost" id="backBtn" onclick="prevStep()" style="visibility:hidden">← Zurück</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Weiter →</button>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px">
+    <a href="pflege-portal-login.html" style="color:#a8c4e8;font-size:.78rem;text-decoration:none">Bereits registriert? Anmelden</a>
+  </div>
+</div>
+
+<script>
+// Nur Pflegepersonen können sich registrieren
+let currentStep = 0;  // 0=PersönlicheDaten, 1=Qualifikation, 2=Abschluss
+
+const STEPS = [
+  { id:'sc1',    label:'Persönliche Daten' },
+  { id:'sc2',    label:'Qualifikation' },
+  { id:'scDone', label:'Abschluss' },
+];
+
+function renderStepper() {
+  const el = document.getElementById('stepper');
+  el.innerHTML = STEPS.map(function(s, i) {
+    var cls = i < currentStep ? 'done' : i === currentStep ? 'active' : '';
+    return '<div class="step-item '+cls+'">'
+      + '<div class="step-circle">'+(i+1)+'</div>'
+      + '<div class="step-label">'+s.label+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function updateHead() {
+  const heads = {
+    0: { h:'Persönliche Daten',              p:'Schritt 1 von 2 – Basisinformationen' },
+    1: { h:'Qualifikation & Dienstpräferenzen', p:'Schritt 2 von 2 – Fachliche Daten' },
+    2: { h:'Registrierung abgeschlossen',    p:'' },
+  };
+  const d = heads[currentStep] || { h:'', p:'' };
+  document.getElementById('regCardHead').innerHTML = '<h2>'+d.h+'</h2><p>'+d.p+'</p>';
+}
+
+function updateNextBtn() {
+  const btn = document.getElementById('nextBtn');
+  if (currentStep >= STEPS.length - 1) {
+    btn.style.display = 'none';
+  } else if (currentStep === STEPS.length - 2) {
+    btn.textContent = 'Jetzt registrieren ✓';
+  } else {
+    btn.textContent = 'Weiter →';
+  }
+}
+
+function showStep(idx) {
+  ['sc1','sc2','scDone'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  var target = STEPS[idx] ? STEPS[idx].id : 'scDone';
+  var el = document.getElementById(target);
+  if (el) el.classList.add('active');
+  renderStepper();
+  updateHead();
+  updateNextBtn();
+  var isDone = idx >= STEPS.length - 1;
+  document.getElementById('backBtn').style.visibility = (idx > 0 && !isDone) ? 'visible' : 'hidden';
+  document.getElementById('regFoot').style.display = isDone ? 'none' : 'flex';
+}
+
+async function nextStep() {
+  const alertEl = document.getElementById('regAlert');
+  alertEl.innerHTML = '';
+
+  if (STEPS[currentStep].id === 'sc1') {
+    const vor  = document.getElementById('vorname').value.trim();
+    const nach = document.getElementById('nachname').value.trim();
+    const em   = document.getElementById('email').value.trim();
+    const pw   = document.getElementById('password').value;
+    if (!vor || !nach || !em || !pw) { alertEl.innerHTML = '<div class="alert alert-err">Pflichtfelder ausfüllen.</div>'; return; }
+    if (pw.length < 8) { alertEl.innerHTML = '<div class="alert alert-err">Passwort mind. 8 Zeichen.</div>'; return; }
+  }
+
+  if (STEPS[currentStep].id === 'sc2') {
+    const qual   = document.getElementById('qualifikation').value;
+    const bezirk = document.getElementById('bezirk').value.trim();
+    if (!qual)   { alertEl.innerHTML = '<div class="alert alert-err">Qualifikation wählen.</div>'; return; }
+    if (!bezirk) { alertEl.innerHTML = '<div class="alert alert-err">Bezirk eingeben.</div>'; return; }
+    await doSubmit();
+    return;
+  }
+
+  currentStep++;
+  showStep(currentStep);
+}
+
+async function doSubmit() {
+  const alertEl = document.getElementById('regAlert');
+  const btn     = document.getElementById('nextBtn');
+  btn.disabled  = true;
+  btn.textContent = 'Wird gespeichert…';
+
+  const dienst_arten = [...document.querySelectorAll('[name="da"]:checked')].map(function(c){ return c.value; });
+  const body = {
+    rolle:           'pfleger',
+    vorname:         document.getElementById('vorname').value.trim(),
+    nachname:        document.getElementById('nachname').value.trim(),
+    email:           document.getElementById('email').value.trim(),
+    telefon:         document.getElementById('telefon').value.trim(),
+    adresse:         document.getElementById('adresse').value.trim(),
+    password:        document.getElementById('password').value,
+    qualifikation:   document.getElementById('qualifikation').value,
+    erfahrung_jahre: parseInt(document.getElementById('erfahrung').value) || 0,
+    bezirk:          document.getElementById('bezirk').value.trim(),
+    fahrzeug_pref:   document.getElementById('fahrzeugPref').value,
+    dienst_arten:    dienst_arten,
+  };
+
+  try {
+    const r = await fetch('/api/portal/registrieren', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    btn.disabled = false;
+    btn.textContent = 'Jetzt registrieren ✓';
+    if (!d.ok) {
+      alertEl.innerHTML = '<div class="alert alert-err">'+(d.error||'Fehler bei der Registrierung')+'</div>';
+      return;
+    }
+    document.getElementById('doneTitle').textContent = 'Bewerbung eingereicht!';
+    document.getElementById('doneText').textContent  = 'Ihre Daten wurden gespeichert und Sie sind sofort freigeschaltet. Melden Sie sich jetzt im Portal an.';
+    currentStep = STEPS.length - 1;
+    showStep(currentStep);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Jetzt registrieren ✓';
+    alertEl.innerHTML = '<div class="alert alert-err">Netzwerkfehler. Bitte erneut versuchen.</div>';
+  }
+}
+
+function prevStep() {
+  if (currentStep <= 0) return;
+  currentStep--;
+  showStep(currentStep);
+}
+
+async function loadFahrzeuge() {
+  try {
+    const r = await fetch('/api/portal/fahrzeuge');
+    const d = await r.json();
+    if (d.ok && d.fahrzeuge) {
+      const sel = document.getElementById('fahrzeugPref');
+      d.fahrzeuge.forEach(function(f){
+        const o = document.createElement('option');
+        o.value = f; o.textContent = f;
+        sel.appendChild(o);
+      });
+    }
+  } catch(e) {}
+}
+
+// Init
+renderStepper();
+updateHead();
+loadFahrzeuge();
+</script>
+</body>
+</html>

@@ -1,0 +1,1754 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Patientenakte</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root{--blue:#3f6fe8;--green:#2f8f4e;--red:#dc2626;--muted:#6b7280;--border:1.5px solid #e5e7eb;--shadow:0 2px 12px rgba(63,111,232,.08)}
+    .pa-page{padding:20px 16px 80px;max-width:700px;margin:0 auto;box-sizing:border-box}
+
+    /* ── Patient Header Card ── */
+    .pa-header{background:linear-gradient(135deg,#1e3a8a,#3f6fe8);border-radius:18px;padding:20px;color:#fff;margin-bottom:18px;position:relative;overflow:hidden;}
+    .pa-header::after{content:'';position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);}
+    .pa-header__top{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}
+    .pa-avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;color:#fff;border:2.5px solid rgba(255,255,255,.35);}
+    .pa-header__info{flex:1;min-width:0}
+    .pa-header__name{font-size:1.25rem;font-weight:900;margin:0 0 2px;line-height:1.2;word-break:break-word}
+    .pa-header__sub{font-size:.8rem;opacity:.82;line-height:1.5}
+    .pa-header__grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .pa-header__field{background:rgba(255,255,255,.14);border-radius:9px;padding:8px 11px}
+    .pa-header__field-label{font-size:.65rem;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+    .pa-header__field-val{font-size:.84rem;font-weight:700;word-break:break-word}
+    @media(max-width:480px){.pa-header__grid{grid-template-columns:1fr}}
+
+    /* ── Sections ── */
+    .pa-section{background:#fff;border:var(--border);border-radius:16px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+    .pa-section__head{display:flex;align-items:center;gap:10px;padding:13px 16px;background:#f8fafc;border-bottom:1.5px solid #e5e7eb;cursor:pointer;user-select:none;}
+    .pa-section__head:hover{background:#f1f5f9}
+    .pa-section__icon{font-size:1.05rem}
+    .pa-section__title{flex:1;font-size:.88rem;font-weight:800;color:#1e3a8a}
+    .pa-section__count{font-size:.72rem;font-weight:700;background:#e0e9ff;color:#3f6fe8;border-radius:999px;padding:2px 8px;min-width:20px;text-align:center}
+    .pa-section__chevron{font-size:11px;color:#6b7280;transition:transform .2s}
+    .pa-section.collapsed .pa-section__chevron{transform:rotate(-90deg)}
+    .pa-section__body{padding:14px 16px;display:block}
+    .pa-section.collapsed .pa-section__body{display:none}
+
+    /* ── Stammdaten / Edit ── */
+    .pa-stam-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:480px){.pa-stam-grid{grid-template-columns:1fr}}
+    .pa-stam-row{display:flex;flex-direction:column;gap:3px}
+    .pa-stam-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .pa-stam-val{font-size:.88rem;color:#1e293b;font-weight:600;word-break:break-word}
+    .pa-stam-val.empty{color:var(--muted);font-style:italic;font-weight:400}
+    .pa-edit-row{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+
+    /* ── Upload Area ── */
+    .pa-upload-form{display:grid;gap:10px}
+    .pa-upload-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:480px){.pa-upload-row{grid-template-columns:1fr}}
+    .pa-label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+    .pa-input{display:block;width:100%;border:1.5px solid #dbe2f0;border-radius:9px;padding:9px 12px;font-size:.86rem;font-family:inherit;color:#1e293b;background:#fff;outline:none;transition:border-color .15s;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+    .pa-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(63,111,232,.12)}
+    select.pa-input{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+    .pa-file-input{display:block;width:100%;border:2px dashed #b7c7f4;border-radius:9px;padding:14px 12px;font-size:.84rem;cursor:pointer;color:#3f6fe8;background:#f4f7ff;box-sizing:border-box;text-align:center;transition:border-color .15s,background .15s;}
+    .pa-file-input:hover{border-color:var(--blue);background:#eef3ff}
+    input[type="file"].pa-file-input{padding:10px 12px;text-align:left;color:#374151}
+    input[type="file"].pa-file-input::file-selector-button{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:7px 14px;margin-right:10px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;}
+    .pa-upload-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+    .pa-upload-btn:hover{opacity:.88}
+    .pa-upload-btn:disabled{opacity:.5;cursor:default}
+    .pa-upload-progress{display:none;font-size:.78rem;color:var(--muted);text-align:center;padding:6px 0}
+    .pa-upload-progress.show{display:block}
+
+    /* ── Docs Grid ── */
+    .pa-docs-grid{display:grid;gap:10px}
+    .pa-doc-card{display:flex;align-items:flex-start;gap:11px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px;transition:border-color .15s;}
+    .pa-doc-card:hover{border-color:#b7c7f4}
+    .pa-doc-icon{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+    .pa-doc-icon--foto{background:#fef3c7;border:1.5px solid #fcd34d}
+    .pa-doc-icon--arztbrief{background:#ede9fe;border:1.5px solid #c4b5fd}
+    .pa-doc-icon--befund{background:#dcfce7;border:1.5px solid #86efac}
+    .pa-doc-icon--wundfoto{background:#fee2e2;border:1.5px solid #fca5a5}
+    .pa-doc-icon--verlauf{background:#dbeafe;border:1.5px solid #93c5fd}
+    .pa-doc-icon--sonstiges{background:#f1f5f9;border:1.5px solid #cbd5e1}
+    .pa-doc-info{flex:1;min-width:0}
+    .pa-doc-name{font-size:.83rem;font-weight:700;color:#1e293b;word-break:break-all;line-height:1.3}
+    .pa-doc-meta{font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.4}
+    .pa-doc-beschr{font-size:.76rem;color:#374151;margin-top:4px;font-style:italic}
+    .pa-doc-actions{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+    .pa-doc-btn{height:30px;padding:0 10px;border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:background .1s,color .1s;border:1.5px solid;}
+    .pa-doc-btn--dl{background:#fff;color:var(--blue);border-color:rgba(63,111,232,.3)}
+    .pa-doc-btn--dl:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+    .pa-doc-btn--del{background:#fff;color:var(--red);border-color:rgba(220,38,38,.25)}
+    .pa-doc-btn--del:hover{background:#fee2e2;border-color:var(--red)}
+    .pa-empty-docs{padding:20px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6;}
+    .pa-empty-docs__ico{font-size:2rem;margin-bottom:6px}
+
+    /* ── Type filter pills ── */
+    .pa-type-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+    .pa-type-pill{padding:4px 12px;border-radius:999px;font-size:.73rem;font-weight:700;cursor:pointer;border:1.5px solid #dbe2f0;background:#fff;color:#374151;transition:all .12s;}
+    .pa-type-pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+    /* ── Anamnese ── */
+    .pa-ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    @media(max-width:480px){.pa-ana-grid{grid-template-columns:1fr}}
+    .pa-ana-risk-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+    .pa-ana-check{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 12px;cursor:pointer;transition:border-color .12s,background .12s;}
+    .pa-ana-check:hover{border-color:#b7c7f4;background:#f0f5ff}
+    .pa-ana-check.active{border-color:var(--blue);background:#eef3ff}
+    .pa-ana-check input{accent-color:var(--blue);width:16px;height:16px;flex-shrink:0;cursor:pointer}
+    .pa-ana-check-label{font-size:.8rem;font-weight:700;color:#374151}
+    .pa-ana-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;margin-bottom:10px}
+    .pa-ana-tag{background:#e0e9ff;color:#1e3a8a;border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:700}
+    .pa-erk-chip-grid{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 8px}
+    .pa-erk-chip{display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;border:1.5px solid #e5e7eb;background:#f8fafc;color:#374151;font-size:.76rem;font-weight:700;cursor:pointer;transition:all .12s;user-select:none;-webkit-tap-highlight-color:transparent}
+    .pa-erk-chip:hover{border-color:#b7c7f4;background:#f0f5ff}
+    .pa-erk-chip.sel{border-color:var(--blue);background:#eef3ff;color:#1e3a8a}
+    .pa-save-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:9px;border:none;background:var(--blue);color:#fff;font-size:.86rem;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+    .pa-save-btn:hover{opacity:.88}
+    .pa-save-btn:disabled{opacity:.5;cursor:default}
+
+    /* ── Einsatz History ── */
+    .pa-hist-card{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:13px;padding:12px 14px;margin-bottom:10px;transition:border-color .12s;}
+    .pa-hist-card:hover{border-color:#b7c7f4}
+    .pa-hist-card:first-child{border-color:rgba(63,111,232,.3);background:#f0f5ff}
+    .pa-hist-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .pa-hist-nr{font-size:.75rem;font-weight:800;color:var(--blue)}
+    .pa-hist-date{font-size:.82rem;font-weight:700;color:#1e293b}
+    .pa-hist-badge{font-size:.66rem;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:auto}
+    .pa-hist-badge--beendet{background:#dcfce7;color:#166534}
+    .pa-hist-badge--aktiv{background:#fee2e2;color:#991b1b}
+    .pa-hist-badge--storniert{background:#f1f5f9;color:#6b7280}
+    .pa-hist-art{font-size:.83rem;color:#374151;margin-bottom:4px}
+    .pa-hist-meta{font-size:.73rem;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+
+    /* ── Not found / Create flow ── */
+    .pa-not-found{text-align:center;padding:40px 20px;color:var(--muted);}
+    .pa-not-found__ico{font-size:2.5rem;margin-bottom:12px}
+    .pa-not-found h2{font-size:1.1rem;font-weight:800;color:#1e293b;margin:0 0 8px}
+    .pa-search-form{display:flex;gap:10px;margin:16px auto;max-width:360px;}
+    .pa-search-form .pa-input{flex:1}
+    .pa-search-btn{padding:0 16px;border-radius:9px;border:none;background:var(--blue);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}
+
+    /* ── Einverständnis & Unterschrift ── */
+    .pa-consent-pl-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;border:1.5px solid var(--blue);background:#fff;color:var(--blue);font-size:.83rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:all .15s}
+    .pa-consent-pl-btn:hover{background:var(--blue);color:#fff}
+    .pa-agb-row{display:flex;align-items:flex-start;gap:11px;background:#fff;border:1.5px solid #dbe2f0;border-radius:11px;padding:13px 14px;margin-bottom:13px;cursor:pointer;transition:border-color .12s,background .12s;-webkit-tap-highlight-color:transparent}
+    .pa-agb-row:hover{border-color:#b7c7f4}
+    .pa-agb-row.on{border-color:var(--blue);background:#eef3ff}
+    .pa-agb-row input[type=checkbox]{accent-color:var(--blue);width:19px;height:19px;flex-shrink:0;margin-top:1px;pointer-events:none}
+    .pa-agb-lbl{font-size:.86rem;font-weight:700;color:#1e293b;line-height:1.45}
+    .pa-sign-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:13px}
+    @media(max-width:480px){.pa-sign-opts{grid-template-columns:1fr}}
+    .pa-sign-opt{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #dbe2f0;border-radius:10px;padding:10px 13px;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;user-select:none}
+    .pa-sign-opt:hover{border-color:#b7c7f4}
+    .pa-sign-opt.sel{border-color:var(--blue);background:#eef3ff}
+    .pa-sign-opt input[type=radio]{accent-color:var(--blue);width:16px;height:16px;flex-shrink:0;pointer-events:none}
+    .pa-sign-opt-lbl{font-size:.82rem;font-weight:700;color:#374151;line-height:1.3}
+    .pa-sig-wrap{border:2px dashed #b7c7f4;border-radius:12px;background:#fff;overflow:hidden;position:relative;margin-bottom:10px}
+    .pa-sig-canvas{display:block;touch-action:none;cursor:crosshair}
+    .pa-sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.8rem;color:#b0bec5;pointer-events:none;font-style:italic;white-space:nowrap}
+    .pa-consent-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:#dcfce7;color:#166534;font-size:.76rem;font-weight:800;margin-bottom:12px;border:1px solid #86efac}
+    /* ── Frequenz / Status ── */
+    .pa-status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:999px;font-size:.72rem;font-weight:800;border:1px solid transparent;margin-left:8px;vertical-align:middle;line-height:1.4}
+    .pa-status-badge--aktiv{background:#dcfce7;color:#166534;border-color:#86efac}
+    .pa-status-badge--pausiert{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .pa-status-badge--verstorben{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
+    .pa-status-badge--beendet{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+    .pa-status-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+    .pa-status-btn{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:9px 12px;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;color:#374151;transition:all .12s;-webkit-tap-highlight-color:transparent}
+    .pa-status-btn:hover{border-color:#b7c7f4;background:#f0f5ff}
+    .pa-status-btn.sel-aktiv{border-color:#22c55e;background:#f0fdf4;color:#166534}
+    .pa-status-btn.sel-pausiert{border-color:#f59e0b;background:#fffbeb;color:#92400e}
+    .pa-status-btn.sel-verstorben{border-color:#94a3b8;background:#f8fafc;color:#475569}
+    .pa-status-btn.sel-beendet{border-color:#ef4444;background:#fff7f7;color:#991b1b}
+    .pa-freq-header{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+    /* ── Wunddokumentation ── */
+    .pa-wunde-section{background:#fff7f7;border:1.5px solid #fecaca;border-radius:14px;padding:14px;margin-bottom:12px}
+    .pa-wunde-section-head{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:800;color:#dc2626;margin-bottom:10px}
+    .pa-wunde-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:11px;padding:14px;margin-bottom:10px;position:relative}
+    .pa-wunde-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .pa-wunde-card-title{font-size:.88rem;font-weight:800;color:#1e293b}
+    .pa-wunde-remove-btn{background:#fee2e2;border:none;border-radius:7px;color:#dc2626;font-size:.74rem;font-weight:800;padding:4px 10px;cursor:pointer;font-family:inherit;transition:background .12s}
+    .pa-wunde-remove-btn:hover{background:#fecaca}
+    .pa-wunde-entz-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+    @media(max-width:420px){.pa-wunde-entz-grid{grid-template-columns:1fr}}
+    .pa-wunde-foto-wrap{border:2px dashed #e5e7eb;border-radius:10px;padding:10px 14px;text-align:center;cursor:pointer;transition:border-color .12s;margin-bottom:4px}
+    .pa-wunde-foto-wrap:hover{border-color:#93c5fd;background:#f0f7ff}
+    .pa-wunde-foto-preview{max-width:100%;max-height:160px;border-radius:8px;margin-top:8px;display:block;margin-left:auto;margin-right:auto}
+    .pa-wunde-add-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border:2px dashed #fca5a5;border-radius:10px;background:#fff7f7;color:#dc2626;font-size:.84rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all .12s}
+    .pa-wunde-add-btn:hover{background:#fee2e2;border-color:#ef4444}
+    /* Preisliste-Overlay in Patientenakte */
+    .pa-pl-overlay{display:none;position:fixed;inset:0;z-index:9950;background:rgba(0,0,0,.52);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
+    .pa-pl-overlay.open{display:flex}
+    .pa-pl-modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:22px 20px 36px}
+
+    /* ── Create flow ── */
+    .pa-create-wrap{max-width:520px;margin:0 auto}
+    .pa-create-step{background:#fff;border:var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+    .pa-create-step__title{font-size:.98rem;font-weight:900;color:#1e3a8a;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+    .pa-create-step__title span{font-size:.72rem;font-weight:700;background:#e0e9ff;color:#3f6fe8;border-radius:999px;padding:2px 8px}
+    .pa-dup-card{display:flex;align-items:center;gap:12px;background:#fff7ed;border:1.5px solid #fcd34d;border-radius:12px;padding:13px;margin-bottom:10px}
+    .pa-dup-avatar{width:40px;height:40px;border-radius:50%;background:#fbbf24;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#fff;flex-shrink:0}
+    .pa-dup-info{flex:1;min-width:0}
+    .pa-dup-name{font-size:.9rem;font-weight:800;color:#1e293b}
+    .pa-dup-sub{font-size:.76rem;color:var(--muted);margin-top:2px}
+    .pa-dup-btn{padding:7px 13px;border-radius:8px;border:none;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit}
+    .pa-dup-btn--take{background:var(--blue);color:#fff}
+    .pa-dup-btn--skip{background:#f1f5f9;color:#374151;border:1.5px solid #e5e7eb}
+    .pa-create-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:480px){.pa-create-grid{grid-template-columns:1fr}}
+    .pa-confirm-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:13px 16px;margin-bottom:14px;font-size:.84rem;color:#166534;line-height:1.6}
+    .pa-warn-box{background:#fff7ed;border:1.5px solid #fcd34d;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:.84rem;color:#92400e;line-height:1.6}
+    .pa-btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+    .pa-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:9px;border:none;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .pa-btn:hover{opacity:.88}
+    .pa-btn:disabled{opacity:.5;cursor:default}
+    .pa-btn--primary{background:var(--blue);color:#fff}
+    .pa-btn--secondary{background:#f1f5f9;color:#374151;border:1.5px solid #e5e7eb}
+    .pa-btn--danger{background:#fee2e2;color:var(--red);border:1.5px solid rgba(220,38,38,.2)}
+
+    /* ── Back / nav ── */
+    .pa-back{display:inline-flex;align-items:center;gap:6px;margin-bottom:14px;font-size:.82rem;font-weight:700;color:var(--blue);text-decoration:none;padding:6px 12px;border-radius:8px;border:1.5px solid rgba(63,111,232,.2);background:#fff;cursor:pointer;}
+    .pa-back:hover{background:#eef3ff}
+
+    /* ── Toast ── */
+    #paToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:11px 20px;border-radius:11px;font-size:.86rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;}
+    #paToast.show{opacity:1}
+
+    @media(max-width:480px){
+      .pa-page{padding:14px 12px 80px}
+      .pa-header{padding:16px 14px}
+      .pa-header__name{font-size:1.1rem}
+      .pa-doc-actions{flex-direction:row}
+      .pa-doc-btn{height:34px;font-size:.74rem}
+      .pa-ana-risk-grid{grid-template-columns:1fr}
+    }
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <div class="brand" style="cursor:default;text-decoration:none;">
+      <img src="akutplus-logo-nobg.png" alt="Akut Plus" style="width:44px;height:44px;object-fit:contain;" />
+      <span class="brand__text"><strong>Akut Plus</strong><span>Pflegenotdienst</span></span>
+    </div>
+    <nav class="nav" id="paNav"></nav>
+  </div>
+</header>
+
+<main class="container pa-page">
+  <div id="paContent">
+    <div class="pa-not-found" style="padding:60px 20px">
+      <div class="pa-not-found__ico">⏳</div>
+      <h2>Lade Patientenakte…</h2>
+    </div>
+  </div>
+</main>
+
+<div id="paToast"></div>
+
+<!-- ── Preisliste Overlay ── -->
+<div id="paPLOverlay" class="pa-pl-overlay" onclick="if(event.target===this)paClosePreisliste()">
+  <div class="pa-pl-modal">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <img src="/akutplus-logo.png" onerror="this.style.display='none'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0">
+      <div style="flex:1">
+        <div style="font-size:1rem;font-weight:900;color:#0f2744">Akut Plus Pflege Notdienst</div>
+        <div style="font-size:.72rem;color:#64748b">Offizielle Preisliste</div>
+      </div>
+      <button onclick="paClosePreisliste()" style="background:none;border:none;font-size:1.6rem;color:#94a3b8;cursor:pointer;line-height:1;padding:0">×</button>
+    </div>
+    <p style="font-size:.72rem;color:#64748b;margin-bottom:14px;line-height:1.5;padding:8px 10px;background:#f8faff;border-radius:8px;border-left:3px solid #2563eb">
+      Wir sind ein akuter Dienst und bemühen uns, dass Sie so schnell wie möglich durch eine Organisation weiterversorgt werden.
+    </p>
+    <div id="paPLBody" style="display:grid;gap:6px">
+      <div style="text-align:center;color:#94a3b8;font-size:.82rem;padding:20px">Wird geladen…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+var currentPatient = null;
+var allDocs = [];
+var activeTypeFilter = 'alle';
+var currentEid = '';
+
+function authFetch(url, opts){
+  opts = opts || {};
+  var tok = '';
+  try { tok = localStorage.getItem('nursy_token') || ''; } catch(e){}
+  if(tok){
+    opts.headers = Object.assign({}, opts.headers||{}, {'X-Nursy-Token': tok});
+  }
+  opts.credentials = 'include';
+  return fetch(url, opts);
+}
+
+var TYPE_ICONS  = {arztbrief:'📄',wundfoto:'🩹',befund:'🔬',verlauf:'📊',foto:'📷',sonstiges:'📎',protokoll:'📋',einverstaendnis:'✍️'};
+var TYPE_LABELS = {arztbrief:'Arztbrief',wundfoto:'Wundfoto',befund:'Befund/Labor',verlauf:'Verlaufsdoku',foto:'Foto',sonstiges:'Sonstiges',protokoll:'Protokoll',einverstaendnis:'Einverständnis'};
+var TYPE_CSS    = {arztbrief:'arztbrief',wundfoto:'wundfoto',befund:'befund',verlauf:'verlauf',foto:'foto',sonstiges:'sonstiges',protokoll:'sonstiges',einverstaendnis:'sonstiges'};
+
+var STATUS_COLORS = {
+  beendet:'#dcfce7|#166534', aktiv:'#fee2e2|#991b1b',
+  alarmiert:'#dbeafe|#1d4ed8', unterwegs:'#dbeafe|#1d4ed8',
+  eingetroffen:'#fef9c3|#92400e', storniert:'#f1f5f9|#6b7280'
+};
+
+function toast(msg, dur){
+  var t=document.getElementById('paToast');
+  t.innerHTML=msg; t.classList.add('show');
+  clearTimeout(t._to);
+  t._to=setTimeout(function(){ t.classList.remove('show'); }, dur||3200);
+}
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+function fmtDate(s){
+  if(!s) return '–';
+  try {
+    var d=new Date(s.replace(' ','T'));
+    if(isNaN(d)) return s;
+    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'})
+      +' '+d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+  } catch(e){ return s; }
+}
+
+function isImage(fn){ return /\.(png|jpg|jpeg|gif|webp|heic|heif)$/i.test(fn||''); }
+
+function getParams(){
+  var p={};
+  window.location.search.slice(1).split('&').forEach(function(part){
+    var kv=part.split('=');
+    if(kv[0]) p[decodeURIComponent(kv[0])]=decodeURIComponent(kv[1]||'');
+  });
+  return p;
+}
+
+function setNav(){
+  var params=getParams();
+  var backHref = params.from==='auftrag' ? '/auftragslage/'
+               : params.from==='leitstelle' ? 'leitstelle-ansicht.html'
+               : params.from==='patients'   ? 'patients.html'
+               : 'index.html';
+  document.getElementById('paNav').innerHTML='<a class="nav__link" href="'+esc(backHref)+'">← Zurück</a>';
+}
+
+/* ══════════════════════════════════════════════════════════
+   FULL PATIENT VIEW
+   ══════════════════════════════════════════════════════════ */
+
+function renderPatientPage(patient, docs){
+  currentPatient = patient;
+  allDocs = docs || [];
+  setNav();
+
+  var params = getParams();
+  var backHref = params.from==='auftrag' ? '/auftragslage/'
+               : params.from==='leitstelle' ? 'leitstelle-ansicht.html'
+               : params.from==='patients'   ? 'patients.html'
+               : 'index.html';
+
+  var initials = ((patient.vorname||'').charAt(0)+(patient.nachname||'').charAt(0)).toUpperCase();
+  var genderIcon = patient.gender==='weiblich'?'♀️':patient.gender==='männlich'?'♂️':'⚕️';
+  /* API returns these fields flat at top level from _patient_to_dict */
+  var anamnese = patient.anamnese || {};
+
+  /* Stammdaten fields */
+  var _statusLabels = {aktiv:'🟢 Aktiv',pausiert:'⏸️ Pausiert',verstorben:'🪦 Verstorben',beendet:'🔴 Beendet'};
+  var fields = [
+    ['SV-Nummer', patient.sv||''],
+    ['Telefon',   patient.tel||''],
+    ['E-Mail',    patient.email||''],
+    ['Adresse',   patient.address||''],
+    ['PLZ / Ort', [patient.plz,patient.ort].filter(Boolean).join(' ')||''],
+    ['Bezirk',    patient.bezirk||''],
+    ['Geburtsdatum', patient.birth||''],
+    ['Frequenz',  patient.haeufigkeit||''],
+    ['Status',    _statusLabels[patient.patient_status||'aktiv']||''],
+  ];
+
+  var ang = patient.angehoerige && patient.angehoerige.length ? patient.angehoerige[0] : null;
+  if(ang){
+    var angName = [ang.vorname,ang.nachname].filter(Boolean).join(' ');
+    if(angName) fields.push(['Angehörige/r', angName+(ang.beziehung?' ('+ang.beziehung+')':'')]);
+    if(ang.tel) fields.push(['Angehörige Telefon', ang.tel]);
+  }
+
+  /* Erkrankungen (als Array für buildErkChips) */
+  var erkrankungen = patient.erkrankungen || [];
+
+  document.getElementById('paContent').innerHTML =
+    '<button class="pa-back" onclick="history.back()">← Zurück</button>'+
+
+    /* ── Header ── */
+    '<div class="pa-header">'+
+      '<div class="pa-header__top">'+
+        '<div class="pa-avatar">'+initials+'</div>'+
+        '<div class="pa-header__info">'+
+          '<div class="pa-header__name">'+esc(patient.vorname)+' '+esc(patient.nachname)+
+            (function(){
+              var st = patient.patient_status||'aktiv';
+              var ico = {aktiv:'🟢',pausiert:'⏸️',verstorben:'🪦',beendet:'🔴'}[st]||'🟢';
+              var lbl = {aktiv:'Aktiv',pausiert:'Pausiert',verstorben:'Verstorben',beendet:'Beendet'}[st]||st;
+              return '<span class="pa-status-badge pa-status-badge--'+st+'">'+ico+' '+esc(lbl)+'</span>';
+            })()+
+          '</div>'+
+          '<div class="pa-header__sub">'+genderIcon+'&nbsp; '+esc(patient.gender||'')
+            +(patient.birth?' &nbsp;·&nbsp; geb. '+esc(patient.birth):'')
+            +(patient.sv?' &nbsp;·&nbsp; SV '+esc(patient.sv):'')
+            +(patient.haeufigkeit?' &nbsp;·&nbsp; 🔄 '+esc(patient.haeufigkeit):'')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pa-header__grid">'+
+        (patient.address?'<div class="pa-header__field"><div class="pa-header__field-label">Adresse</div><div class="pa-header__field-val">'+esc(patient.address)+(patient.ort?' · '+esc(patient.ort):'')+'</div></div>':'<div></div>')+
+        (patient.tel?'<div class="pa-header__field"><div class="pa-header__field-label">Telefon</div><div class="pa-header__field-val">'+esc(patient.tel)+'</div></div>':'<div></div>')+
+      '</div>'+
+    '</div>'+
+
+    /* ── Stammdaten ── */
+    '<div class="pa-section" id="paStamSection">'+
+      '<div class="pa-section__head" onclick="toggleSection(\'paStamSection\')">'+
+        '<span class="pa-section__icon">👤</span>'+
+        '<span class="pa-section__title">Stammdaten</span>'+
+        '<span class="pa-section__chevron">▼</span>'+
+      '</div>'+
+      '<div class="pa-section__body">'+
+        '<div class="pa-stam-grid">'+
+          fields.map(function(f){
+            return '<div class="pa-stam-row"><div class="pa-stam-label">'+esc(f[0])+'</div>'
+              +'<div class="pa-stam-val'+(f[1]?'':' empty')+'">'+esc(f[1]||'nicht erfasst')+'</div></div>';
+          }).join('')+
+        '</div>'+
+        '<div class="pa-edit-row">'+
+          '<button class="pa-btn pa-btn--secondary" onclick="openStamEdit()">✏️ Bearbeiten</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    /* ── Anamnese ── */
+    '<div class="pa-section" id="paAnaSection">'+
+      '<div class="pa-section__head" onclick="toggleSection(\'paAnaSection\')">'+
+        '<span class="pa-section__icon">🩺</span>'+
+        '<span class="pa-section__title">Pflegerische Anamnese</span>'+
+        '<span class="pa-section__chevron">▼</span>'+
+      '</div>'+
+      '<div class="pa-section__body" id="paAnaBody">'+
+        buildAnamneseBody(patient, anamnese)+
+      '</div>'+
+    '</div>'+
+
+    /* ── Einverständnis & Unterschrift ── */
+    '<div class="pa-section'+(patient.einverstaendnis&&patient.einverstaendnis.gespeichert_am?'':' collapsed')+'" id="paConsentSection">'+
+      '<div class="pa-section__head" onclick="toggleSection(\'paConsentSection\')">'+
+        '<span class="pa-section__icon">✍️</span>'+
+        '<span class="pa-section__title">Einverständnis &amp; Unterschrift</span>'+
+        (patient.einverstaendnis&&patient.einverstaendnis.gespeichert_am
+          ? '<span class="pa-section__count" style="background:#dcfce7;color:#166534;border-color:#bbf7d0">✓</span>'
+          : '<span class="pa-section__count" style="background:#f1f5f9;color:#64748b;font-size:.7rem;font-weight:600;padding:2px 7px">optional</span>')+
+        '<span class="pa-section__chevron">▼</span>'+
+      '</div>'+
+      '<div class="pa-section__body" id="paConsentBody">'+
+        buildConsentBody(patient.einverstaendnis||{})+
+      '</div>'+
+    '</div>'+
+
+    /* ── Dokumente ── */
+    '<div class="pa-section" id="paUploadSection">'+
+      '<div class="pa-section__head" onclick="toggleSection(\'paUploadSection\')">'+
+        '<span class="pa-section__icon">⬆️</span>'+
+        '<span class="pa-section__title">Dokument hochladen</span>'+
+        '<span class="pa-section__chevron">▼</span>'+
+      '</div>'+
+      '<div class="pa-section__body">'+
+        '<div class="pa-upload-form">'+
+          '<div class="pa-upload-row">'+
+            '<div><label class="pa-label">Dokumenttyp</label>'+
+              '<select class="pa-input" id="paTypSelect">'+
+                '<option value="arztbrief">📄 Arztbrief</option>'+
+                '<option value="befund">🔬 Befund / Labor</option>'+
+                '<option value="wundfoto">🩹 Wundfoto</option>'+
+                '<option value="verlauf">📊 Verlaufsdokumentation</option>'+
+                '<option value="foto">📷 Foto</option>'+
+                '<option value="sonstiges">📎 Sonstiges</option>'+
+              '</select></div>'+
+            '<div><label class="pa-label">Beschreibung (optional)</label>'+
+              '<input class="pa-input" id="paBeschrInput" type="text" placeholder="z. B. Röntgen Knie re. 04/2026" /></div>'+
+          '</div>'+
+          '<div><label class="pa-label">Datei auswählen</label>'+
+            '<input class="pa-file-input" id="paFileInput" type="file" accept="image/*,.pdf,.doc,.docx,.txt" /></div>'+
+          '<button class="pa-upload-btn" id="paUploadBtn" onclick="doUpload()">⬆️ Hochladen</button>'+
+          '<div class="pa-upload-progress" id="paUploadProgress">⏳ Wird hochgeladen…</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    /* ── Dokumente Liste ── */
+    '<div class="pa-section" id="paDocsSection">'+
+      '<div class="pa-section__head" onclick="toggleSection(\'paDocsSection\')">'+
+        '<span class="pa-section__icon">📁</span>'+
+        '<span class="pa-section__title">Dokumente &amp; Dateien</span>'+
+        '<span class="pa-section__count" id="paDocCount">'+allDocs.length+'</span>'+
+        '<span class="pa-section__chevron">▼</span>'+
+      '</div>'+
+      '<div class="pa-section__body">'+
+        '<div class="pa-type-filters" id="paTypeFilters"></div>'+
+        '<div class="pa-docs-grid" id="paDocsGrid"></div>'+
+      '</div>'+
+    '</div>'+
+
+    /* ── Einsatzverlauf ── */
+    '<div class="pa-section" id="paHistSection">'+
+      '<div class="pa-section__head" onclick="toggleSection(\'paHistSection\')">'+
+        '<span class="pa-section__icon">🚑</span>'+
+        '<span class="pa-section__title">Einsatzverlauf</span>'+
+        '<span class="pa-section__count" id="paHistCount">–</span>'+
+        '<span class="pa-section__chevron">▼</span>'+
+      '</div>'+
+      '<div class="pa-section__body" id="paHistBody">'+
+        '<div style="color:var(--muted);font-size:.83rem;text-align:center;padding:14px 0">⏳ Lade Einsätze…</div>'+
+      '</div>'+
+    '</div>';
+
+  renderTypeFilters();
+  renderDocs();
+  loadEinsatzverlauf(patient.id);
+  setupAnamneseChecks();
+  anaInitWunden((patient.anamnese||{}).wunden||[]);
+  initConsentSig(patient.einverstaendnis||{});
+}
+
+/* ── Anamnese body HTML ── */
+function buildAnamneseBody(patient, anamnese){
+  var mob  = anamnese.mobilitaet   || '';
+  var ori  = anamnese.orientierung || '';
+  var pfl  = anamnese.pflegestufe  || '';
+  var ank  = anamnese.ankleiden    || '';
+  var kpf  = anamnese.koerperpflege|| '';
+  var kon  = anamnese.kontinenz    || '';
+  var ablSys = anamnese.ableitendeSysteme || [];
+  var risks = anamnese.risiken     || {};
+  var RISK_LABELS = [
+    ['sturzrisiko','Sturzrisiko'],['dekubitusrisiko','Dekubitusrisiko'],
+    ['inkontinenz','Inkontinenz'],['schluckstörung','Schluckstörung'],
+    ['schmerztherapie','Schmerztherapie'],['wunde','Wunden/Ulcus']
+  ];
+  var ABL_SYS = [
+    'Dauerkatheter','Suprapubischer Katheter','Urostoma','Colostoma','Ileostoma','Nephrostoma'
+  ];
+
+  return '<div class="pa-ana-grid">'+
+    '<div><label class="pa-label">Mobilität</label>'+
+      '<select class="pa-input" id="anaMobil" onchange="anaCheckChanged()">'+
+        ['','Selbstständig','Leichte Einschränkung','Starke Einschränkung','Gehilfe / Rollator','Rollstuhl','Bettlägerig']
+        .map(function(v){ return '<option value="'+esc(v)+'"'+(mob===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+      '</select></div>'+
+    '<div><label class="pa-label">Orientierung</label>'+
+      '<select class="pa-input" id="anaOrient" onchange="anaCheckChanged()">'+
+        ['','Voll orientiert','Zeitlich desorientiert','Örtlich desorientiert','Vollständig desorientiert']
+        .map(function(v){ return '<option value="'+esc(v)+'"'+(ori===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+      '</select></div>'+
+    '<div><label class="pa-label">An- / Auskleiden</label>'+
+      '<select class="pa-input" id="anaAnkleiden" onchange="anaCheckChanged()">'+
+        ['','Selbstständig','Mit Unterstützung','Vollständige Übernahme']
+        .map(function(v){ return '<option value="'+esc(v)+'"'+(ank===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+      '</select></div>'+
+    '<div><label class="pa-label">Körperpflege</label>'+
+      '<select class="pa-input" id="anaKoerperpflege" onchange="anaCheckChanged()">'+
+        ['','Selbstständig','Mit Unterstützung','Vollständige Übernahme']
+        .map(function(v){ return '<option value="'+esc(v)+'"'+(kpf===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+      '</select></div>'+
+    '<div><label class="pa-label">Pflegestufe</label>'+
+      '<select class="pa-input" id="anaPflege" onchange="anaCheckChanged()">'+
+        ['','Keine','Pflegestufe 1','Pflegestufe 2','Pflegestufe 3','Pflegestufe 4','Pflegestufe 5','Pflegestufe 6','Pflegestufe 7']
+        .map(function(v){ return '<option value="'+esc(v)+'"'+(pfl===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+      '</select></div>'+
+    '</div>'+
+
+    '<label class="pa-label" style="margin-bottom:7px">Ausscheidung</label>'+
+    '<div class="pa-ana-grid" style="margin-bottom:10px">'+
+      '<div><label class="pa-label">Kontinenz</label>'+
+        '<select class="pa-input" id="anaKontinenz" onchange="anaCheckChanged()">'+
+          ['','Kontinent','Inkontinent (Harn)','Inkontinent (Stuhl)','Inkontinent (Harn & Stuhl)']
+          .map(function(v){ return '<option value="'+esc(v)+'"'+(kon===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+        '</select>'+
+      '</div>'+
+      '<div></div>'+
+    '</div>'+
+    '<label class="pa-label" style="margin-bottom:5px">Ableitende Systeme</label>'+
+    '<div class="pa-ana-risk-grid" style="margin-bottom:12px">'+
+      ABL_SYS.map(function(s){
+        var key = s.replace(/[^a-zA-Z0-9]/g,'_');
+        var checked = ablSys.indexOf(s)>=0;
+        return '<label class="pa-ana-check'+(checked?' active':'')+'" id="anaAblLbl_'+key+'">'+
+          '<input type="checkbox" id="anaAbl_'+key+'"'+(checked?' checked':'')+' onchange="anaRiskChanged(\'anaAblLbl_'+key+'\',this.checked)">'+
+          '<span class="pa-ana-check-label">'+esc(s)+'</span></label>';
+      }).join('')+
+    '</div>'+
+
+    '<label class="pa-label">Risiken</label>'+
+    '<div class="pa-ana-risk-grid" id="anaRiskGrid">'+
+      RISK_LABELS.map(function(r){
+        var checked = risks[r[0]] ? ' checked' : '';
+        var active  = risks[r[0]] ? ' active'  : '';
+        var onch = r[0]==='wunde'
+          ? 'anaWundeRiskChanged(this.checked)'
+          : 'anaRiskChanged(\'anaCheck_'+r[0]+'\',this.checked)';
+        return '<label class="pa-ana-check'+active+'" id="anaCheck_'+r[0]+'">'+
+          '<input type="checkbox" id="anaRisk_'+r[0]+'"'+checked+' onchange="'+onch+'">'+
+          '<span class="pa-ana-check-label">'+esc(r[1])+'</span></label>';
+      }).join('')+
+    '</div>'+
+
+    /* Wunddokumentation erscheint wenn Wunden/Ulcus angehakt */
+    '<div id="anaWundeSection" class="pa-wunde-section" style="display:'+(risks.wunde||anamnese.wunden&&anamnese.wunden.length?'block':'none')+'">'+
+      '<div class="pa-wunde-section-head">🩹 Wunddokumentation</div>'+
+      '<div id="anaWundenList"></div>'+
+      '<button class="pa-wunde-add-btn" onclick="anaAddWunde()">＋ Weitere Wunde hinzufügen</button>'+
+    '</div>'+
+    '<label class="pa-label" style="margin-top:8px">Erkrankungen</label>'+
+    buildErkChips(patient.erkrankungen||[])+
+    '<label class="pa-label">Allergien</label>'+
+    '<textarea class="pa-input" id="anaAllergien" rows="2" placeholder="z. B. Penicillin, Latex…" onchange="anaCheckChanged()" style="resize:vertical">'+esc(patient.allergien||'')+'</textarea>'+
+    '<label class="pa-label" style="margin-top:8px">Medikamente</label>'+
+    '<textarea class="pa-input" id="anaMedis" rows="2" placeholder="z. B. Metformin 500mg, Aspirin…" onchange="anaCheckChanged()" style="resize:vertical">'+esc(patient.medikamente||'')+'</textarea>'+
+    '<label class="pa-label" style="margin-top:8px">Wichtige Hinweise</label>'+
+    '<textarea class="pa-input" id="anaWichtig" rows="2" placeholder="z. B. Schlüssel unter Matte, DNR…" onchange="anaCheckChanged()" style="resize:vertical">'+esc(patient.wichtig||'')+'</textarea>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px">'+
+      '<button class="pa-save-btn" id="anaSaveBtn" onclick="saveAnamnese()" disabled>💾 Anamnese speichern</button>'+
+      '<span id="anaSavedHint" style="font-size:.78rem;color:var(--green);display:none">✓ Gespeichert</span>'+
+    '</div>';
+}
+
+var _anaChanged = false;
+function anaCheckChanged(){ _anaChanged=true; var b=document.getElementById('anaSaveBtn'); if(b) b.disabled=false; }
+
+/* ── Erkrankungen Chip-Selektor ── */
+var _ERKRANK_LIST = [
+  'Diabetes Typ 1','Diabetes Typ 2','Demenz','Herzinsuffizienz','Hypertonie',
+  'COPD','Parkinson','Schlaganfall','Niereninsuffizienz','Osteoporose',
+  'Krebserkrankung','Depression','Epilepsie','Asthma','Vorhofflimmern',
+  'Hypothyreose','Arthrose','Rheumatoide Arthritis','Multiple Sklerose','Morbus Crohn'
+];
+
+function buildErkChips(selected){
+  var chips = _ERKRANK_LIST.map(function(e){
+    var id = 'erkChip_'+e.replace(/[^a-zA-Z0-9]/g,'_');
+    var sel = selected.indexOf(e)>=0 ? ' sel' : '';
+    return '<span class="pa-erk-chip'+sel+'" id="'+id+'" onclick="toggleErkChip(this)">'+esc(e)+'</span>';
+  }).join('');
+  var customVals = selected.filter(function(s){ return _ERKRANK_LIST.indexOf(s)<0; }).join(', ');
+  return '<div class="pa-erk-chip-grid">'+chips+'</div>'+
+    '<input class="pa-input" id="erkCustom" type="text" placeholder="Weitere Erkrankungen (kommagetrennt)…" '+
+    'value="'+esc(customVals)+'" oninput="anaCheckChanged()" style="margin-bottom:8px">';
+}
+
+function toggleErkChip(el){
+  el.classList.toggle('sel');
+  anaCheckChanged();
+}
+
+function getErkrankungen(){
+  var sel = _ERKRANK_LIST.filter(function(e){
+    var el = document.getElementById('erkChip_'+e.replace(/[^a-zA-Z0-9]/g,'_'));
+    return el && el.classList.contains('sel');
+  });
+  var customEl = document.getElementById('erkCustom');
+  if(customEl && customEl.value.trim()){
+    customEl.value.trim().split(/[,;]+/).map(function(s){ return s.trim(); }).filter(Boolean).forEach(function(s){
+      if(sel.indexOf(s)<0) sel.push(s);
+    });
+  }
+  return sel;
+}
+
+function postDokumentJson(pid, payload, cb, errMsg){
+  authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente/json',{
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.ok){ if(cb) cb(); }
+    else{ toast('⚠️ '+(errMsg||'Protokoll konnte nicht gespeichert werden')+': '+(d.error||'')); }
+  }).catch(function(){ toast('⚠️ '+(errMsg||'Protokoll konnte nicht gespeichert werden')+' (Verbindungsfehler)'); });
+}
+function anaRiskChanged(lblId, checked){
+  var lbl = document.getElementById(lblId);
+  if(lbl) lbl.classList.toggle('active', checked);
+  anaCheckChanged();
+}
+
+/* ══════════════════════════════════════════════════════
+   WUNDDOKUMENTATION
+   ══════════════════════════════════════════════════════ */
+var _anaWunden = [];
+var _WUNDE_ENTZ = ['Rötung','Schwellung','Überwärmung','Schmerz','Eiter/Exsudat','Nekrose','Geruch'];
+
+function anaInitWunden(wunden){
+  _anaWunden = Array.isArray(wunden) ? JSON.parse(JSON.stringify(wunden)) : [];
+  renderWunden();
+}
+
+function anaWundeRiskChanged(checked){
+  anaRiskChanged('anaCheck_wunde', checked);
+  var s = document.getElementById('anaWundeSection');
+  if(s) s.style.display = checked ? 'block' : 'none';
+  if(checked && _anaWunden.length === 0) anaAddWunde();
+}
+
+function renderWunden(){
+  var c = document.getElementById('anaWundenList');
+  if(!c) return;
+  c.innerHTML = _anaWunden.map(function(w, i){ return buildWundeCard(w, i); }).join('');
+}
+
+function buildWundeCard(w, i){
+  return '<div class="pa-wunde-card">'+
+    '<div class="pa-wunde-card-head">'+
+      '<span class="pa-wunde-card-title">🩹 Wunde '+(i+1)+'</span>'+
+      '<button class="pa-wunde-remove-btn" onclick="anaRemoveWunde('+i+')">✕ Entfernen</button>'+
+    '</div>'+
+    '<div class="pa-ana-grid" style="margin-bottom:10px">'+
+      '<div><label class="pa-label">Lokalisierung / Bezeichnung</label>'+
+        '<input class="pa-input" id="anaWLok_'+i+'" value="'+esc(w.lokalisierung||'')+
+        '" placeholder="z. B. Unterschenkel links" oninput="anaWundeField('+i+',\'lokalisierung\',this.value)"></div>'+
+      '<div><label class="pa-label">Versorgt mit</label>'+
+        '<input class="pa-input" id="anaWVersorgt_'+i+'" value="'+esc(w.versorgtMit||'')+
+        '" placeholder="z. B. Hydrokoloid-Verband" oninput="anaWundeField('+i+',\'versorgtMit\',this.value)"></div>'+
+    '</div>'+
+    '<label class="pa-label">Beschreibung</label>'+
+    '<textarea class="pa-input" rows="2" placeholder="Größe, Tiefe, Exsudat, Wundrand…" '+
+      'oninput="anaWundeField('+i+',\'beschreibung\',this.value)" '+
+      'style="resize:vertical;margin-bottom:10px">'+esc(w.beschreibung||'')+'</textarea>'+
+    '<label class="pa-label" style="margin-bottom:5px">Entzündungszeichen</label>'+
+    '<div class="pa-wunde-entz-grid">'+
+      _WUNDE_ENTZ.map(function(ez){
+        var k = 'ez_'+i+'_'+ez.replace(/[^a-zA-Z0-9]/g,'_');
+        var on = (w.entzuendung||[]).indexOf(ez)>=0;
+        return '<label class="pa-ana-check'+(on?' active':'')+'" id="lbl_'+k+'">'+
+          '<input type="checkbox" id="'+k+'"'+(on?' checked':'')+
+          ' onchange="anaEntzChange('+i+',\''+ez+'\',this.checked,\'lbl_'+k+'\')">'+
+          '<span class="pa-ana-check-label">'+esc(ez)+'</span></label>';
+      }).join('')+
+    '</div>'+
+    '<label class="pa-label" style="margin-top:8px;margin-bottom:5px">Foto</label>'+
+    '<div class="pa-wunde-foto-wrap" onclick="document.getElementById(\'fotoInput_'+i+'\').click()">'+
+      (w.foto
+        ? '<img class="pa-wunde-foto-preview" src="'+w.foto+'" alt="Wundfoto">'
+        : '<span style="font-size:.78rem;color:#94a3b8">📷 Foto auswählen (Kamera / Galerie)</span>')+
+    '</div>'+
+    '<input type="file" id="fotoInput_'+i+'" accept="image/*" capture="environment" style="display:none" onchange="anaWundeFoto('+i+',this)">'+
+  '</div>';
+}
+
+function anaWundeField(i, field, val){
+  if(_anaWunden[i]) _anaWunden[i][field] = val;
+  anaCheckChanged();
+}
+
+function anaEntzChange(i, label, checked, lblId){
+  if(!_anaWunden[i]) return;
+  var arr = _anaWunden[i].entzuendung || [];
+  if(checked){ if(arr.indexOf(label)<0) arr.push(label); }
+  else { arr = arr.filter(function(x){ return x!==label; }); }
+  _anaWunden[i].entzuendung = arr;
+  var lbl = document.getElementById(lblId);
+  if(lbl) lbl.classList.toggle('active', checked);
+  anaCheckChanged();
+}
+
+function anaAddWunde(){
+  _anaWunden.push({
+    id:'w_'+Date.now(), lokalisierung:'', beschreibung:'',
+    entzuendung:[], versorgtMit:'', foto:'',
+    datum: new Date().toLocaleDateString('de-AT')
+  });
+  renderWunden();
+  anaCheckChanged();
+}
+
+function anaRemoveWunde(i){
+  _anaWunden.splice(i,1);
+  renderWunden();
+  anaCheckChanged();
+}
+
+function anaWundeFoto(i, input){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      var MAX=800, w=img.width, h=img.height;
+      if(w>MAX||h>MAX){ var r=Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      var data=cv.toDataURL('image/jpeg',0.72);
+      if(_anaWunden[i]){ _anaWunden[i].foto=data; anaCheckChanged(); renderWunden(); }
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function setupAnamneseChecks(){
+  var inputs = document.querySelectorAll('#paAnaBody input, #paAnaBody select, #paAnaBody textarea');
+  inputs.forEach(function(el){ el.addEventListener('change', anaCheckChanged); });
+}
+
+function saveAnamnese(){
+  if(!currentPatient){ toast('⚠️ Kein Patient geladen'); return; }
+  var btn = document.getElementById('anaSaveBtn');
+  if(btn) btn.disabled = true;
+  var getRisks = function(){
+    var map = {};
+    ['sturzrisiko','dekubitusrisiko','inkontinenz','schluckstörung','schmerztherapie','wunde'].forEach(function(k){
+      var el = document.getElementById('anaRisk_'+k);
+      if(el) map[k] = el.checked;
+    });
+    return map;
+  };
+  var getAblSys = function(){
+    var ABL = ['Dauerkatheter','Suprapubischer Katheter','Urostoma','Colostoma','Ileostoma','Nephrostoma'];
+    return ABL.filter(function(s){
+      var key = s.replace(/[^a-zA-Z0-9]/g,'_');
+      var el = document.getElementById('anaAbl_'+key);
+      return el && el.checked;
+    });
+  };
+  var g = function(id){ var e=document.getElementById(id); return e?(e.value||'').trim():''; };
+  var erkrankungen = getErkrankungen();
+  var risks = getRisks();
+  var ablSys = getAblSys();
+  var payload = {
+    anamnese:{
+      mobilitaet:         g('anaMobil'),
+      orientierung:       g('anaOrient'),
+      pflegestufe:        g('anaPflege'),
+      ankleiden:          g('anaAnkleiden'),
+      koerperpflege:      g('anaKoerperpflege'),
+      kontinenz:          g('anaKontinenz'),
+      ableitendeSysteme:  ablSys,
+      risiken:            risks,
+      wunden:             _anaWunden
+    },
+    erkrankungen: erkrankungen,
+    allergien:    g('anaAllergien'),
+    medikamente:  g('anaMedis'),
+    wichtig:      g('anaWichtig')
+  };
+  authFetch('/api/patienten/'+encodeURIComponent(currentPatient.id), {
+    method:'PUT', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.ok){
+      _anaChanged = false;
+      if(currentPatient) currentPatient.erkrankungen = erkrankungen;
+      var hint = document.getElementById('anaSavedHint');
+      if(hint){ hint.style.display='inline'; setTimeout(function(){ hint.style.display='none'; },3000); }
+      toast('✅ Anamnese gespeichert');
+      /* Protokoll in Dokumente speichern */
+      var RISK_LABELS = {sturzrisiko:'Sturzrisiko',dekubitusrisiko:'Dekubitusrisiko',inkontinenz:'Inkontinenz','schluckstörung':'Schluckstörung',schmerztherapie:'Schmerztherapie',wunde:'Wunden/Ulcus'};
+      var riskList = Object.keys(risks).filter(function(k){ return risks[k]; }).map(function(k){ return RISK_LABELS[k]||k; });
+      var now = new Date();
+      var datum = now.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+now.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+      var lines = [
+        'PFLEGERISCHE ANAMNESE – PROTOKOLL',
+        'Erstellt: '+datum,
+        'Patient: '+(currentPatient?[currentPatient.vorname,currentPatient.nachname].filter(Boolean).join(' '):''),
+        '──────────────────────────────────',
+        'Mobilität: '+(payload.anamnese.mobilitaet||'–'),
+        'Orientierung: '+(payload.anamnese.orientierung||'–'),
+        'Pflegestufe: '+(payload.anamnese.pflegestufe||'–'),
+        'An-/Auskleiden: '+(payload.anamnese.ankleiden||'–'),
+        'Körperpflege: '+(payload.anamnese.koerperpflege||'–'),
+        'Kontinenz: '+(payload.anamnese.kontinenz||'–'),
+        'Ableitende Systeme: '+(ablSys.length?ablSys.join(', '):'keine'),
+        'Risiken: '+(riskList.length?riskList.join(', '):'keine'),
+        'Erkrankungen: '+(erkrankungen.length?erkrankungen.join(', '):'keine'),
+        'Allergien: '+(payload.allergien||'–'),
+        'Medikamente: '+(payload.medikamente||'–'),
+        'Wichtige Hinweise: '+(payload.wichtig||'–'),
+      ];
+      var text = lines.join('\n');
+      var b64 = btoa(unescape(encodeURIComponent(text)));
+      var fname = 'Anamnese-Protokoll_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.txt';
+      postDokumentJson(currentPatient.id, {
+        typ:'protokoll', original_name:fname,
+        beschreibung:'Pflegeanamnese gespeichert am '+datum,
+        file_data_b64:b64, mime_type:'text/plain'
+      }, function(){ loadDocs(currentPatient.id); });
+    } else {
+      toast('⚠️ '+(d.error||'Fehler beim Speichern'));
+      if(btn) btn.disabled=false;
+    }
+  }).catch(function(){
+    toast('⚠️ Verbindungsfehler');
+    if(btn) btn.disabled=false;
+  });
+}
+
+/* ── Stammdaten Edit Modal (inline) ── */
+var _FREQ_OPTS = ['','1× täglich','2× täglich','3× täglich','2× wöchentlich','3× wöchentlich','1× wöchentlich','Nach Bedarf'];
+var _STATUS_DEFS = [
+  {val:'aktiv',      ico:'🟢', lbl:'Aktiv'},
+  {val:'pausiert',   ico:'⏸️', lbl:'Pausiert'},
+  {val:'verstorben', ico:'🪦', lbl:'Verstorben'},
+  {val:'beendet',    ico:'🔴', lbl:'Beendet'}
+];
+
+function openStamEdit(){
+  if(!currentPatient) return;
+  var ang = (currentPatient.angehoerige||[])[0] || {};
+  var g = function(val){ return esc(val||''); };
+  var curFreq = currentPatient.haeufigkeit||'';
+  var curStatus = currentPatient.patient_status||'aktiv';
+  var body = document.getElementById('paStamSection').querySelector('.pa-section__body');
+  body.innerHTML =
+    '<div class="pa-create-grid" style="margin-bottom:10px">'+
+      '<div><label class="pa-label">Vorname</label><input class="pa-input" id="editVorname" value="'+g(currentPatient.vorname)+'"></div>'+
+      '<div><label class="pa-label">Nachname</label><input class="pa-input" id="editNachname" value="'+g(currentPatient.nachname)+'"></div>'+
+      '<div><label class="pa-label">Geburtsdatum</label><input class="pa-input" id="editGeburt" type="date" value="'+g(currentPatient.birth)+'"></div>'+
+      '<div><label class="pa-label">SV-Nummer</label><input class="pa-input" id="editSV" value="'+g(currentPatient.sv)+'"></div>'+
+      '<div><label class="pa-label">Telefon</label><input class="pa-input" id="editTel" value="'+g(currentPatient.tel)+'"></div>'+
+      '<div><label class="pa-label">E-Mail</label><input class="pa-input" id="editEmail" value="'+g(currentPatient.email)+'"></div>'+
+    '</div>'+
+    '<div style="margin-bottom:10px">'+
+      '<label class="pa-label">Adresse (Straße + Hausnr)</label><input class="pa-input" id="editAddress" value="'+g(currentPatient.address)+'">'+
+    '</div>'+
+    '<div class="pa-create-grid" style="margin-bottom:10px">'+
+      '<div><label class="pa-label">PLZ</label><input class="pa-input" id="editPlz" value="'+g(currentPatient.plz)+'"></div>'+
+      '<div><label class="pa-label">Ort</label><input class="pa-input" id="editOrt" value="'+g(currentPatient.ort)+'"></div>'+
+    '</div>'+
+
+    '<div class="pa-create-grid" style="margin-bottom:12px">'+
+      '<div><label class="pa-label">Frequenz / Einsatzhäufigkeit</label>'+
+        '<select class="pa-input" id="editFrequenz">'+
+          _FREQ_OPTS.map(function(v){ return '<option value="'+esc(v)+'"'+(curFreq===v?' selected':'')+'>'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+        '</select></div>'+
+      '<div></div>'+
+    '</div>'+
+
+    '<label class="pa-label" style="margin-bottom:7px">Status des Patienten</label>'+
+    '<div class="pa-status-btn-grid" id="editStatusGrid">'+
+      _STATUS_DEFS.map(function(s){
+        var sel = curStatus===s.val ? ' sel-'+s.val : '';
+        return '<button type="button" class="pa-status-btn'+sel+'" id="statusBtn_'+s.val+'" onclick="paStatusSelect(\''+s.val+'\')">'+
+          s.ico+' '+s.lbl+'</button>';
+      }).join('')+
+    '</div>'+
+    '<input type="hidden" id="editStatus" value="'+g(curStatus)+'">'+
+
+    '<div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Angehörige/r</div>'+
+    '<div class="pa-create-grid" style="margin-bottom:10px">'+
+      '<div><label class="pa-label">Vorname</label><input class="pa-input" id="editAngV" value="'+g(ang.vorname)+'"></div>'+
+      '<div><label class="pa-label">Nachname</label><input class="pa-input" id="editAngN" value="'+g(ang.nachname||ang.name)+'"></div>'+
+      '<div><label class="pa-label">Beziehung</label><input class="pa-input" id="editAngBez" value="'+g(ang.beziehung||ang.bez)+'"></div>'+
+      '<div><label class="pa-label">Telefon</label><input class="pa-input" id="editAngTel" value="'+g(ang.tel)+'"></div>'+
+    '</div>'+
+    '<div class="pa-btn-row">'+
+      '<button class="pa-btn pa-btn--primary" onclick="saveStamEdit()">💾 Speichern</button>'+
+      '<button class="pa-btn pa-btn--secondary" onclick="renderPatientPage(currentPatient,allDocs)">✕ Abbrechen</button>'+
+    '</div>';
+}
+
+function paStatusSelect(val){
+  document.getElementById('editStatus').value = val;
+  _STATUS_DEFS.forEach(function(s){
+    var btn = document.getElementById('statusBtn_'+s.val);
+    if(btn){ btn.className = 'pa-status-btn'+(val===s.val?' sel-'+s.val:''); }
+  });
+}
+
+function saveStamEdit(){
+  if(!currentPatient) return;
+  var g=function(id){ var e=document.getElementById(id); return e?(e.value||'').trim():''; };
+  var ang=[];
+  var a1n=g('editAngN'), a1v=g('editAngV');
+  if(a1n||a1v) ang.push({nachname:a1n,vorname:a1v,beziehung:g('editAngBez'),tel:g('editAngTel')});
+  var payload={
+    vorname:g('editVorname'), nachname:g('editNachname'), birth:g('editGeburt'),
+    email:g('editEmail'), address:g('editAddress'), plz:g('editPlz'), ort:g('editOrt'),
+    sv:g('editSV'), tel:g('editTel'), angehoerige:ang,
+    haeufigkeit:g('editFrequenz'),
+    patient_status:g('editStatus')||'aktiv'
+  };
+  authFetch('/api/patienten/'+encodeURIComponent(currentPatient.id),{
+    method:'PUT',credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.ok){
+      toast('✅ Stammdaten gespeichert');
+      loadPatient(currentPatient.id);
+    } else {
+      toast('⚠️ '+(d.error||'Fehler'));
+    }
+  }).catch(function(){ toast('⚠️ Verbindungsfehler'); });
+}
+
+/* ── Einsatzverlauf ── */
+function loadEinsatzverlauf(pid){
+  authFetch('/api/patienten/'+encodeURIComponent(pid)+'/einsaetze',{credentials:'include'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var body=document.getElementById('paHistBody');
+      var cnt=document.getElementById('paHistCount');
+      if(!body) return;
+      var einsaetze = d.einsaetze || [];
+      if(cnt) cnt.textContent = einsaetze.length;
+      if(!einsaetze.length){
+        body.innerHTML='<div class="pa-empty-docs"><div class="pa-empty-docs__ico">📋</div>Noch keine Einsätze für diesen Patienten.</div>';
+        return;
+      }
+      body.innerHTML = einsaetze.map(function(e,i){
+        var statusLabel = {beendet:'Beendet',alarmiert:'Alarmiert',angenommen:'Angenommen',
+          unterwegs:'Unterwegs',eingetroffen:'Eingetroffen',storniert:'Storniert'}[e.status]||e.status;
+        var badgeCls = e.status==='beendet'?'beendet':e.status==='storniert'?'storniert':'aktiv';
+        var dauer = '';
+        if(e.zeit_eingetroffen && e.zeit_beendet)
+          dauer = 'Einsatzdauer: '+e.zeit_eingetroffen+' – '+e.zeit_beendet+' Uhr';
+        return '<div class="pa-hist-card">'+
+          '<div class="pa-hist-head">'+
+            (i===0?'<span style="font-size:.68rem;font-weight:800;background:#3f6fe8;color:#fff;border-radius:999px;padding:2px 8px;margin-right:2px">Letzter</span>':'')+
+            '<span class="pa-hist-nr">'+(e.nummer||e.id.slice(0,8))+'</span>'+
+            '<span class="pa-hist-date">'+(e.datum||'–')+' '+(e.zeit||'')+'</span>'+
+            '<span class="pa-hist-badge pa-hist-badge--'+badgeCls+'">'+statusLabel+'</span>'+
+          '</div>'+
+          '<div class="pa-hist-art">'+(e.art||'–')+(e.dringlichkeit==='sofort'?' <span style="color:#dc2626;font-weight:800;font-size:.8rem">⚡ SOFORT</span>':'')+'</div>'+
+          '<div class="pa-hist-meta">'+
+            (e.fahrzeug?'<span>🚑 '+esc(e.fahrzeug)+'</span>':'')+
+            (e.disponent?'<span>👤 '+esc(e.disponent)+'</span>':'')+
+            (dauer?'<span>⏱ '+esc(dauer)+'</span>':'')+
+          '</div>'+
+        '</div>';
+      }).join('');
+    })
+    .catch(function(){
+      var body=document.getElementById('paHistBody');
+      if(body) body.innerHTML='<div class="pa-empty-docs"><div class="pa-empty-docs__ico">⚠️</div>Verlauf konnte nicht geladen werden.</div>';
+    });
+}
+
+function toggleSection(id){ document.getElementById(id).classList.toggle('collapsed'); }
+
+/* ══════════════════════════════════════════════════════════
+   EINVERSTÄNDNIS & UNTERSCHRIFT
+   ══════════════════════════════════════════════════════════ */
+
+var _paSigDrawing = false;
+var _paSigHasMark = false;
+
+function buildConsentBody(ev){
+  var opts = [
+    {val:'patient',      lbl:'Patient/in selbst', ico:'👤'},
+    {val:'angehoerige',  lbl:'Angehörige/r',       ico:'👨‍👩‍👧'},
+    {val:'sachwalter',   lbl:'Sachwalter/in',       ico:'⚖️'},
+    {val:'nicht_moeglich', lbl:'Unterschrift nicht möglich', ico:'✖'}
+  ];
+  var saved = ev && ev.gespeichert_am;
+  return (saved
+    ? '<div class="pa-consent-badge">✅ Gespeichert am '+esc(ev.gespeichert_am)+
+      (ev.unterzeichner_label ? ' &nbsp;·&nbsp; '+esc(ev.unterzeichner_label) : '')+
+      (ev.gespeichert_von   ? ' &nbsp;·&nbsp; '+esc(ev.gespeichert_von) : '')+
+      '</div>'
+    : '')+
+  '<button class="pa-consent-pl-btn" onclick="paOpenPreisliste()">📋 Preisliste anzeigen</button>'+
+  '<label class="pa-agb-row'+(ev&&ev.agb?' on':'')+'" id="paAgbRow" onclick="paAgbToggle(event)">'+
+    '<input type="checkbox" id="paAgbCheck"'+(ev&&ev.agb?' checked':'')+'>'+
+    '<span style="flex:1">'+
+      '<span class="pa-agb-lbl">Patient/in ist mit den Allgemeinen Geschäftsbedingungen (AGB) und der Preisliste einverstanden.</span>'+
+      '<span style="display:block;margin-top:6px">'+
+        '<a href="/agb.pdf" target="_blank" rel="noopener" onclick="event.stopPropagation()" '+
+          'style="display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:800;color:#2563eb;text-decoration:none;'+
+          'background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:3px 9px;transition:background .12s"'+
+          'onmouseover="this.style.background=\'#dbeafe\'" onmouseout="this.style.background=\'#eff6ff\'">'+
+          '📄 AGB lesen (PDF)'+
+        '</a>'+
+      '</span>'+
+    '</span>'+
+  '</label>'+
+  '<div class="pa-label" style="margin-bottom:7px">Unterzeichner</div>'+
+  '<div class="pa-sign-opts">'+
+    opts.map(function(o){
+      var s = (ev && ev.unterzeichner===o.val) ? ' sel' : '';
+      return '<label class="pa-sign-opt'+s+'" onclick="paSignOptSelect(\''+o.val+'\',this)">'+
+        '<input type="radio" name="paSignOpt" value="'+o.val+'"'+(ev&&ev.unterzeichner===o.val?' checked':'')+'>'+
+        '<span class="pa-sign-opt-lbl">'+o.ico+' '+o.lbl+'</span>'+
+        '</label>';
+    }).join('')+
+  '</div>'+
+  '<div id="paSignGrundWrap" style="display:'+(ev&&ev.unterzeichner==='nicht_moeglich'?'block':'none')+';margin-bottom:12px">'+
+    '<label class="pa-label">Grund (Pflichtfeld bei "nicht möglich")</label>'+
+    '<textarea class="pa-input" id="paSignGrund" rows="2" placeholder="z. B. Patient bewusstlos, schwere Demenz, Händeverletzung…" style="resize:vertical">'+esc((ev&&ev.grund)||'')+'</textarea>'+
+  '</div>'+
+  '<div class="pa-label" style="margin-bottom:5px">Unterschrift</div>'+
+  '<div class="pa-sig-wrap" id="paSigWrap"><canvas id="paSigCanvas" class="pa-sig-canvas" height="140"></canvas>'+
+    '<div class="pa-sig-hint" id="paSigHint">✍️ Hier unterschreiben…</div>'+
+  '</div>'+
+  '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'+
+    '<button class="pa-btn pa-btn--secondary" onclick="paClearSig()" style="height:36px;font-size:.78rem;padding:0 14px">✕ Löschen</button>'+
+    (saved ? '<span style="font-size:.73rem;color:var(--muted);">Neu unterschreiben, um zu überschreiben</span>' : '')+
+  '</div>'+
+  '<div style="display:flex;align-items:center;gap:12px">'+
+    '<button class="pa-btn pa-btn--primary" onclick="paConsentSave()" id="paConsentSaveBtn">💾 Einverständnis speichern</button>'+
+    '<span id="paConsentSavedHint" style="font-size:.78rem;color:var(--green);display:none">✓ Gespeichert</span>'+
+  '</div>';
+}
+
+function initConsentSig(ev){
+  var canvas = document.getElementById('paSigCanvas');
+  if(!canvas) return;
+  var wrap = document.getElementById('paSigWrap');
+  canvas.width = wrap ? wrap.offsetWidth : 340;
+  var ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth   = 2.5;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+  _paSigHasMark   = false;
+
+  var locked = !!(ev && ev.gespeichert_am);
+
+  if(ev && ev.unterschrift){
+    var img = new Image();
+    img.onload = function(){
+      ctx.drawImage(img, 0, 0);
+      _paSigHasMark = true;
+      var h = document.getElementById('paSigHint');
+      if(h) h.style.display = 'none';
+    };
+    img.src = ev.unterschrift;
+  }
+
+  /* Sperren wenn bereits gespeichert */
+  if(locked){
+    canvas.style.pointerEvents = 'none';
+    canvas.style.opacity = '0.75';
+    var cb2 = document.querySelector('.pa-sig-wrap + div button');
+    if(cb2) cb2.disabled = true;
+    return;
+  }
+
+  function getPos(e){
+    var r = canvas.getBoundingClientRect();
+    var src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left) * (canvas.width / r.width),
+             y: (src.clientY - r.top)  * (canvas.height / r.height) };
+  }
+  function startDraw(e){ e.preventDefault(); _paSigDrawing=true; var p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
+  function moveDraw(e){ if(!_paSigDrawing) return; e.preventDefault(); var p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); _paSigHasMark=true; var h=document.getElementById('paSigHint'); if(h) h.style.display='none'; }
+  function stopDraw(){ _paSigDrawing=false; }
+  canvas.addEventListener('mousedown',  startDraw, {passive:false});
+  canvas.addEventListener('mousemove',  moveDraw,  {passive:false});
+  canvas.addEventListener('mouseup',    stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', startDraw, {passive:false});
+  canvas.addEventListener('touchmove',  moveDraw,  {passive:false});
+  canvas.addEventListener('touchend',   stopDraw);
+}
+
+function paClearSig(){
+  var canvas = document.getElementById('paSigCanvas');
+  if(!canvas) return;
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  _paSigHasMark = false;
+  var h = document.getElementById('paSigHint');
+  if(h) h.style.display = '';
+}
+
+function paAgbToggle(e){
+  if(e) e.preventDefault();
+  var cb = document.getElementById('paAgbCheck');
+  var row= document.getElementById('paAgbRow');
+  if(!cb) return;
+  cb.checked = !cb.checked;
+  if(row) row.classList.toggle('on', cb.checked);
+}
+
+function paSignOptSelect(val, labelEl){
+  document.querySelectorAll('.pa-sign-opt').forEach(function(l){ l.classList.remove('sel'); });
+  if(labelEl) labelEl.classList.add('sel');
+  var radio = labelEl ? labelEl.querySelector('input[type=radio]') : null;
+  if(radio) radio.checked = true;
+  var gr = document.getElementById('paSignGrundWrap');
+  if(gr) gr.style.display = val==='nicht_moeglich' ? 'block' : 'none';
+}
+
+function paConsentSave(){
+  if(!currentPatient){ toast('⚠️ Kein Patient geladen'); return; }
+  var cb = document.getElementById('paAgbCheck');
+  if(!cb || !cb.checked){ toast('⚠️ Bitte AGB-Einverständnis bestätigen.'); return; }
+  var selRad = document.querySelector('input[name="paSignOpt"]:checked');
+  if(!selRad){ toast('⚠️ Bitte Unterzeichner auswählen.'); return; }
+  var unterz = selRad.value;
+  var grund  = (document.getElementById('paSignGrund')||{value:''}).value.trim();
+  if(unterz==='nicht_moeglich' && !grund){ toast('⚠️ Bitte Grund für fehlende Unterschrift angeben.'); return; }
+
+  var canvas = document.getElementById('paSigCanvas');
+  var sigData = (unterz!=='nicht_moeglich' && _paSigHasMark && canvas)
+    ? canvas.toDataURL('image/png') : '';
+  if(unterz!=='nicht_moeglich' && !_paSigHasMark){ toast('⚠️ Bitte Unterschrift im Feld eintragen.'); return; }
+
+  var UNTERZ_LABEL = {
+    patient:'Patient/in selbst', angehoerige:'Angehörige/r',
+    sachwalter:'Sachwalter/in', nicht_moeglich:'Unterschrift nicht möglich'
+  };
+  var now = new Date();
+  var datum = now.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'})
+    +' '+now.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+
+  var payload = { einverstaendnis: {
+    agb: true,
+    unterzeichner: unterz,
+    unterzeichner_label: UNTERZ_LABEL[unterz]||unterz,
+    grund: grund,
+    unterschrift: sigData,
+    gespeichert_am: datum,
+    gespeichert_von: ''
+  }};
+
+  var btn = document.getElementById('paConsentSaveBtn');
+  if(btn) btn.disabled = true;
+  authFetch('/api/patienten/'+encodeURIComponent(currentPatient.id),{
+    method:'PUT', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(btn) btn.disabled = false;
+    if(d.ok){
+      currentPatient.einverstaendnis = payload.einverstaendnis;
+      var hint = document.getElementById('paConsentSavedHint');
+      if(hint){ hint.style.display='inline'; setTimeout(function(){ hint.style.display='none'; },3500); }
+      toast('✅ Einverständnis gespeichert');
+      /* Canvas nach Speichern sperren (kein weiteres Zeichnen möglich) */
+      var sigCanvas = document.getElementById('paSigCanvas');
+      if(sigCanvas){
+        sigCanvas.style.pointerEvents = 'none';
+        sigCanvas.style.opacity = '0.75';
+      }
+      var clearBtn = document.querySelector('.pa-sig-wrap + div button');
+      if(clearBtn) clearBtn.disabled = true;
+      var badge = document.querySelector('.pa-consent-badge');
+      if(!badge){
+        var body = document.getElementById('paConsentBody');
+        if(body){
+          var b = document.createElement('div');
+          b.className = 'pa-consent-badge';
+          b.innerHTML = '✅ Gespeichert am '+esc(datum)+' &nbsp;·&nbsp; '+esc(UNTERZ_LABEL[unterz]||unterz);
+          body.insertBefore(b, body.firstChild);
+        }
+      } else {
+        badge.innerHTML = '✅ Gespeichert am '+esc(datum)+' &nbsp;·&nbsp; '+esc(UNTERZ_LABEL[unterz]||unterz);
+      }
+      /* Unterschrift / Einverständnis als Dokument speichern */
+      if(sigData){
+        var fnameEv = 'Einverstaendnis_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.png';
+        postDokumentJson(currentPatient.id, {
+          typ:'einverstaendnis',
+          original_name: fnameEv,
+          beschreibung: 'Unterzeichner: '+(UNTERZ_LABEL[unterz]||unterz)+' · '+datum,
+          file_data_b64: sigData,
+          mime_type: 'image/png'
+        }, function(){ loadDocs(currentPatient.id); });
+      } else {
+        /* kein Bild (nicht_moeglich) – nur Texteintrag */
+        var noteText = 'EINVERSTÄNDNIS – UNTERSCHRIFT NICHT MÖGLICH\nDatum: '+datum+'\nGrund: '+grund;
+        var fnameNote = 'Einverstaendnis_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.txt';
+        postDokumentJson(currentPatient.id, {
+          typ:'einverstaendnis',
+          original_name: fnameNote,
+          beschreibung: 'Unterschrift nicht möglich · '+datum,
+          file_data_b64: btoa(unescape(encodeURIComponent(noteText))),
+          mime_type: 'text/plain'
+        }, function(){ loadDocs(currentPatient.id); });
+      }
+    } else {
+      toast('⚠️ '+(d.error||'Fehler beim Speichern'));
+    }
+  }).catch(function(){
+    if(btn) btn.disabled = false;
+    toast('⚠️ Verbindungsfehler');
+  });
+}
+
+/* ── Preisliste-Modal ── */
+var _paPlLoaded = false;
+function paOpenPreisliste(){
+  var o = document.getElementById('paPLOverlay');
+  if(o){ o.classList.add('open'); }
+  if(_paPlLoaded) return;
+  authFetch('/api/preisliste',{credentials:'include'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      _paPlLoaded = true;
+      var body = document.getElementById('paPLBody');
+      if(!body||!d.ok) return;
+      var KAT_C = {
+        'Pflege':       {bg:'#f0f9ff',border:'#bae6fd',text:'#0369a1'},
+        'Fahrtkosten':  {bg:'#fefce8',border:'#fde68a',text:'#92400e'},
+        'Zuschläge':    {bg:'#fdf4ff',border:'#e9d5ff',text:'#7c3aed'},
+        'Sonstiges':    {bg:'#f8fafc',border:'#e2e8f0',text:'#475569'}
+      };
+      var byKat = {};
+      (d.leistungen||[]).forEach(function(l){
+        if(!byKat[l.kategorie]) byKat[l.kategorie]=[];
+        byKat[l.kategorie].push(l);
+      });
+      var html='';
+      Object.keys(byKat).sort().forEach(function(kat){
+        var c=KAT_C[kat]||{bg:'#f8fafc',border:'#e2e8f0',text:'#475569'};
+        html+='<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:'+c.text+';margin:10px 0 4px">'+esc(kat)+'</div>';
+        byKat[kat].forEach(function(l){
+          var pr = l.preis!=null ? (parseFloat(l.preis).toFixed(2).replace('.',',')+' €'+(l.einheit?' / '+l.einheit:'')) : '–';
+          html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;background:'+c.bg+';border:1px solid '+c.border+';border-radius:10px;">'+
+            '<div style="flex:1"><div style="font-size:.84rem;font-weight:800;color:#0f1a33">'+esc(l.name)+'</div>'+
+            (l.beschreibung?'<div style="font-size:.68rem;color:#64748b;margin-top:2px;line-height:1.5">'+esc(l.beschreibung.replace(/\*\*/g,''))+'</div>':'')+
+            '</div><div style="font-size:.95rem;font-weight:900;color:'+c.text+';white-space:nowrap;flex-shrink:0">'+esc(pr)+'</div></div>';
+        });
+      });
+      html+='<div style="margin-top:12px;padding:10px 12px;background:#f0f9ff;border-radius:9px;border-left:3px solid #0ea5e9;font-size:.7rem;color:#0369a1;line-height:1.6">'+
+        '<strong>Reguläre Zeiten:</strong> Mo–Fr 06:00–18:00<br>Außerhalb: Zuschlag +15 €. Fahrtkosten ab 5. km. Palliativ: wöchentlich.</div>';
+      if(d.gueltig_ab) html+='<div style="text-align:center;font-size:.62rem;color:#94a3b8;margin-top:8px">Preise gültig ab '+esc(d.gueltig_ab)+'</div>';
+      body.innerHTML = html;
+    })
+    .catch(function(){
+      var body=document.getElementById('paPLBody');
+      if(body) body.innerHTML='<div style="color:#dc2626;padding:12px;font-size:.82rem">Preisliste konnte nicht geladen werden.</div>';
+    });
+}
+function paClosePreisliste(){
+  var o=document.getElementById('paPLOverlay');
+  if(o) o.classList.remove('open');
+}
+
+/* ── Documents ── */
+function renderTypeFilters(){
+  var types=['alle'];
+  allDocs.forEach(function(d){ if(types.indexOf(d.typ)===-1) types.push(d.typ); });
+  var el=document.getElementById('paTypeFilters');
+  if(!el) return;
+  el.innerHTML=types.map(function(t){
+    return '<button class="pa-type-pill'+(activeTypeFilter===t?' active':'')+'" onclick="setTypeFilter(\''+t+'\')">'+
+      (t==='alle'?'Alle ('+allDocs.length+')':(TYPE_ICONS[t]||'📎')+' '+(TYPE_LABELS[t]||t))+'</button>';
+  }).join('');
+}
+
+function setTypeFilter(t){ activeTypeFilter=t; renderTypeFilters(); renderDocs(); }
+
+function renderDocs(){
+  var grid=document.getElementById('paDocsGrid');
+  if(!grid) return;
+  var filtered=activeTypeFilter==='alle'?allDocs:allDocs.filter(function(d){ return d.typ===activeTypeFilter; });
+  if(!filtered.length){
+    grid.innerHTML='<div class="pa-empty-docs"><div class="pa-empty-docs__ico">📭</div>'+(allDocs.length?'Keine Dokumente in dieser Kategorie.':'Noch keine Dokumente hochgeladen.')+'</div>';
+    return;
+  }
+  grid.innerHTML=filtered.map(function(d){
+    var icon=TYPE_ICONS[d.typ]||'📎', css=TYPE_CSS[d.typ]||'sonstiges';
+    var imgPreview=isImage(d.original_name)?'<img src="'+esc(d.url)+'" style="max-width:100%;max-height:160px;border-radius:8px;margin-top:8px;display:block;border:1.5px solid #e5e7eb;" loading="lazy" />':'';
+    return '<div class="pa-doc-card" id="doc_'+esc(d.id)+'">'+
+      '<div class="pa-doc-icon pa-doc-icon--'+css+'">'+icon+'</div>'+
+      '<div class="pa-doc-info">'+
+        '<div class="pa-doc-name">'+esc(d.original_name)+'</div>'+
+        '<div class="pa-doc-meta">'+(TYPE_LABELS[d.typ]||d.typ)+' &nbsp;·&nbsp; '+fmtDate(d.created_at)+(d.uploaded_by?' &nbsp;·&nbsp; '+esc(d.uploaded_by):'')+'</div>'+
+        (d.beschreibung?'<div class="pa-doc-beschr">'+esc(d.beschreibung)+'</div>':'')+
+        imgPreview+
+      '</div>'+
+      '<div class="pa-doc-actions">'+
+        '<a class="pa-doc-btn pa-doc-btn--dl" href="'+esc(d.url)+'" download="'+esc(d.original_name)+'" target="_blank">⬇ Öffnen</a>'+
+        '<button class="pa-doc-btn pa-doc-btn--del" onclick="deleteDok(\''+esc(d.id)+'\')">🗑</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function doUpload(){
+  var fileEl=document.getElementById('paFileInput'),typEl=document.getElementById('paTypSelect'),
+      beschEl=document.getElementById('paBeschrInput'),btn=document.getElementById('paUploadBtn'),
+      prog=document.getElementById('paUploadProgress');
+  if(!fileEl.files||!fileEl.files[0]){ toast('⚠️ Bitte zuerst eine Datei auswählen.'); return; }
+  if(!currentPatient){ toast('Kein Patient geladen.'); return; }
+  var fd=new FormData();
+  fd.append('file',fileEl.files[0]);
+  fd.append('typ',typEl.value);
+  fd.append('beschreibung',beschEl.value.trim());
+  btn.disabled=true; prog.classList.add('show');
+  var ctrl=new AbortController();
+  var tId=setTimeout(function(){ ctrl.abort(); },30000);
+  authFetch('/api/patienten/'+encodeURIComponent(currentPatient.id)+'/dokumente',{
+    method:'POST',credentials:'include',body:fd,signal:ctrl.signal
+  }).then(function(r){
+    clearTimeout(tId);
+    if(!r.ok) throw new Error(r.status===401?'Nicht angemeldet':r.status===413?'Datei zu groß':'Serverfehler ('+r.status+')');
+    return r.json();
+  }).then(function(res){
+    btn.disabled=false; prog.classList.remove('show');
+    if(res.ok){
+      toast('✅ Dokument erfolgreich hochgeladen!');
+      fileEl.value=''; beschEl.value='';
+      loadDocs(currentPatient.id);
+    } else { toast('⚠️ '+(res.error||'Fehler beim Hochladen')); }
+  }).catch(function(e){
+    clearTimeout(tId);
+    btn.disabled=false; prog.classList.remove('show');
+    var msg=e.name==='AbortError'?'Zeitüberschreitung – Server antwortet nicht':(e.message||'Verbindungsfehler');
+    toast('⚠️ '+msg);
+  });
+}
+
+function deleteDok(docId){
+  if(!confirm('Dieses Dokument wirklich löschen?')) return;
+  authFetch('/api/patienten/dokumente/'+encodeURIComponent(docId),{method:'DELETE',credentials:'include'})
+    .then(function(r){ return r.json(); }).then(function(res){
+      if(res.ok){
+        toast('🗑 Dokument gelöscht.');
+        allDocs=allDocs.filter(function(d){ return d.id!==docId; });
+        var cnt=document.getElementById('paDocCount'); if(cnt) cnt.textContent=allDocs.length;
+        renderTypeFilters(); renderDocs();
+      } else { toast('⚠️ '+(res.error||'Fehler beim Löschen')); }
+    }).catch(function(){ toast('⚠️ Verbindungsfehler.'); });
+}
+
+function loadDocs(pid){
+  authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente',{credentials:'include'})
+    .then(function(r){ return r.status===403?null:r.json(); })
+    .then(function(res){
+      if(!res) return;
+      if(res.ok){
+        allDocs=res.dokumente||[];
+        var cnt=document.getElementById('paDocCount'); if(cnt) cnt.textContent=allDocs.length;
+        renderTypeFilters(); renderDocs();
+      }
+    });
+}
+
+/* ══════════════════════════════════════════════════════════
+   CREATE FLOW (no pid, eid present)
+   ══════════════════════════════════════════════════════════ */
+
+function loadEinsatzAndCreate(eid){
+  setNav();
+  authFetch('/api/einsaetze/'+encodeURIComponent(eid),{credentials:'include'})
+    .then(function(r){ return r.json(); })
+    .then(function(e){
+      if(e.error){ showCreateEmpty(eid); return; }
+      var name = e.patient_name||'';
+      var geburt = e.patient_geburt||'';
+      /* Duplicate check */
+      var url = '/api/patienten/pruefen?name='+encodeURIComponent(name)+'&geburt='+encodeURIComponent(geburt);
+      authFetch(url,{credentials:'include'})
+        .then(function(r2){ return r2.json(); })
+        .then(function(d){
+          renderCreateFlow(e, d.matches||[]);
+        })
+        .catch(function(){ renderCreateFlow(e,[]); });
+    })
+    .catch(function(){ showCreateEmpty(eid); });
+}
+
+function showCreateEmpty(eid){
+  document.getElementById('paContent').innerHTML =
+    '<button class="pa-back" onclick="history.back()">← Zurück</button>'+
+    '<div class="pa-not-found"><div class="pa-not-found__ico">🔍</div><h2>Patient nicht gefunden</h2>'+
+    '<p>Kein Patient für diesen Einsatz verknüpft.</p></div>';
+}
+
+function renderCreateFlow(einsatz, matches){
+  currentEid = einsatz.id || currentEid;
+  var nameParts = (einsatz.patient_name||'').trim().split(/\s+/);
+  var nachname = nameParts[0]||'';
+  var vorname  = nameParts.slice(1).join(' ')||'';
+  /* If only one part, assume it's the nachname */
+
+  var content =
+    '<button class="pa-back" onclick="history.back()">← Zurück</button>'+
+    '<div class="pa-create-wrap">';
+
+  /* ── Duplicates found ── */
+  if(matches.length){
+    content +=
+      '<div class="pa-create-step">'+
+        '<div class="pa-create-step__title"><span>1</span> Mögliche Übereinstimmungen gefunden</div>'+
+        '<div class="pa-warn-box">⚠️ Es wurden Patienten mit ähnlichem Namen / Geburtsdatum gefunden. Bitte prüfen, ob einer davon der richtige Patient ist:</div>'+
+        matches.map(function(p){
+          var init=((p.vorname||'').charAt(0)+(p.nachname||'').charAt(0)).toUpperCase();
+          return '<div class="pa-dup-card">'+
+            '<div class="pa-dup-avatar">'+init+'</div>'+
+            '<div class="pa-dup-info">'+
+              '<div class="pa-dup-name">'+esc(p.vorname)+' '+esc(p.nachname)+'</div>'+
+              '<div class="pa-dup-sub">'+(p.birth?'geb. '+p.birth+' · ':'')+esc(p.address||'–')+'</div>'+
+              (p.sv?'<div class="pa-dup-sub">SV: '+esc(p.sv)+'</div>':'')+
+            '</div>'+
+            '<div style="display:flex;flex-direction:column;gap:5px">'+
+              '<button class="pa-dup-btn pa-dup-btn--take" onclick="useDuplicatePatient(\''+esc(p.id)+'\')">✓ Das ist der Patient</button>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+        '<div style="margin-top:14px;padding-top:14px;border-top:1.5px solid #e5e7eb">'+
+          '<p style="font-size:.83rem;color:var(--muted);margin:0 0 10px">Keiner davon ist der richtige Patient? Neue Akte anlegen:</p>'+
+          '<button class="pa-btn pa-btn--secondary" onclick="renderCreateForm(einsatzCache)">➕ Neue Akte anlegen</button>'+
+        '</div>'+
+      '</div>';
+  } else {
+    content +=
+      '<div class="pa-create-step">'+
+        '<div class="pa-create-step__title"><span>1</span> Kein bestehender Patient gefunden</div>'+
+        '<div class="pa-confirm-box">✓ Es wurde kein bestehender Patient mit diesen Daten gefunden. Neue Akte anlegen:</div>'+
+        '<button class="pa-btn pa-btn--primary" onclick="renderCreateForm(einsatzCache)">➕ Neue Patientenakte anlegen</button>'+
+      '</div>';
+  }
+
+  content += '</div>';
+  document.getElementById('paContent').innerHTML = content;
+
+  /* Store einsatz data globally for later */
+  window.einsatzCache = einsatz;
+}
+
+function useDuplicatePatient(pid){
+  /* Link the einsatz to this existing patient, then show the akte */
+  if(currentEid){
+    authFetch('/api/einsaetze/'+encodeURIComponent(currentEid)+'/patient',{
+      method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({patient_id:pid})
+    }).then(function(r){ return r.json(); }).then(function(){
+      history.replaceState(null,'','?pid='+encodeURIComponent(pid)+'&eid='+encodeURIComponent(currentEid)+'&from='+getParams().from);
+      loadPatient(pid);
+    });
+  } else {
+    loadPatient(pid);
+  }
+}
+
+function renderCreateForm(einsatz){
+  var nameParts = (einsatz.patient_name||'').trim().split(/\s+/);
+  var nachname = nameParts[0]||'';
+  var vorname  = nameParts.slice(1).join(' ')||'';
+  var adresse  = [einsatz.patient_adresse, einsatz.patient_plz, einsatz.patient_ort].filter(Boolean).join(', ');
+
+  document.getElementById('paContent').innerHTML =
+    '<button class="pa-back" onclick="history.back()">← Zurück</button>'+
+    '<div class="pa-create-wrap">'+
+    '<div class="pa-create-step">'+
+      '<div class="pa-create-step__title"><span>2</span> Patientendaten bestätigen / ergänzen</div>'+
+      '<div class="pa-confirm-box">Die folgenden Daten wurden aus dem Einsatz übernommen. Bitte prüfen und bei Bedarf korrigieren.</div>'+
+      '<div class="pa-create-grid">'+
+        '<div><label class="pa-label">Nachname *</label><input class="pa-input" id="cfNachname" value="'+esc(nachname)+'"></div>'+
+        '<div><label class="pa-label">Vorname *</label><input class="pa-input" id="cfVorname" value="'+esc(vorname)+'"></div>'+
+        '<div><label class="pa-label">Geburtsdatum</label><input class="pa-input" id="cfGeburt" type="date" value="'+esc(einsatz.patient_geburt||'')+'"></div>'+
+        '<div><label class="pa-label">SV-Nummer</label><input class="pa-input" id="cfSV" value="'+esc(einsatz.patient_sv||'')+'"></div>'+
+        '<div><label class="pa-label">Telefon</label><input class="pa-input" id="cfTel" value="'+esc(einsatz.patient_tel||'')+'"></div>'+
+        '<div><label class="pa-label">E-Mail (optional)</label><input class="pa-input" id="cfEmail" value="" type="email" placeholder="nicht erforderlich"></div>'+
+      '</div>'+
+      '<div class="pa-create-grid" style="margin:10px 0">'+
+        '<div><label class="pa-label">Frequenz / Einsatzhäufigkeit</label>'+
+          '<select class="pa-input" id="cfFrequenz">'+
+            (_FREQ_OPTS||['','1× täglich','2× täglich','3× täglich','2× wöchentlich','3× wöchentlich','1× wöchentlich','Nach Bedarf'])
+            .map(function(v){ return '<option value="'+esc(v)+'">'+esc(v||'– bitte wählen –')+'</option>'; }).join('')+
+          '</select></div>'+
+        '<div></div>'+
+      '</div>'+
+      '<div style="margin:10px 0"><label class="pa-label">Adresse (Straße, Nr)</label><input class="pa-input" id="cfAddress" value="'+esc(einsatz.patient_adresse||'')+'"></div>'+
+      '<div class="pa-create-grid">'+
+        '<div><label class="pa-label">PLZ</label><input class="pa-input" id="cfPlz" value="'+esc(einsatz.patient_plz||'')+'"></div>'+
+        '<div><label class="pa-label">Ort</label><input class="pa-input" id="cfOrt" value="'+esc(einsatz.patient_ort||'')+'"></div>'+
+      '</div>'+
+      '<div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 6px">Angehörige/r (optional)</div>'+
+      '<div class="pa-create-grid">'+
+        '<div><label class="pa-label">Vorname Ang.</label><input class="pa-input" id="cfAngV" value="'+esc(einsatz.ang_name?einsatz.ang_name.split(' ').slice(1).join(' '):'')+'"></div>'+
+        '<div><label class="pa-label">Nachname Ang.</label><input class="pa-input" id="cfAngN" value="'+esc(einsatz.ang_name?einsatz.ang_name.split(' ')[0]:'')+'"></div>'+
+        '<div><label class="pa-label">Telefon Ang.</label><input class="pa-input" id="cfAngTel" value="'+esc(einsatz.ang_tel||'')+'"></div>'+
+        '<div><label class="pa-label">Beziehung</label><input class="pa-input" id="cfAngBez" value=""></div>'+
+      '</div>'+
+      '<div class="pa-btn-row">'+
+        '<button class="pa-btn pa-btn--primary" id="cfCreateBtn" onclick="doCreatePatient()">✅ Patientenakte anlegen</button>'+
+        '<button class="pa-btn pa-btn--secondary" onclick="renderCreateFlow(einsatzCache,[])">← Zurück</button>'+
+      '</div>'+
+      '<div id="cfMsg" style="margin-top:10px;font-size:.82rem;color:var(--red);display:none"></div>'+
+    '</div>'+
+    '</div>';
+}
+
+
+function doCreatePatient(){
+  var g=function(id){ var e=document.getElementById(id); return e?(e.value||'').trim():''; };
+  var nach=g('cfNachname'), vor=g('cfVorname');
+  if(!nach||!vor){
+    var msg=document.getElementById('cfMsg');
+    if(msg){ msg.textContent='⚠️ Vor- und Nachname sind Pflichtfelder.'; msg.style.display='block'; }
+    return;
+  }
+  var btn=document.getElementById('cfCreateBtn');
+  if(btn) btn.disabled=true;
+
+  var ang=[];
+  var a1n=g('cfAngN'), a1v=g('cfAngV');
+  if(a1n||a1v) ang.push({nachname:a1n,vorname:a1v,beziehung:g('cfAngBez'),tel:g('cfAngTel')});
+
+  authFetch('/api/register/patient',{
+    method:'POST',credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      vorname:vor, nachname:nach,
+      birth:g('cfGeburt'), sv:g('cfSV'), tel:g('cfTel'),
+      email: g('cfEmail'),
+      address:g('cfAddress'), plz:g('cfPlz'), ort:g('cfOrt'),
+      haeufigkeit:g('cfFrequenz'),
+      angehoerige:ang
+    })
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(!d.ok){
+      var msg=document.getElementById('cfMsg');
+      if(msg){ msg.textContent='⚠️ '+(d.error||'Fehler beim Anlegen'); msg.style.display='block'; }
+      if(btn) btn.disabled=false;
+      return;
+    }
+    var newPid = d.id;
+    /* Link to einsatz if we have an eid */
+    var doLink = currentEid
+      ? authFetch('/api/einsaetze/'+encodeURIComponent(currentEid)+'/patient',{
+          method:'POST',credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({patient_id:newPid})
+        })
+      : Promise.resolve();
+    doLink.then(function(){
+      toast('✅ Patientenakte angelegt!');
+      history.replaceState(null,'','?pid='+encodeURIComponent(newPid)+(currentEid?'&eid='+encodeURIComponent(currentEid):'')+'&from='+getParams().from);
+      loadPatient(newPid);
+    });
+  }).catch(function(){
+    var msg=document.getElementById('cfMsg');
+    if(msg){ msg.textContent='⚠️ Verbindungsfehler'; msg.style.display='block'; }
+    if(btn) btn.disabled=false;
+  });
+}
+
+/* ── Load helpers ── */
+function loadPatient(pid){
+  authFetch('/api/patienten/'+encodeURIComponent(pid),{credentials:'include'})
+    .then(function(r){ if(r.status===403){ renderNoAccess(); return null; } return r.json(); })
+    .then(function(pr){
+      if(!pr) return;
+      if(!pr.ok||!pr.patient){ renderNotFound(''); return; }
+      authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente',{credentials:'include'})
+        .then(function(r2){ return r2.status===403?null:r2.json(); })
+        .then(function(dr){
+          renderPatientPage(pr.patient, (dr&&dr.ok)?dr.dokumente:[]);
+        });
+    });
+}
+
+function renderNoAccess(){
+  setNav();
+  document.getElementById('paContent').innerHTML =
+    '<button class="pa-back" onclick="history.back()">← Zurück</button>'+
+    '<div class="pa-not-found"><div class="pa-not-found__ico">🔒</div>'+
+    '<h2>Kein Zugriff</h2>'+
+    '<p>Patientenakten können nur eingesehen werden, wenn ein Einsatz mit diesem Patienten auf dieses Fahrzeug aufgespielt wurde.</p>'+
+    '</div>';
+}
+
+function renderNotFound(name){
+  setNav();
+  document.getElementById('paContent').innerHTML =
+    '<button class="pa-back" onclick="history.back()">← Zurück</button>'+
+    '<div class="pa-not-found"><div class="pa-not-found__ico">🔍</div>'+
+    '<h2>Patient nicht gefunden</h2>'+
+    '<p>'+(name?'Kein Patient gefunden für: <strong>'+esc(name)+'</strong>':'Kein Patient angegeben.')+'</p>'+
+    '</div>'+
+    '<div class="pa-search-form">'+
+      '<input class="pa-input" id="paSearchInput" type="text" placeholder="Name suchen…" value="'+esc(name||'')+'" />'+
+      '<button class="pa-search-btn" onclick="doSearch()">Suchen</button>'+
+    '</div>'+
+    '<div id="paSearchResults" style="margin-top:12px"></div>';
+  var inp=document.getElementById('paSearchInput');
+  if(inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') doSearch(); });
+  if(name) doSearch();
+}
+
+function doSearch(){
+  var q=(document.getElementById('paSearchInput')||{}).value||'';
+  if(!q.trim()) return;
+  authFetch('/api/patienten?name='+encodeURIComponent(q.trim()),{credentials:'include'})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var patients=res.patients||[];
+      var cont=document.getElementById('paSearchResults');
+      if(!cont) return;
+      if(!patients.length){
+        cont.innerHTML='<p style="text-align:center;color:var(--muted);font-size:.84rem;">Kein Patient gefunden.</p>';
+        return;
+      }
+      cont.innerHTML='<div style="display:grid;gap:8px;">'+patients.map(function(p){
+        return '<div style="display:flex;align-items:center;gap:10px;background:#fff;border:var(--border);border-radius:11px;padding:11px 14px;">'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:.88rem;font-weight:800;color:#1e293b;">'+esc(p.name)+'</div>'+
+            '<div style="font-size:.74rem;color:var(--muted);">'+(p.birth?'geb. '+p.birth+' · ':'')+esc(p.address||'–')+'</div>'+
+          '</div>'+
+          '<button onclick="loadPatient(\''+esc(p.id)+'\')" style="padding:7px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;">Öffnen</button>'+
+        '</div>';
+      }).join('')+'</div>';
+    });
+}
+
+/* ══════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════ */
+(function init(){
+  var params=getParams();
+  var pid  = params.pid  || '';
+  var eid  = params.eid  || '';
+  var name = params.name || '';
+  currentEid = eid;
+
+  if(pid){
+    authFetch('/api/patienten/'+encodeURIComponent(pid),{credentials:'include'})
+      .then(function(r){ if(r.status===403){ renderNoAccess(); return null; } return r.json(); })
+      .then(function(pr){
+        if(!pr) return;
+        if(!pr.ok||!pr.patient){
+          /* pid invalid - try create flow if eid present */
+          if(eid) loadEinsatzAndCreate(eid);
+          else renderNotFound('');
+          return;
+        }
+        authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente',{credentials:'include'})
+          .then(function(r2){ return r2.status===403?null:r2.json(); })
+          .then(function(dr){
+            renderPatientPage(pr.patient, (dr&&dr.ok)?dr.dokumente:[]);
+          });
+      })
+      .catch(function(){ if(eid) loadEinsatzAndCreate(eid); else renderNotFound(''); });
+
+  } else if(eid){
+    /* No pid but have eid → create flow */
+    loadEinsatzAndCreate(eid);
+
+  } else if(name){
+    authFetch('/api/patienten?name='+encodeURIComponent(name),{credentials:'include'})
+      .then(function(r){ if(r.status===403){ renderNoAccess(); return null; } return r.json(); })
+      .then(function(res){
+        if(!res) return;
+        var patients=res.patients||[];
+        if(patients.length===1) loadPatient(patients[0].id);
+        else renderNotFound(name);
+      })
+      .catch(function(){ renderNotFound(name); });
+  } else {
+    renderNotFound('');
+  }
+}());
+</script>
+</body>
+</html>

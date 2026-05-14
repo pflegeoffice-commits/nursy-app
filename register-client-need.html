@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Pflegeanamnese (Klient)</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .rp-section{background:#fff;border-radius:var(--radius,14px);box-shadow:0 2px 12px rgba(15,26,51,.07);padding:22px 24px;margin-bottom:16px}
+    .rp-head{margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f3f4f6}
+    .rp-head h3{margin:0;font-size:.95rem;font-weight:700;color:#1e293b}
+    .rp-head p{margin:3px 0 0;font-size:.78rem;color:#9ca3af}
+    .rp-label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+    .rp-sublabel{font-size:.8rem;font-weight:600;color:#374151;margin:14px 0 8px}
+    .rp-input{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:9px;padding:11px 13px;font-size:.88rem;font-family:inherit;color:#1e293b;background:#fafafa;transition:border-color .15s,box-shadow .15s;outline:none;appearance:auto}
+    .rp-input:focus{border-color:#3f6fe8;box-shadow:0 0 0 3px rgba(63,111,232,.13);background:#fff}
+    .rp-hint{font-size:.72rem;color:#9ca3af;margin-top:4px}
+    .rp-field{margin-bottom:14px}
+    .rp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .rp-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .rp-divider{border:none;border-top:1.5px solid #f3f4f6;margin:18px 0}
+
+    /* Checkbox chips */
+    .an-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+    .an-grid--wide{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+    .an-chip{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;cursor:pointer;user-select:none;transition:all .13s;background:#fafafa;min-width:0}
+    .an-chip:hover{border-color:#93c5fd;background:#f8fbff}
+    .an-chip input{display:none}
+    .an-box{width:18px;height:18px;border:2px solid #d1d5db;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .13s}
+    .an-chip__text{font-size:.82rem;color:#374151;line-height:1.3;white-space:normal;overflow-wrap:anywhere;hyphens:auto}
+    .an-chip--on{border-color:#3f6fe8;background:#eff2fd}
+    .an-chip--on .an-box{background:#3f6fe8;border-color:#3f6fe8}
+    .an-chip--on .an-box::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+    .an-chip--on .an-chip__text{color:#1d4ed8;font-weight:600}
+
+    /* Body map */
+    .body-map-wrap{background:#f8fafc;border-radius:11px;padding:18px 16px;border:1.5px solid #e5e7eb;margin-top:14px}
+    .body-map{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+    .body-map__side{text-align:center}
+    .body-map__side-label{font-size:.72rem;font-weight:700;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+    .body-map__side svg{display:block;margin:0 auto;width:110px}
+    .zone{fill:#e2e8f0;stroke:#94a3b8;stroke-width:1.5;cursor:pointer;transition:fill .12s,stroke .12s}
+    .zone:hover{fill:#bfdbfe;stroke:#3b82f6}
+    .zone.sel{fill:#3f6fe8;stroke:#1d4ed8}
+    .body-map__legend{display:flex;gap:12px;justify-content:center;font-size:.72rem;color:#64748b;margin-bottom:10px;flex-wrap:wrap}
+    .body-map__legend span{display:flex;align-items:center;gap:5px}
+    .body-map__legend i{display:inline-block;width:12px;height:12px;border-radius:3px;border:1.5px solid #94a3b8}
+    .body-map__legend i.sel{background:#3f6fe8;border-color:#1d4ed8}
+    .body-map__legend i.unsel{background:#e2e8f0}
+    .body-map__selected{font-size:.8rem;color:#1d4ed8;font-weight:600;min-height:18px}
+    .body-map__hint{font-size:.74rem;color:#94a3b8;margin-bottom:6px}
+
+    /* Footer buttons */
+    .rp-footer{display:flex;gap:10px;align-items:center;margin-top:8px}
+    .rp-btn-back{background:rgba(255,255,255,.9);border:1px solid rgba(63,111,232,.25);color:#3f6fe8;border-radius:10px;padding:13px 20px;font-size:.9rem;cursor:pointer;font-family:inherit;text-decoration:none;display:flex;align-items:center;gap:5px;transition:all .15s;flex-shrink:0}
+    .rp-btn-back:hover{background:rgba(63,111,232,.05);border-color:rgba(63,111,232,.4);text-decoration:none}
+    .rp-btn-next{flex:1;background:#3f6fe8;color:#fff;border:none;border-radius:10px;padding:14px 20px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:filter .15s;letter-spacing:.01em}
+    .rp-btn-next:hover{filter:brightness(.92)}
+
+    @media(max-width:580px){
+      .rp-grid2,.rp-grid3{grid-template-columns:1fr}
+      .an-grid,.an-grid--wide{grid-template-columns:1fr 1fr}
+      .body-map{gap:16px}
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert's</a>
+      <a href="login-client.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container" style="padding-bottom:48px">
+  <section class="section">
+    <div class="section__head">
+      <h2 style="margin-bottom:4px">Klient – Pflegeanamnese</h2>
+      <p class="muted" style="font-size:.85rem;margin:0">Bitte fülle die Angaben so vollständig wie möglich aus – das hilft uns, die passende Pflegekraft zu finden.</p>
+    </div>
+
+    <div class="reg-steps" style="margin-bottom:24px">
+      <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">Stammdaten</div></div>
+      <div class="reg-step__line reg-step__line--done"></div>
+      <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">E-Mail</div></div>
+      <div class="reg-step__line reg-step__line--done"></div>
+      <div class="reg-step reg-step--active"><div class="reg-step__num">3</div><div class="reg-step__label">Pflegeanamnese</div></div>
+    </div>
+
+    <form id="anamneseForm" data-demo-next="client">
+
+      <!-- 1. Pflegebedarf -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Pflegebedarf</h3>
+          <p>Einstufung und gewünschte Besuchsfrequenz</p>
+        </div>
+        <div class="rp-grid2">
+          <div class="rp-field">
+            <label class="rp-label" for="pflegestufe">Pflegestufe</label>
+            <select class="rp-input" id="pflegestufe" required>
+              <option value="">— bitte wählen —</option>
+              <option value="1">Pflegestufe 1 – geringer Bedarf</option>
+              <option value="2">Pflegestufe 2</option>
+              <option value="3">Pflegestufe 3</option>
+              <option value="4">Pflegestufe 4</option>
+              <option value="5">Pflegestufe 5</option>
+              <option value="6">Pflegestufe 6</option>
+              <option value="7">Pflegestufe 7 – höchster Bedarf</option>
+              <option value="0">Noch nicht eingestuft / unbekannt</option>
+            </select>
+            <div class="rp-hint">Laut Pflegegeldantrag oder Bescheid</div>
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="frequenz">Gewünschte Frequenz</label>
+            <select class="rp-input" id="frequenz" required>
+              <option value="">— bitte wählen —</option>
+              <option value="1x-tgl">1× täglich</option>
+              <option value="2x-tgl">2× täglich</option>
+              <option value="3x-tgl">3× täglich</option>
+              <option value="woechentlich">Wöchentlich</option>
+              <option value="nach-bedarf">Nach Bedarf / flexibel</option>
+            </select>
+            <div class="rp-hint">Wie oft wird Pflege pro Tag/Woche benötigt?</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Art des Pflegebedarfs & Mobilisation -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Mobilisation & Körperpflege</h3>
+          <p>Grad der Selbstständigkeit in den einzelnen Bereichen</p>
+        </div>
+        <div class="rp-grid2">
+          <div class="rp-field">
+            <label class="rp-label" for="mob">Mobilisation</label>
+            <select class="rp-input" id="mob">
+              <option value="">— bitte wählen —</option>
+              <option value="selbst">Selbstständig</option>
+              <option value="teilweise">Teilweise selbstständig</option>
+              <option value="komplett">Komplette Übernahme</option>
+            </select>
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="ankleiden">An- und Auskleiden</label>
+            <select class="rp-input" id="ankleiden">
+              <option value="">— bitte wählen —</option>
+              <option value="selbst">Selbstständig</option>
+              <option value="teilweise">Teilweise selbstständig</option>
+              <option value="komplett">Komplette Übernahme</option>
+            </select>
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="koerperpflege">Körperpflege / Waschen</label>
+            <select class="rp-input" id="koerperpflege">
+              <option value="">— bitte wählen —</option>
+              <option value="selbst">Selbstständig</option>
+              <option value="teilweise">Teilweise selbstständig</option>
+              <option value="komplett">Komplette Übernahme</option>
+            </select>
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="sturzrisiko">Erhöhtes Sturzrisiko</label>
+            <select class="rp-input" id="sturzrisiko">
+              <option value="">— bitte wählen —</option>
+              <option value="nein">Nein</option>
+              <option value="niedrig">Niedrig</option>
+              <option value="mittel">Mittel</option>
+              <option value="hoch">Hoch</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="rp-divider">
+
+        <div class="rp-sublabel">Wo wird die Körperpflege durchgeführt?</div>
+        <div class="an-grid">
+          <label class="an-chip"><input type="checkbox" value="waschbecken"><div class="an-box"></div><span class="an-chip__text">Waschbecken</span></label>
+          <label class="an-chip"><input type="checkbox" value="dusche"><div class="an-box"></div><span class="an-chip__text">Dusche</span></label>
+          <label class="an-chip"><input type="checkbox" value="am-bett"><div class="an-box"></div><span class="an-chip__text">Am Bett</span></label>
+          <label class="an-chip"><input type="checkbox" value="im-bett"><div class="an-box"></div><span class="an-chip__text">Im Bett</span></label>
+        </div>
+      </div>
+
+      <!-- 3. Hilfsmittel vor Ort -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Hilfsmittel vor Ort</h3>
+          <p>Welche Hilfsmittel sind bereits beim Klienten vorhanden?</p>
+        </div>
+        <div class="an-grid" id="hilfsmittelGrid">
+          <label class="an-chip"><input type="checkbox" value="gehstock"><div class="an-box"></div><span class="an-chip__text">Gehstock</span></label>
+          <label class="an-chip"><input type="checkbox" value="krücken"><div class="an-box"></div><span class="an-chip__text">Unterarmstützkrücken</span></label>
+          <label class="an-chip"><input type="checkbox" value="rollator"><div class="an-box"></div><span class="an-chip__text">Rollator</span></label>
+          <label class="an-chip"><input type="checkbox" value="rollstuhl"><div class="an-box"></div><span class="an-chip__text">Rollstuhl</span></label>
+          <label class="an-chip"><input type="checkbox" value="leibstuhl"><div class="an-box"></div><span class="an-chip__text">Leibstuhl</span></label>
+          <label class="an-chip"><input type="checkbox" value="pflegebett"><div class="an-box"></div><span class="an-chip__text">Pflegebett</span></label>
+          <label class="an-chip"><input type="checkbox" value="haltegriff"><div class="an-box"></div><span class="an-chip__text">Haltegriff</span></label>
+          <label class="an-chip"><input type="checkbox" value="badewannenlift"><div class="an-box"></div><span class="an-chip__text">Badewannenlift</span></label>
+          <label class="an-chip"><input type="checkbox" value="sauerstoff"><div class="an-box"></div><span class="an-chip__text">Sauerstoffgerät</span></label>
+          <label class="an-chip"><input type="checkbox" value="infusionspumpe"><div class="an-box"></div><span class="an-chip__text">Infusionspumpe</span></label>
+          <label class="an-chip"><input type="checkbox" value="sonstiges-hm"><div class="an-box"></div><span class="an-chip__text">Sonstiges</span></label>
+        </div>
+        <div class="rp-field" id="hilfsmittelSonstigesWrap" style="margin-top:14px;display:none">
+          <label class="rp-label" for="hilfsmittelSonstigesText">Sonstiges - bitte eingeben</label>
+          <input class="rp-input" id="hilfsmittelSonstigesText" type="text" placeholder="z. B. Toilettensitzerhöhung, Greifzange, Rollator mit Korb" />
+        </div>
+      </div>
+
+      <!-- 4. Inkontinenz & Ausscheidung -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Inkontinenz & Ausscheidung</h3>
+          <p>Art und Besonderheiten der Ausscheidung</p>
+        </div>
+
+        <div class="rp-sublabel">Inkontinenz</div>
+        <div class="an-grid" id="inkontinenzGrid">
+          <label class="an-chip"><input type="checkbox" value="harn"><div class="an-box"></div><span class="an-chip__text">Harn</span></label>
+          <label class="an-chip"><input type="checkbox" value="stuhl"><div class="an-box"></div><span class="an-chip__text">Stuhl</span></label>
+          <label class="an-chip"><input type="checkbox" value="harn-stuhl"><div class="an-box"></div><span class="an-chip__text">Harn/Stuhl</span></label>
+          <label class="an-chip"><input type="checkbox" value="kontinent"><div class="an-box"></div><span class="an-chip__text">Kontinent</span></label>
+        </div>
+
+        <hr class="rp-divider">
+
+        <div class="rp-sublabel">Ausscheidung Stuhl</div>
+        <div class="an-grid" id="stuhlGrid">
+          <label class="an-chip"><input type="checkbox" value="diarrhoe"><div class="an-box"></div><span class="an-chip__text">Diarrhö</span></label>
+          <label class="an-chip"><input type="checkbox" value="obstipation"><div class="an-box"></div><span class="an-chip__text">Obstipation</span></label>
+          <label class="an-chip"><input type="checkbox" value="letzter-stuhlgang"><div class="an-box"></div><span class="an-chip__text">Letzter Stuhlgang bekannt</span></label>
+          <label class="an-chip"><input type="checkbox" value="unauff-stuhl"><div class="an-box"></div><span class="an-chip__text">Unauffällig</span></label>
+        </div>
+        <div class="rp-grid2" id="stuhlInfoWrap" style="margin-top:14px;display:none">
+          <div class="rp-field">
+            <label class="rp-label" for="letzterStuhlgangText">Wann war der letzte Stuhlgang?</label>
+            <input class="rp-input" id="letzterStuhlgangText" type="text" placeholder="z. B. heute 08:30, gestern Abend" />
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="stuhlSonstigesText">Sonstiges</label>
+            <input class="rp-input" id="stuhlSonstigesText" type="text" placeholder="z. B. Besonderheiten, Farbe, Menge" />
+          </div>
+        </div>
+
+        <hr class="rp-divider">
+
+        <div class="rp-sublabel">Ableitende Systeme / Stoma</div>
+        <div class="an-grid--wide" id="stomaGrid">
+          <label class="an-chip"><input type="checkbox" value="dauerkatheter"><div class="an-box"></div><span class="an-chip__text">Dauerkatheter</span></label>
+          <label class="an-chip"><input type="checkbox" value="suprapubisch"><div class="an-box"></div><span class="an-chip__text">Suprapubischer Katheter</span></label>
+          <label class="an-chip"><input type="checkbox" value="urostoma"><div class="an-box"></div><span class="an-chip__text">Urostoma</span></label>
+          <label class="an-chip"><input type="checkbox" value="colostoma"><div class="an-box"></div><span class="an-chip__text">Colostoma</span></label>
+          <label class="an-chip"><input type="checkbox" value="tracheostoma"><div class="an-box"></div><span class="an-chip__text">Tracheostoma</span></label>
+          <label class="an-chip"><input type="checkbox" value="nicht-vorhanden"><div class="an-box"></div><span class="an-chip__text">Nicht vorhanden</span></label>
+          <label class="an-chip"><input type="checkbox" value="sonstiges-ableit"><div class="an-box"></div><span class="an-chip__text">Sonstiges</span></label>
+        </div>
+        <div class="rp-field" id="ableitSonstigesWrap" style="margin-top:14px;display:none">
+          <label class="rp-label" for="ableitSonstigesText">Sonstiges - bitte beschreiben</label>
+          <input class="rp-input" id="ableitSonstigesText" type="text" placeholder="z. B. welche Versorgung, welches Stoma, weitere Hinweise" />
+        </div>
+      </div>
+
+      <!-- 5. Ernährung -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Ernährung</h3>
+          <p>Ernährungsgewohnheiten und besondere Hinweise</p>
+        </div>
+        <div class="rp-grid3">
+          <div class="rp-field">
+            <label class="rp-label" for="appetit">Appetitlosigkeit</label>
+            <select class="rp-input" id="appetit">
+              <option value="">— bitte wählen —</option>
+              <option value="nein">Nein</option>
+              <option value="leicht">Leicht ausgeprägt</option>
+              <option value="mittel">Mittel ausgeprägt</option>
+              <option value="stark">Stark ausgeprägt</option>
+            </select>
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="schluck">Schluckstörung / Aspirationsrisiko</label>
+            <select class="rp-input" id="schluck">
+              <option value="">— bitte wählen —</option>
+              <option value="nein">Nein</option>
+              <option value="leicht">Leicht</option>
+              <option value="mittel">Mittel</option>
+              <option value="stark">Stark / Hochrisiko</option>
+            </select>
+          </div>
+          <div class="rp-field">
+            <label class="rp-label" for="durstgefuehl">Vermindertes Durstgefühl</label>
+            <select class="rp-input" id="durstgefuehl">
+              <option value="">— bitte wählen —</option>
+              <option value="nein">Nein</option>
+              <option value="ja">Ja</option>
+              <option value="stark">Stark reduziert</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="rp-divider">
+
+        <div class="rp-sublabel">Zahnstatus</div>
+        <div class="an-grid" id="zahnGrid">
+          <label class="an-chip"><input type="checkbox" value="vollprothese-ok"><div class="an-box"></div><span class="an-chip__text">Vollprothese OK</span></label>
+          <label class="an-chip"><input type="checkbox" value="vollprothese-uk"><div class="an-box"></div><span class="an-chip__text">Vollprothese UK</span></label>
+          <label class="an-chip"><input type="checkbox" value="teilprothese-ok"><div class="an-box"></div><span class="an-chip__text">Teilprothese OK</span></label>
+          <label class="an-chip"><input type="checkbox" value="teilprothese-uk"><div class="an-box"></div><span class="an-chip__text">Teilprothese UK</span></label>
+          <label class="an-chip"><input type="checkbox" value="eigene-zaehne"><div class="an-box"></div><span class="an-chip__text">Eigene Zähne</span></label>
+        </div>
+
+        <div class="rp-field" style="margin-top:14px">
+          <label class="rp-label" for="ernaehrungHinweis">Sonstige Hinweise zur Ernährung</label>
+          <textarea class="rp-input" id="ernaehrungHinweis" rows="2" style="resize:vertical" placeholder="z. B. Diabetes-Diät, pürierte Kost, PEG-Sonde, Allergien…"></textarea>
+        </div>
+      </div>
+
+      <!-- 6. Haut & Wunden -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Haut & Wunden</h3>
+          <p>Hautzustand und auffällige Stellen</p>
+        </div>
+
+        <div class="rp-sublabel">Hautzustand</div>
+        <div class="an-grid" id="hautGrid">
+          <label class="an-chip"><input type="checkbox" value="unauffaellig"><div class="an-box"></div><span class="an-chip__text">Unauffällig</span></label>
+          <label class="an-chip" id="wundenChip"><input type="checkbox" value="wunden" id="wundenCb"><div class="an-box"></div><span class="an-chip__text">Wunden</span></label>
+          <label class="an-chip"><input type="checkbox" value="haematome"><div class="an-box"></div><span class="an-chip__text">Hämatome</span></label>
+          <label class="an-chip"><input type="checkbox" value="trockene-haut"><div class="an-box"></div><span class="an-chip__text">Trockene Haut</span></label>
+          <label class="an-chip"><input type="checkbox" value="dekubitus-risiko"><div class="an-box"></div><span class="an-chip__text">Erhöhtes Dekubitus-Risiko</span></label>
+          <label class="an-chip"><input type="checkbox" value="sonstiges-haut"><div class="an-box"></div><span class="an-chip__text">Sonstiges</span></label>
+        </div>
+
+        <!-- Body map – only shown when "Wunden" is selected -->
+        <div id="bodyMapWrap" style="display:none">
+          <div class="body-map-wrap">
+            <div class="body-map">
+              <div class="body-map__side">
+                <div class="body-map__side-label">Vorderseite</div>
+                <svg viewBox="0 0 120 285" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse class="zone" data-id="kopf-v" data-label="Kopf (vorne)" cx="60" cy="21" rx="18" ry="19"/>
+                  <rect class="zone" data-id="brust-v" data-label="Brust" x="35" y="44" width="50" height="36" rx="7"/>
+                  <rect class="zone" data-id="bauch-v" data-label="Bauch" x="35" y="82" width="50" height="28" rx="7"/>
+                  <rect class="zone" data-id="arm-l-o-v" data-label="Arm links oben" x="12" y="44" width="20" height="36" rx="7"/>
+                  <rect class="zone" data-id="arm-l-u-v" data-label="Arm links unten" x="12" y="82" width="20" height="30" rx="7"/>
+                  <rect class="zone" data-id="arm-r-o-v" data-label="Arm rechts oben" x="88" y="44" width="20" height="36" rx="7"/>
+                  <rect class="zone" data-id="arm-r-u-v" data-label="Arm rechts unten" x="88" y="82" width="20" height="30" rx="7"/>
+                  <rect class="zone" data-id="hueft-v" data-label="Hüfte/Becken" x="35" y="113" width="50" height="22" rx="7"/>
+                  <rect class="zone" data-id="schenkel-l-v" data-label="Oberschenkel links" x="35" y="138" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="schenkel-r-v" data-label="Oberschenkel rechts" x="62" y="138" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="unterschenkel-l-v" data-label="Unterschenkel links" x="35" y="193" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="unterschenkel-r-v" data-label="Unterschenkel rechts" x="62" y="193" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="fuss-l-v" data-label="Fuß links" x="33" y="248" width="23" height="16" rx="5"/>
+                  <rect class="zone" data-id="fuss-r-v" data-label="Fuß rechts" x="62" y="248" width="23" height="16" rx="5"/>
+                </svg>
+              </div>
+              <div class="body-map__side">
+                <div class="body-map__side-label">Rückseite</div>
+                <svg viewBox="0 0 120 285" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse class="zone" data-id="kopf-r" data-label="Hinterkopf" cx="60" cy="21" rx="18" ry="19"/>
+                  <rect class="zone" data-id="ruecken-o" data-label="Rücken oben" x="35" y="44" width="50" height="36" rx="7"/>
+                  <rect class="zone" data-id="ruecken-u" data-label="Rücken unten" x="35" y="82" width="50" height="28" rx="7"/>
+                  <rect class="zone" data-id="arm-l-o-r" data-label="Arm links oben (hinten)" x="12" y="44" width="20" height="36" rx="7"/>
+                  <rect class="zone" data-id="arm-l-u-r" data-label="Arm links unten (hinten)" x="12" y="82" width="20" height="30" rx="7"/>
+                  <rect class="zone" data-id="arm-r-o-r" data-label="Arm rechts oben (hinten)" x="88" y="44" width="20" height="36" rx="7"/>
+                  <rect class="zone" data-id="arm-r-u-r" data-label="Arm rechts unten (hinten)" x="88" y="82" width="20" height="30" rx="7"/>
+                  <rect class="zone" data-id="gesaess" data-label="Gesäß" x="35" y="113" width="50" height="22" rx="7"/>
+                  <rect class="zone" data-id="schenkel-l-r" data-label="Oberschenkel links (hinten)" x="35" y="138" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="schenkel-r-r" data-label="Oberschenkel rechts (hinten)" x="62" y="138" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="wade-l" data-label="Wade links" x="35" y="193" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="wade-r" data-label="Wade rechts" x="62" y="193" width="23" height="52" rx="7"/>
+                  <rect class="zone" data-id="ferse-l" data-label="Ferse links" x="33" y="248" width="23" height="16" rx="5"/>
+                  <rect class="zone" data-id="ferse-r" data-label="Ferse rechts" x="62" y="248" width="23" height="16" rx="5"/>
+                </svg>
+              </div>
+            </div>
+            <div class="body-map__legend">
+              <span><i class="unsel"></i> nicht betroffen</span>
+              <span><i class="sel"></i> Wunde / Auffälligkeit</span>
+            </div>
+            <div class="body-map__hint">Tippe auf eine Körperstelle um sie zu markieren</div>
+            <div class="body-map__selected" id="wundOrtSummary">Keine Stelle markiert</div>
+          </div>
+
+          <div class="rp-field" style="margin-top:14px">
+            <label class="rp-label" for="wundBeschreibung">Beschreibung der Wunde / Auffälligkeit</label>
+            <textarea class="rp-input" id="wundBeschreibung" rows="3" style="resize:vertical" placeholder="z. B. Dekubitus Grad II, ca. 3 cm, leicht nässend – Verband täglich"></textarea>
+            <div class="rp-hint">Art, Größe, Stadium, Verbandwechsel-Rhythmus etc.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Vorerkrankungen -->
+      <div class="rp-section">
+        <div class="rp-head">
+          <h3>Relevante Vorerkrankungen</h3>
+          <p>Alle zutreffenden Erkrankungen auswählen</p>
+        </div>
+        <div class="an-grid" id="vorerkGrid">
+          <label class="an-chip"><input type="checkbox" value="diabetes"><div class="an-box"></div><span class="an-chip__text">Diabetes (Zucker)</span></label>
+          <label class="an-chip"><input type="checkbox" value="querschnitt"><div class="an-box"></div><span class="an-chip__text">Querschnittslähmung</span></label>
+          <label class="an-chip"><input type="checkbox" value="demenz"><div class="an-box"></div><span class="an-chip__text">Demenz</span></label>
+          <label class="an-chip"><input type="checkbox" value="parkinson"><div class="an-box"></div><span class="an-chip__text">Parkinson</span></label>
+          <label class="an-chip"><input type="checkbox" value="schlaganfall"><div class="an-box"></div><span class="an-chip__text">Schlaganfall</span></label>
+          <label class="an-chip"><input type="checkbox" value="herzinsuffizienz"><div class="an-box"></div><span class="an-chip__text">Herzinsuffizienz</span></label>
+          <label class="an-chip"><input type="checkbox" value="copd"><div class="an-box"></div><span class="an-chip__text">COPD / Lungenerkrankung</span></label>
+          <label class="an-chip"><input type="checkbox" value="osteoporose"><div class="an-box"></div><span class="an-chip__text">Osteoporose</span></label>
+          <label class="an-chip"><input type="checkbox" value="krebs"><div class="an-box"></div><span class="an-chip__text">Krebserkrankung</span></label>
+          <label class="an-chip"><input type="checkbox" value="psychisch"><div class="an-box"></div><span class="an-chip__text">Psychische Erkrankung</span></label>
+          <label class="an-chip"><input type="checkbox" value="sehen"><div class="an-box"></div><span class="an-chip__text">Sehbehinderung</span></label>
+          <label class="an-chip"><input type="checkbox" value="hoeren"><div class="an-box"></div><span class="an-chip__text">Hörbehinderung</span></label>
+        </div>
+        <div class="rp-field" style="margin-top:14px">
+          <label class="rp-label" for="vorerkSonstige">Sonstige Erkrankungen / Anmerkungen</label>
+          <textarea class="rp-input" id="vorerkSonstige" rows="2" style="resize:vertical" placeholder="z. B. Niereninsuffizienz, Epilepsie, Allergien…"></textarea>
+        </div>
+        <div class="rp-field">
+          <label class="rp-label" for="sonstigeInfo">Sonstige wichtige Informationen</label>
+          <textarea class="rp-input" id="sonstigeInfo" rows="2" style="resize:vertical" placeholder="Alles Weitere, das für die Pflege wichtig ist…"></textarea>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <p id="anamneseError" style="display:none;color:#dc2626;font-size:.84rem;font-weight:600;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:9px;padding:10px 14px;margin-bottom:10px"></p>
+      <div class="rp-footer">
+        <a class="rp-btn-back" href="register-client.html">Zurück</a>
+        <button class="rp-btn-next" type="submit">Pflegeanamnese speichern</button>
+      </div>
+      <p style="font-size:.74rem;color:#9ca3af;margin-top:10px;text-align:center;">Nach dem Absenden wird deine Anfrage an passende Pflegekräfte weitergeleitet.</p>
+    </form>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+(function(){
+
+  /* Checkbox chips toggle */
+  document.querySelectorAll('.an-chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var cb = chip.querySelector('input[type=checkbox]');
+      cb.checked = !cb.checked;
+      chip.classList.toggle('an-chip--on', cb.checked);
+      if(cb && cb.value === 'letzter-stuhlgang') toggleStuhlInfo();
+      if(cb && cb.value === 'sonstiges-ableit') toggleAbleitSonstiges();
+      if(cb && cb.value === 'sonstiges-hm') toggleHilfsmittelSonstiges();
+      if(cb.id === 'wundenCb') toggleBodyMap();
+    });
+  });
+
+  function toggleStuhlInfo(){
+    var cb = document.querySelector('#stuhlGrid input[value="letzter-stuhlgang"]');
+    var wrap = document.getElementById('stuhlInfoWrap');
+    if(wrap) wrap.style.display = cb && cb.checked ? '' : 'none';
+  }
+
+  function toggleAbleitSonstiges(){
+    var cb = document.querySelector('#stomaGrid input[value="sonstiges-ableit"]');
+    var wrap = document.getElementById('ableitSonstigesWrap');
+    if(wrap) wrap.style.display = cb && cb.checked ? '' : 'none';
+  }
+
+  function toggleHilfsmittelSonstiges(){
+    var cb = document.querySelector('#hilfsmittelGrid input[value="sonstiges-hm"]');
+    var wrap = document.getElementById('hilfsmittelSonstigesWrap');
+    if(wrap) wrap.style.display = cb && cb.checked ? '' : 'none';
+  }
+
+  /* Show/hide body map when "Wunden" chip is toggled */
+  function toggleBodyMap(){
+    var cb = document.getElementById('wundenCb');
+    var wrap = document.getElementById('bodyMapWrap');
+    if(wrap) wrap.style.display = cb.checked ? '' : 'none';
+    if(!cb.checked) clearBodyMap();
+  }
+
+  function clearBodyMap(){
+    selectedZones = {};
+    document.querySelectorAll('.zone.sel').forEach(function(z){ z.classList.remove('sel'); });
+    var s = document.getElementById('wundOrtSummary');
+    if(s) s.textContent = 'Keine Stelle markiert';
+  }
+
+  /* Body map zone toggling */
+  var selectedZones = {};
+
+  document.querySelectorAll('.zone').forEach(function(zone){
+    zone.addEventListener('click', function(){
+      var id = zone.dataset.id;
+      var label = zone.dataset.label;
+      if(selectedZones[id]){
+        delete selectedZones[id];
+        zone.classList.remove('sel');
+      } else {
+        selectedZones[id] = label;
+        zone.classList.add('sel');
+      }
+      var labels = Object.values(selectedZones);
+      var summaryEl = document.getElementById('wundOrtSummary');
+      if(summaryEl) summaryEl.textContent = labels.length ? labels.join(' · ') : 'Keine Stelle markiert';
+    });
+  });
+
+  toggleStuhlInfo();
+  toggleAbleitSonstiges();
+  toggleHilfsmittelSonstiges();
+
+  /* Save to localStorage + POST Anfrage an API */
+  document.getElementById('anamneseForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    function getChecked(gridId){
+      var result = [];
+      document.querySelectorAll('#'+gridId+' input[type=checkbox]:checked').forEach(function(cb){ result.push(cb.value); });
+      return result;
+    }
+    function safeVal(id){ var el=document.getElementById(id); return el ? el.value : ''; }
+    var data = {
+      pflegestufe: safeVal('pflegestufe'),
+      frequenz: safeVal('frequenz'),
+      mobilisation: safeVal('mob'),
+      ankleiden: safeVal('ankleiden'),
+      koerperpflege: safeVal('koerperpflege'),
+      sturzrisiko: safeVal('sturzrisiko'),
+      hilfsmittel: getChecked('hilfsmittelGrid'),
+      hilfsmittelSonstigesText: safeVal('hilfsmittelSonstigesText'),
+      inkontinenz: getChecked('inkontinenzGrid'),
+      stuhlAusscheidung: getChecked('stuhlGrid'),
+      letzterStuhlgangText: safeVal('letzterStuhlgangText'),
+      stuhlSonstigesText: safeVal('stuhlSonstigesText'),
+      ableitendeSysteme: getChecked('stomaGrid'),
+      ableitSonstigesText: safeVal('ableitSonstigesText'),
+      ernaehrung: {
+        appetit: safeVal('appetit'),
+        schluck: safeVal('schluck'),
+        durstgefuehl: safeVal('durstgefuehl'),
+        zahnstatus: getChecked('zahnGrid'),
+        hinweis: safeVal('ernaehrungHinweis'),
+      },
+      haut: {
+        zustand: getChecked('hautGrid'),
+        wundOrte: Object.keys(selectedZones),
+        wundOrtLabels: Object.values(selectedZones),
+        beschreibung: safeVal('wundBeschreibung'),
+      },
+      vorerkrankungen: getChecked('vorerkGrid'),
+      vorerkSonstige: safeVal('vorerkSonstige'),
+      sonstigeInfo: safeVal('sonstigeInfo'),
+      savedAt: new Date().toISOString(),
+    };
+
+    /* Fehleranzeige */
+    var errEl = document.getElementById('anamneseError');
+    function showErr(msg){ if(errEl){ errEl.textContent=msg; errEl.style.display=''; } else { alert(msg); } }
+
+    /* POST Anfrage an API wenn Patient-ID vorhanden */
+    var pendingId = '';
+    try{ pendingId = localStorage.getItem('nursy_pending_patient_id') || ''; }catch(e){}
+    if(pendingId){
+      try{
+        var res = await fetch('/api/requests', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ patient_id: pendingId, anamnese: data })
+        });
+        if(!res.ok){
+          var errBody = {};
+          try{ errBody = await res.json(); }catch(ex){}
+          showErr('Speichern fehlgeschlagen: ' + (errBody.error || res.status));
+          return;
+        }
+        /* Permanente ID setzen, temporäre entfernen */
+        try{
+          localStorage.setItem('nursy_current_patient_id', pendingId);
+          localStorage.setItem('nursy_anamnese_v1_' + pendingId, JSON.stringify(data));
+          localStorage.removeItem('nursy_pending_patient_id');
+        }catch(ex){}
+      }catch(err){
+        showErr('Netzwerkfehler beim Speichern. Bitte erneut versuchen.');
+        return;
+      }
+    }
+
+    /* Lokal speichern (keyed + Fallback) */
+    var saveId = pendingId || (function(){ try{ return localStorage.getItem('nursy_current_patient_id') || ''; }catch(e){ return ''; } }());
+    try{
+      localStorage.setItem('nursy_anamnese_v1', JSON.stringify(data));
+      if(saveId){ localStorage.setItem('nursy_anamnese_v1_' + saveId, JSON.stringify(data)); }
+    }catch(e){}
+
+    window.location.href = 'dashboard-client.html';
+  }, true);
+
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Mein Pflegeplan</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body[data-page="careplan-client"] .cp-wrap{ padding:24px 0 40px; }
+    body[data-page="careplan-client"] .cp-head{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px;
+    }
+    body[data-page="careplan-client"] .cp-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    body[data-page="careplan-client"] .stats-grid{
+      display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:16px;
+    }
+    body[data-page="careplan-client"] .stat-card strong{ display:block; font-size:28px; margin-top:6px; }
+    body[data-page="careplan-client"] .cp-area{
+      border:1px solid rgba(15,35,75,.10); border-radius:14px; background:rgba(255,255,255,.78);
+      padding:14px 16px; margin-bottom:12px;
+    }
+    body[data-page="careplan-client"] .cp-area__head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;
+    }
+    body[data-page="careplan-client"] .cp-area__title{ margin:0; font-size:17px; }
+    body[data-page="careplan-client"] .cp-tag{
+      display:inline-flex; align-items:center; height:24px; padding:0 10px;
+      border-radius:999px; font-size:12px; font-weight:800; letter-spacing:.2px;
+      background:rgba(63,111,232,.08); color:#1d3a8a; border:1px solid rgba(63,111,232,.18);
+    }
+    body[data-page="careplan-client"] .cp-table{ width:100%; border-collapse:collapse; }
+    body[data-page="careplan-client"] .cp-table th,
+    body[data-page="careplan-client"] .cp-table td{
+      padding:10px 8px; border-bottom:1px solid rgba(15,35,75,.08);
+      text-align:left; vertical-align:top; font-size:14px;
+    }
+    body[data-page="careplan-client"] .cp-table th{ background:rgba(63,111,232,.06); font-weight:800; }
+    body[data-page="careplan-client"] .cp-table tr:last-child td{ border-bottom:none; }
+    body[data-page="careplan-client"] .cp-measure{ font-weight:800; }
+    body[data-page="careplan-client"] .cp-goal{ color:var(--muted); font-size:13px; margin-top:3px; }
+    @media (max-width:760px){
+      body[data-page="careplan-client"] .stats-grid{ grid-template-columns:1fr; }
+      body[data-page="careplan-client"] .cp-head{ flex-wrap:wrap; }
+      body[data-page="careplan-client"] .cp-head > div:first-child{ flex:1 1 100%; }
+      body[data-page="careplan-client"] .cp-actions{ width:100%; }
+      body[data-page="careplan-client"] .cp-actions > *{ flex:1 1 auto; text-align:center; }
+      body[data-page="careplan-client"] .cp-table thead{ display:none; }
+      body[data-page="careplan-client"] .cp-table, body[data-page="careplan-client"] .cp-table tbody,
+      body[data-page="careplan-client"] .cp-table tr, body[data-page="careplan-client"] .cp-table td{ display:block; width:100%; }
+      body[data-page="careplan-client"] .cp-table tr{ border-bottom:1px solid rgba(15,35,75,.08); padding:6px 0; }
+      body[data-page="careplan-client"] .cp-table td{ border:none; padding:4px 0; }
+      body[data-page="careplan-client"] .cp-table td::before{ content: attr(data-label) ": "; font-weight:800; color:var(--muted); }
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body data-page="careplan-client">
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="dashboard-client.html" aria-label="Nursy Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="dashboard-client.html">Dashboard</a>
+        <a href="caregivers-client.html">Pflegekräfte</a>
+        <a href="invoices-client.html">Rechnungen</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container cp-wrap">
+    <section class="card">
+      <div class="cp-head">
+        <div>
+          <h1 style="margin:0 0 6px;">Mein Pflegeplan</h1>
+          <p class="muted" style="margin:0;">Aktuelle Pflegeziele und geplante Maßnahmen.</p>
+        </div>
+        <div class="cp-actions">
+          <a class="control btn" href="dashboard-client.html">Zurück</a>
+          <button class="control btn" type="button" id="cpPrint">Drucken</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stat-card"><span class="muted">Bereiche</span><strong id="cpStatAreas">0</strong></div>
+        <div class="card stat-card"><span class="muted">Maßnahmen</span><strong id="cpStatMeasures">0</strong></div>
+        <div class="card stat-card"><span class="muted">Letzte Aktualisierung</span><strong id="cpStatUpdated">—</strong></div>
+      </div>
+
+      <div id="cpAreas"></div>
+    </section>
+  </main>
+
+  <script src="careplan-client.js"></script>
+</body>
+</html>

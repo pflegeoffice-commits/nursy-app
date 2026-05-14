@@ -1,0 +1,2646 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Nursy – Einsatzakte</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f2744;--navy2:#1a3a5c;--blue:#2563eb;--blue-l:#3b82f6;
+  --red:#dc2626;--red-l:#ef4444;--green:#16a34a;--green-l:#22c55e;
+  --amber:#d97706;--bg:#f0f4fb;--card:#fff;
+  --text:#0f1a33;--muted:#64748b;--border:rgba(15,26,51,.12);--r:14px;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;
+}
+
+/* ── HEADER ── */
+.ea-hdr{
+  background:var(--navy);color:#fff;
+  padding:10px 14px 8px;flex-shrink:0;
+  display:flex;flex-direction:column;gap:4px;
+}
+.ea-hdr__top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ea-hdr__name{font-size:1.05rem;font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ea-hdr__nr{font-size:.72rem;opacity:.65;flex-shrink:0;}
+.ea-hdr__info{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ea-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 10px;border-radius:999px;
+  font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  background:rgba(255,255,255,.15);
+}
+.ea-badge--unterwegs{background:var(--amber);}
+.ea-badge--eingetroffen{background:var(--blue-l);}
+.ea-badge--beendet{background:var(--green);}
+.ea-hdr__zeit{font-size:.72rem;opacity:.6;}
+
+/* ── TABS ── */
+.ea-tabs{
+  display:flex;overflow-x:auto;background:var(--navy2);flex-shrink:0;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.ea-tabs::-webkit-scrollbar{display:none;}
+.ea-tab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  padding:8px 14px;cursor:pointer;border:none;background:transparent;
+  color:rgba(255,255,255,.5);font-size:.6rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;
+  border-bottom:2.5px solid transparent;transition:color .15s,border-color .15s;
+  flex-shrink:0;position:relative;
+}
+.ea-tab__ico{font-size:1.05rem;}
+.ea-tab.active{color:#fff;border-bottom-color:var(--blue-l);}
+
+/* ── MAIN / PANELS ── */
+.ea-main{flex:1;overflow:hidden;position:relative;}
+.ea-panel{
+  display:none;height:100%;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 14px 90px;
+}
+.ea-panel.active{display:block;}
+
+/* ── STATUS BAR ── */
+.ea-sbar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--navy);display:flex;gap:6px;
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  z-index:100;flex-shrink:0;
+}
+.ea-sbtn{
+  flex:1;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:10px 4px;
+  font-size:.72rem;font-weight:800;cursor:pointer;
+  transition:all .15s;
+  background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);
+}
+.ea-sbtn:hover{background:rgba(255,255,255,.25);color:#fff;border-color:rgba(255,255,255,.6);}
+.ea-sbtn.on{opacity:1;color:#fff;border-color:transparent;}
+.ea-sbtn--weg.on{background:var(--amber);}
+.ea-sbtn--ein.on{background:var(--blue-l);}
+.ea-sbtn--end.on{background:var(--green);}
+
+/* ── CARDS ── */
+.ea-card{
+  background:var(--card);border-radius:var(--r);margin-bottom:12px;
+  overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);
+}
+.ea-card__head{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);border-bottom:1px solid var(--border);background:#f8faff;
+}
+.ea-card__body{padding:12px 14px;}
+
+/* ── ROWS ── */
+.ea-row{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:8px;padding:6px 0;border-bottom:1px solid #f0f4fb;font-size:.86rem;
+}
+.ea-row:last-child{border-bottom:none;}
+.ea-row__k{color:var(--muted);font-size:.76rem;flex-shrink:0;min-width:100px;}
+.ea-row__v{font-weight:600;text-align:right;flex:1;word-break:break-word;}
+.ea-row__v--b{font-weight:800;}
+.ea-row__v--red{color:var(--red);font-weight:800;}
+
+/* ── BUTTONS ── */
+.ea-btn{
+  width:100%;padding:13px 16px;border-radius:999px;border:none;
+  font-size:.88rem;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:opacity .15s;
+}
+.ea-btn:active{opacity:.8;}
+.ea-btn--primary{background:var(--blue);color:#fff;}
+.ea-btn--green{background:var(--green);color:#fff;}
+.ea-btn--red{background:var(--red);color:#fff;}
+.ea-btn--navy{background:var(--navy);color:#fff;}
+.ea-btn--outline{background:#fff;color:var(--blue);border:2px solid var(--blue);}
+.ea-btn--sm{padding:9px 14px;font-size:.8rem;}
+.ea-actions{display:flex;flex-direction:column;gap:9px;margin-bottom:12px;}
+.ea-grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.ea-map-btn{
+  display:block;margin-top:10px;background:var(--navy);color:#fff;
+  text-decoration:none;padding:10px 14px;border-radius:999px;
+  font-weight:700;font-size:.82rem;text-align:center;
+}
+
+/* ── SECTION TITLE ── */
+.ea-st{
+  font-size:.68rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted);margin:16px 0 8px;
+}
+.ea-st:first-child{margin-top:0;}
+
+/* ── BANNER ── */
+.ea-banner{
+  background:rgba(220,38,38,.08);border:2px solid rgba(220,38,38,.28);
+  border-radius:var(--r);display:flex;align-items:center;gap:12px;
+  padding:12px 14px;margin-bottom:14px;
+}
+.ea-banner__ico{font-size:1.7rem;}
+.ea-banner__title{font-weight:800;color:var(--red);font-size:.92rem;}
+.ea-banner__sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.ea-banner--edit{
+  background:linear-gradient(135deg,#fef9c3,#fefce820);
+  border-color:rgba(202,138,4,.5);
+}
+.ea-banner--edit .ea-banner__title{color:#854d0e;}
+.ea-banner--edit .ea-banner__close{
+  margin-left:auto;background:none;border:none;font-size:1.3rem;
+  cursor:pointer;opacity:.55;padding:0 2px;line-height:1;
+}
+
+/* ── TAGS ── */
+.ea-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.ea-tag{
+  padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;
+  background:rgba(220,38,38,.1);color:var(--red);
+}
+
+/* ── LOADING ── */
+.ea-loading{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;height:200px;
+  color:var(--muted);font-size:.86rem;
+}
+.ea-spinner{
+  width:30px;height:30px;border:3px solid rgba(63,111,232,.2);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── PLANUNG ── */
+.ea-prob{
+  background:var(--card);border-radius:var(--r);margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;
+}
+.ea-prob__head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:1px solid var(--border);
+}
+.ea-prob__title{font-weight:800;font-size:.9rem;flex:1;}
+.ea-prob__prio{
+  font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:999px;
+  text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;margin-left:8px;
+}
+.ea-prob__prio--hoch{background:rgba(220,38,38,.12);color:var(--red);}
+.ea-prob__prio--mittel{background:rgba(217,119,6,.12);color:var(--amber);}
+.ea-prob__prio--niedrig{background:rgba(22,163,74,.12);color:var(--green);}
+.ea-prob__body{padding:10px 14px 12px;}
+.ea-prob__ziel{
+  font-size:.78rem;color:var(--muted);margin-bottom:10px;padding:6px 10px;
+  background:#f0f9ff;border-radius:8px;border-left:3px solid var(--blue-l);
+  line-height:1.4;
+}
+.ea-measure{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:7px 0;border-bottom:1px solid #f0f4fb;font-size:.86rem;
+}
+.ea-measure:last-child{border-bottom:none;}
+.ea-measure input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:var(--blue);margin-top:1px;cursor:pointer;}
+.ea-measure__text{flex:1;line-height:1.4;}
+.ea-measure__text.done{text-decoration:line-through;color:var(--muted);}
+.ea-measure__del{background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:0 4px;flex-shrink:0;}
+.ea-add-btn{
+  width:100%;margin-top:8px;background:none;
+  border:1.5px dashed rgba(63,111,232,.3);border-radius:999px;
+  padding:7px 14px;font-size:.76rem;font-weight:700;color:var(--blue);cursor:pointer;
+}
+
+/* ── DURCHFÜHRUNG ── */
+.ea-df{
+  background:var(--card);border-radius:var(--r);margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;
+  border-left:4px solid #e2e8f0;
+}
+.ea-df.df-done{border-left-color:var(--green);}
+.ea-df.df-nd{border-left-color:var(--red);}
+.ea-df__head{
+  display:flex;align-items:flex-start;gap:10px;padding:11px 14px 9px;
+}
+.ea-df__name{font-weight:700;font-size:.88rem;flex:1;line-height:1.3;}
+.ea-df__badge{font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:999px;flex-shrink:0;margin-top:2px;}
+.ea-df__badge--done{background:rgba(22,163,74,.15);color:var(--green);}
+.ea-df__badge--nd{background:rgba(220,38,38,.15);color:var(--red);}
+.ea-df__badge--open{background:rgba(100,116,139,.1);color:var(--muted);}
+/* toggle buttons row */
+.ea-df__btns{display:flex;gap:8px;padding:0 14px 10px;}
+.ea-df__tbtn{
+  flex:1;border:2px solid #e2e8f0;border-radius:10px;padding:9px 6px;
+  font-size:.78rem;font-weight:700;cursor:pointer;background:#f8faff;
+  color:var(--muted);transition:all .15s;text-align:center;
+}
+.ea-df__tbtn:hover{border-color:#94a3b8;color:#334155;}
+.ea-df__tbtn.sel-done{background:rgba(22,163,74,.12);border-color:var(--green);color:var(--green);}
+.ea-df__tbtn.sel-nd{background:rgba(220,38,38,.1);border-color:var(--red);color:var(--red);}
+/* detail row */
+.ea-df__detail{
+  padding:0 14px 12px;display:flex;flex-direction:column;gap:7px;
+  border-top:1px solid var(--border);padding-top:9px;
+}
+.ea-df-row{display:flex;gap:8px;align-items:center;}
+.ea-df-row label{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;cursor:pointer;}
+.ea-df-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue);}
+.ea-df-row input[type=time],
+.ea-df-row input[type=text]{
+  flex:1;border:1.5px solid rgba(63,111,232,.2);border-radius:8px;
+  padding:7px 10px;font-size:.82rem;font-family:inherit;background:#f8faff;
+}
+.ea-df-row textarea{
+  flex:1;border:1.5px solid rgba(63,111,232,.2);border-radius:8px;
+  padding:7px 10px;font-size:.82rem;font-family:inherit;background:#f8faff;
+  resize:none;
+}
+
+/* ── FIELDS ── */
+.ea-fgroup{display:flex;flex-direction:column;gap:12px;}
+.ea-f{display:flex;flex-direction:column;gap:4px;}
+.ea-f label{font-size:.68rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.ea-f input,.ea-f textarea,.ea-f select{
+  border:1.5px solid rgba(15,26,51,.14);border-radius:10px;
+  padding:10px 12px;font-size:.9rem;font-family:inherit;background:#fff;width:100%;
+}
+.ea-f input:focus,.ea-f textarea:focus,.ea-f select:focus{outline:none;border-color:var(--blue);}
+.ea-f textarea{resize:vertical;min-height:80px;}
+
+/* ── VITALS ── */
+.ea-vitals{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ea-vital{
+  background:#f8faff;border:1.5px solid rgba(63,111,232,.15);
+  border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;
+}
+.ea-vital__lbl{font-size:.62rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.ea-vital__unit{font-size:.6rem;color:var(--muted);}
+.ea-vital input{
+  border:none;background:transparent;font-size:1.1rem;font-weight:800;
+  color:var(--navy);width:100%;padding:0;
+}
+.ea-vital input:focus{outline:none;}
+
+/* ── PAIN SCALE ── */
+.ea-pain-scale{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
+.ea-pain-btn{
+  width:38px;height:38px;border-radius:50%;border:2px solid var(--border);
+  background:#fff;font-size:.86rem;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .12s;
+}
+.ea-pain-btn.sel{background:var(--red);color:#fff;border-color:var(--red);}
+.ea-pain-btn.low{border-color:rgba(22,163,74,.5);}
+.ea-pain-btn.mid{border-color:rgba(217,119,6,.5);}
+.ea-pain-btn.high{border-color:rgba(220,38,38,.5);}
+
+/* ── WUNDEN ── */
+.ea-wound{
+  background:var(--card);border-radius:var(--r);margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;
+}
+.ea-wound__head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:rgba(220,38,38,.06);
+  border-bottom:1px solid rgba(220,38,38,.15);
+}
+.ea-wound__title{font-weight:800;color:var(--red);font-size:.88rem;}
+.ea-wound__del{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;}
+.ea-wound__body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+
+/* ── AKUT ── */
+.ea-akut-box{
+  background:rgba(220,38,38,.07);border:2px solid rgba(220,38,38,.28);
+  border-radius:var(--r);padding:14px;margin-bottom:12px;font-size:.86rem;line-height:1.5;
+}
+.ea-akut-box strong{color:var(--red);display:block;margin-bottom:6px;font-size:.94rem;}
+
+/* ── ASSESSMENTS (ABCDE / GCS / Risikoskalen) ── */
+.ea-assess-st{
+  font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);margin:18px 0 6px;
+}
+/* ABCDE Status Banner */
+.ea-abcde-banner{
+  display:flex;align-items:center;gap:12px;
+  border-radius:12px;padding:12px 16px;margin-bottom:10px;
+  border:2px solid #e2e8f0;background:#f8faff;transition:all .25s;
+}
+.ea-abcde-banner--stabil{background:#f0fdf4;border-color:rgba(22,163,74,.4);}
+.ea-abcde-banner--eingeschraenkt{background:#fff7ed;border-color:rgba(234,88,12,.4);}
+.ea-abcde-banner--kritisch{background:#fff1f2;border-color:rgba(220,38,38,.5);}
+.ea-abcde-banner__ico{font-size:1.6rem;flex-shrink:0;}
+.ea-abcde-banner__info{flex:1;}
+.ea-abcde-banner__label{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.ea-abcde-banner__status{font-size:1.05rem;font-weight:900;color:var(--navy);}
+.ea-abcde-banner--stabil .ea-abcde-banner__status{color:#15803d;}
+.ea-abcde-banner--eingeschraenkt .ea-abcde-banner__status{color:#c2410c;}
+.ea-abcde-banner--kritisch .ea-abcde-banner__status{color:#b91c1c;}
+.ea-abcde-dots{display:flex;gap:5px;margin-top:4px;}
+.ea-abcde-dot{
+  width:22px;height:22px;border-radius:50%;background:#e2e8f0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:900;color:#94a3b8;transition:all .2s;
+}
+.ea-abcde-dot--ok{background:#22c55e;color:#fff;}
+.ea-abcde-dot--warn{background:#f97316;color:#fff;}
+.ea-abcde-dot--krit{background:#ef4444;color:#fff;}
+/* ABCDE Karten (volle Breite, vertikal) */
+.ea-abc-card{
+  background:#fff;border-radius:10px;padding:11px 13px;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:6px;
+  border-left:4px solid #e2e8f0;transition:border-left-color .2s;
+}
+.ea-abc-card[data-st="ok"]  {border-left-color:#22c55e;}
+.ea-abc-card[data-st="warn"]{border-left-color:#f97316;}
+.ea-abc-card[data-st="krit"]{border-left-color:#ef4444;}
+.ea-abc-card__head{display:flex;align-items:baseline;gap:7px;margin-bottom:8px;}
+.ea-abc-card__letter{
+  font-size:1.2rem;font-weight:900;color:var(--navy);flex-shrink:0;
+  line-height:1;min-width:18px;
+}
+.ea-abc-card__title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+/* Status-Schnellauswahl – volle Breite = genug Platz */
+.ea-abc-status-btns{display:flex;gap:6px;margin-bottom:8px;}
+.ea-abc-sbtn{
+  flex:1;border:1.5px solid #e2e8f0;border-radius:8px;
+  padding:7px 6px;font-size:.76rem;font-weight:700;
+  cursor:pointer;background:#f8faff;color:var(--muted);
+  text-align:center;transition:all .15s;white-space:nowrap;
+  -webkit-user-select:none;user-select:none;
+}
+.ea-abc-sbtn:active{transform:scale(.95);}
+.ea-abc-sbtn--ok.sel  {background:#22c55e;border-color:#22c55e;color:#fff;}
+.ea-abc-sbtn--warn.sel{background:#f97316;border-color:#f97316;color:#fff;}
+.ea-abc-sbtn--krit.sel{background:#ef4444;border-color:#ef4444;color:#fff;}
+.ea-abc-card textarea,.ea-abc-card input{
+  width:100%;border:none;border-bottom:1px solid #e2e8f0;padding:3px 0;
+  font-size:.84rem;font-family:inherit;color:var(--text);
+  background:transparent;outline:none;resize:none;box-sizing:border-box;
+}
+.ea-abc-card textarea:focus,.ea-abc-card input:focus{border-bottom-color:var(--blue);}
+/* SAMPLE rows (behalten flex-Stil, aber ohne Status-Buttons) */
+.ea-abc-row{
+  display:flex;align-items:flex-start;gap:10px;
+  background:#fff;border-radius:10px;padding:10px 12px;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:6px;
+}
+.ea-abc-row--s{border-left:4px solid #16a34a;}
+.ea-abc-row--sm{border-left:4px solid #0284c7;}
+.ea-abc-row--p{border-left:4px solid #7c3aed;}
+.ea-abc-row--l{border-left:4px solid #ea580c;}
+.ea-abc-row--ev{border-left:4px solid #dc2626;}
+.ea-abc-letter{
+  font-size:1.3rem;font-weight:900;color:var(--navy);
+  width:26px;flex-shrink:0;text-align:center;line-height:1.1;
+}
+.ea-abc-letter small{display:block;font-size:.52rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+.ea-abc-right{flex:1;min-width:0;}
+.ea-abc-right label{font-size:.65rem;font-weight:700;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+.ea-abc-right input,.ea-abc-right textarea{
+  width:100%;border:none;border-bottom:1px solid #e2e8f0;padding:2px 0;
+  font-size:.84rem;font-family:inherit;color:var(--text);background:transparent;outline:none;resize:none;
+}
+.ea-abc-right input:focus,.ea-abc-right textarea:focus{border-bottom-color:var(--blue);}
+/* GCS & Skalen */
+.ea-score-card{
+  background:#fff;border-radius:var(--r);
+  box-shadow:0 1px 5px rgba(0,0,0,.08);overflow:visible;margin-bottom:8px;
+}
+.ea-score-card>.ea-score-head{border-radius:var(--r) var(--r) 0 0;}
+.ea-score-body{padding:12px 14px;border-radius:0 0 var(--r) var(--r);overflow:hidden;}
+.ea-score-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:#f8faff;border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+.ea-score-head__title{font-size:.85rem;font-weight:800;color:var(--navy);}
+.ea-score-head__badge{
+  font-size:.75rem;font-weight:900;padding:3px 10px;border-radius:999px;
+  background:#e2e8f0;color:#475569;transition:all .2s;
+}
+.ea-score-head__badge--low{background:#dcfce7;color:#15803d;}
+.ea-score-head__badge--med{background:#fef9c3;color:#854d0e;}
+.ea-score-head__badge--high{background:#fee2e2;color:#b91c1c;}
+.ea-score-row{margin-bottom:12px;}
+.ea-score-row:last-child{margin-bottom:0;}
+.ea-score-row__label{font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+.ea-score-btns{display:flex;gap:4px;flex-wrap:wrap;}
+.ea-score-btn{
+  flex:1;min-width:0;border:1.5px solid #e2e8f0;border-radius:8px;
+  padding:6px 4px;font-size:.68rem;font-weight:700;cursor:pointer;
+  background:#f8faff;color:var(--muted);text-align:center;transition:all .15s;
+  line-height:1.3;
+}
+.ea-score-btn:active{transform:scale(.95);}
+.ea-score-btn.sel{background:var(--navy);border-color:var(--navy);color:#fff;}
+.ea-score-total{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-top:1px solid var(--border);background:#f8faff;
+}
+.ea-score-total__num{
+  font-size:1.6rem;font-weight:900;color:var(--navy);
+  min-width:40px;text-align:center;
+}
+.ea-score-total__info{flex:1;}
+.ea-score-total__level{font-size:.82rem;font-weight:800;}
+.ea-score-total__range{font-size:.68rem;color:var(--muted);}
+.ea-assess-save{margin-top:6px;}
+
+/* ── UPLOADS ── */
+.ea-upload-box{
+  border:2px dashed rgba(63,111,232,.3);border-radius:12px;
+  padding:24px 14px;text-align:center;background:#f8faff;cursor:pointer;margin-bottom:12px;
+}
+.ea-upload-box__ico{font-size:2.2rem;margin-bottom:6px;}
+.ea-upload-box__txt{font-size:.84rem;color:var(--muted);}
+.ea-file-list{display:flex;flex-direction:column;gap:8px;}
+.ea-file-item{
+  display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;
+  padding:10px 12px;font-size:.84rem;box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+
+/* ── ABSCHLUSS ── */
+.ea-sum-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--border);font-size:.86rem;
+}
+.ea-sum-item:last-child{border-bottom:none;}
+.ea-sum-item__ico{font-size:1.2rem;flex-shrink:0;}
+.ea-sum-item__lbl{color:var(--muted);font-size:.75rem;}
+.ea-sum-item__val{font-weight:700;}
+.ea-sign-box{
+  border:2px dashed rgba(63,111,232,.3);border-radius:12px;min-height:90px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:.84rem;background:#f8faff;margin:8px 0;
+}
+/* ── Unterzeichner-Auswahl ── */
+.ea-sign-sel{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.ea-sign-sel__item{
+  display:flex;align-items:center;gap:10px;padding:9px 13px;
+  border:1.5px solid rgba(63,111,232,.18);border-radius:10px;cursor:pointer;
+  font-size:.86rem;color:#1e293b;transition:background .12s,border-color .12s;
+  -webkit-user-select:none;user-select:none;
+}
+.ea-sign-sel__item:has(input:checked){background:#eef3ff;border-color:var(--blue);font-weight:700;}
+.ea-sign-sel__item--warn:has(input:checked){background:#fff5f5;border-color:#dc2626;}
+.ea-sign-sel__item input[type=radio]{accent-color:var(--blue);width:16px;height:16px;flex-shrink:0;cursor:pointer;}
+.ea-sign-sel__item--warn input[type=radio]{accent-color:#dc2626;}
+/* ── Canvas-Feld ── */
+.ea-sign-canvas-wrap{
+  position:relative;border:2px dashed rgba(63,111,232,.3);border-radius:12px;
+  background:#f8faff;overflow:hidden;touch-action:none;
+}
+.ea-sign-canvas{display:block;width:100%;height:110px;cursor:crosshair;}
+.ea-sign-canvas--locked{cursor:not-allowed;opacity:.92;}
+.ea-sign-canvas-wrap--locked{border-color:rgba(22,163,74,.4);background:#f0fdf4;}
+.ea-sign-clear{
+  position:absolute;top:6px;right:8px;border:none;
+  background:rgba(220,38,38,.12);color:#dc2626;border-radius:6px;
+  padding:3px 10px;font-size:.72rem;font-weight:700;cursor:pointer;
+}
+.ea-sign-hint{font-size:.7rem;color:var(--muted);text-align:center;margin-top:4px;}
+.ea-sign-saved-badge{
+  display:flex;align-items:center;gap:6px;
+  background:#f0fdf4;border:1.5px solid rgba(22,163,74,.4);border-radius:8px;
+  color:#15803d;font-size:.78rem;font-weight:700;padding:6px 12px;margin-top:6px;
+}
+.ea-sign-locked-info{
+  background:#f0fdf4;border:1.5px solid rgba(22,163,74,.3);border-radius:10px;
+  padding:10px 14px;font-size:.84rem;color:#1e293b;margin-top:6px;
+}
+/* ── Mündlich-Checkbox ── */
+.ea-sign-muendlich{
+  display:flex;align-items:flex-start;gap:10px;
+  background:#f0fdf4;border:1.5px solid rgba(22,163,74,.25);
+  border-radius:10px;padding:12px;cursor:pointer;
+  font-size:.85rem;color:#1e293b;line-height:1.45;margin-top:2px;
+}
+.ea-sign-muendlich input[type=checkbox]{accent-color:var(--green);width:18px;height:18px;flex-shrink:0;margin-top:1px;cursor:pointer;}
+
+/* ── EMPTY ── */
+.ea-empty{text-align:center;padding:28px 14px;color:var(--muted);font-size:.86rem;}
+.ea-empty__ico{font-size:2rem;margin-bottom:8px;}
+
+/* ── SAVED INDICATOR ── */
+.ea-saved{
+  display:none;align-items:center;gap:6px;font-size:.76rem;
+  color:var(--green);font-weight:700;padding:4px 0;margin-top:4px;
+}
+.ea-saved.show{display:flex;}
+
+/* ── ABSCHLUSS SUCCESS ── */
+.ea-done-box{
+  display:none;margin-top:10px;padding:14px;text-align:center;
+  background:rgba(22,163,74,.1);border:2px solid rgba(22,163,74,.3);
+  border-radius:12px;font-weight:700;color:var(--green);
+}
+
+/* ── CHAT BUTTON & PANEL ── */
+.chat-fab{
+  position:fixed;bottom:22px;right:18px;z-index:800;
+  width:52px;height:52px;border-radius:50%;border:none;
+  background:var(--blue);color:#fff;font-size:1.4rem;
+  box-shadow:0 4px 16px rgba(37,99,235,.45);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;
+}
+.chat-fab:active{transform:scale(.92);}
+.chat-fab__badge{
+  position:absolute;top:-3px;right:-3px;
+  width:18px;height:18px;border-radius:50%;
+  background:#dc2626;color:#fff;font-size:.65rem;font-weight:900;
+  display:none;align-items:center;justify-content:center;
+  border:2px solid #fff;
+}
+.chat-fab__badge.show{display:flex;}
+.chat-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:900;
+  background:#fff;border-radius:20px 20px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,.15);
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-height:90vh;display:flex;flex-direction:column;
+}
+.chat-panel.open{transform:translateY(0);}
+.chat-panel__drag{
+  width:40px;height:4px;border-radius:2px;background:#e2e8f0;
+  margin:10px auto 0;flex-shrink:0;
+}
+.chat-panel__head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 18px 12px;border-bottom:1px solid #e2e8f0;flex-shrink:0;
+}
+.chat-panel__title{font-weight:800;font-size:1rem;color:#0f172a;}
+.chat-panel__close{
+  background:none;border:none;font-size:1.4rem;color:#64748b;cursor:pointer;padding:0 4px;
+}
+.chat-panel__body{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px;}
+.chat-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.chat-type{
+  background:#f1f5f9;border:2px solid transparent;border-radius:12px;
+  padding:10px 8px;text-align:center;cursor:pointer;
+  font-size:.8rem;font-weight:700;color:#475569;
+  transition:all .15s;
+}
+.chat-type:active{transform:scale(.96);}
+.chat-type.sel{background:#eff6ff;border-color:#3b82f6;color:#1d4ed8;}
+.chat-type__ico{font-size:1.3rem;display:block;margin-bottom:3px;}
+.chat-textarea{
+  width:100%;border:1.5px solid #e2e8f0;border-radius:12px;
+  padding:12px 14px;font-size:.95rem;font-family:inherit;color:#0f172a;
+  resize:none;min-height:90px;
+}
+.chat-textarea:focus{outline:none;border-color:#3b82f6;}
+.chat-send{
+  width:100%;padding:13px;border:none;border-radius:12px;
+  background:#2563eb;color:#fff;font-size:.95rem;font-weight:800;
+  cursor:pointer;margin-top:4px;
+}
+.chat-send:disabled{opacity:.4;cursor:not-allowed;}
+.chat-confirm{
+  display:none;flex-direction:column;align-items:center;
+  gap:8px;padding:20px 0 10px;text-align:center;
+}
+.chat-confirm.show{display:flex;}
+.chat-confirm__ico{font-size:2.5rem;}
+.chat-confirm__txt{font-weight:800;font-size:1.05rem;color:#0f172a;}
+.chat-confirm__sub{font-size:.82rem;color:#64748b;}
+.chat-overlay{
+  position:fixed;inset:0;z-index:850;background:rgba(0,0,0,.35);
+  display:none;
+}
+.chat-overlay.open{display:block;}
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="ea-hdr" id="eaHdr">
+  <div class="ea-hdr__top">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+      <button onclick="window.location.href='/auftragslage/'" style="background:rgba(255,255,255,.12);border:none;border-radius:8px;color:#fff;font-size:.8rem;font-weight:800;padding:4px 9px;cursor:pointer;flex-shrink:0;white-space:nowrap;">← Liste</button>
+      <div class="ea-hdr__name" id="eaPatName">Einsatz wird geladen…</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <div class="ea-hdr__nr" id="eaNr">–</div>
+      <button onclick="schichtBeenden()" style="background:rgba(255,255,255,.12);border:none;border-radius:8px;color:rgba(255,255,255,.7);font-size:.65rem;font-weight:700;padding:4px 8px;cursor:pointer;white-space:nowrap;">Abmelden</button>
+    </div>
+  </div>
+  <div class="ea-hdr__info">
+    <span class="ea-badge" id="eaStatusBadge">Alarmiert</span>
+    <span class="ea-hdr__zeit" id="eaZeit">–</span>
+    <span id="eaFahrzeug" style="font-size:.7rem;opacity:.6;display:none;"></span>
+  </div>
+</header>
+
+<!-- ── TABS ── -->
+<nav class="ea-tabs" id="eaTabNav">
+  <button class="ea-tab active" data-tab="auftrag"><span class="ea-tab__ico">📋</span>Auftrag</button>
+  <button class="ea-tab" data-tab="planung"><span class="ea-tab__ico">📝</span>Planung</button>
+  <button class="ea-tab" data-tab="durchfuehrung"><span class="ea-tab__ico">✅</span>Durchführung</button>
+  <button class="ea-tab" data-tab="doku"><span class="ea-tab__ico">📄</span>Doku</button>
+  <button class="ea-tab" data-tab="wunden"><span class="ea-tab__ico">🩹</span>Wunden</button>
+  <button class="ea-tab" data-tab="akut"><span class="ea-tab__ico">🚨</span>Akut</button>
+  <button class="ea-tab" data-tab="schmerz"><span class="ea-tab__ico">💊</span>Schmerz/IV</button>
+  <button class="ea-tab" data-tab="uploads"><span class="ea-tab__ico">📎</span>Uploads</button>
+  <button class="ea-tab" data-tab="abschluss"><span class="ea-tab__ico">🏁</span>Abschluss</button>
+</nav>
+
+<!-- ── CONTENT ── -->
+<main class="ea-main">
+
+  <!-- ══ AUFTRAG ══ -->
+  <div class="ea-panel active" id="panel-auftrag">
+    <div class="ea-loading" id="eaLoading"><div class="ea-spinner"></div>Einsatz wird geladen…</div>
+    <div id="eaAuftragContent" style="display:none;">
+
+      <div class="ea-banner" id="eaAlarmBanner" style="display:none;">
+        <div class="ea-banner__ico">🔔</div>
+        <div>
+          <div class="ea-banner__title" id="eaAlarmTitle">Neuer Einsatz</div>
+          <div class="ea-banner__sub" id="eaAlarmSub">Bitte Status setzen</div>
+        </div>
+      </div>
+
+      <div class="ea-banner ea-banner--edit" id="eaGeaendertBanner" style="display:none;">
+        <div class="ea-banner__ico">✏️</div>
+        <div>
+          <div class="ea-banner__title">Leitstelle hat Änderungen vorgenommen</div>
+          <div class="ea-banner__sub">Einsatzdetails wurden aktualisiert<span id="eaGeaendertTime"></span></div>
+        </div>
+        <button class="ea-banner__close" onclick="document.getElementById('eaGeaendertBanner').style.display='none'">×</button>
+      </div>
+
+      <div class="ea-actions">
+        <button class="ea-btn ea-btn--navy" id="btnNav">🗺 Navigation starten</button>
+        <div class="ea-grid2">
+          <button class="ea-btn ea-btn--green" id="btnCall">📞 Patient anrufen</button>
+          <button class="ea-btn ea-btn--outline" id="btnCallAng">👨‍👩‍👧 Angehörige</button>
+        </div>
+      </div>
+
+      <div class="ea-st">Einsatzdetails</div>
+      <div class="ea-card">
+        <div class="ea-card__head">📋 Einsatz</div>
+        <div class="ea-card__body">
+          <div class="ea-row"><span class="ea-row__k">Einsatz-Nr.</span><span class="ea-row__v ea-row__v--b" id="aiNr">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Art</span><span class="ea-row__v" id="aiArt">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Dringlichkeit</span><span class="ea-row__v" id="aiDring">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Beginn</span><span class="ea-row__v" id="aiZeit">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Fahrzeug</span><span class="ea-row__v" id="aiFz">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Qualifikation</span><span class="ea-row__v" id="aiQual">–</span></div>
+        </div>
+      </div>
+
+      <div class="ea-st">Patient</div>
+      <div class="ea-card">
+        <div class="ea-card__head">🧑 Patientendaten</div>
+        <div class="ea-card__body">
+          <div class="ea-row"><span class="ea-row__k">Name</span><span class="ea-row__v ea-row__v--b" id="aiPat">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Geburtsdatum</span><span class="ea-row__v" id="aiGeb">–</span></div>
+          <div class="ea-row" id="aiSvRow" style="display:none;"><span class="ea-row__k">SVNr.</span><span class="ea-row__v" id="aiSv" style="font-size:.76rem;letter-spacing:.04em;">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Telefon</span><span class="ea-row__v" id="aiTel">–</span></div>
+        </div>
+      </div>
+
+      <div class="ea-card">
+        <div class="ea-card__head">📍 Einsatzadresse</div>
+        <div class="ea-card__body">
+          <div class="ea-row"><span class="ea-row__k">Adresse</span><span class="ea-row__v ea-row__v--b" id="aiAdr">–</span></div>
+          <div class="ea-row" id="aiStockRow" style="display:none;"><span class="ea-row__k">Stock / Tür</span><span class="ea-row__v" id="aiStock">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Bezirk</span><span class="ea-row__v" id="aiBez">–</span></div>
+          <div class="ea-row" id="aiSchlRow" style="display:none;"><span class="ea-row__k">🔑 Schlüsselsafe</span><span class="ea-row__v ea-row__v--b" id="aiSchl">–</span></div>
+          <div class="ea-row" id="aiHinwRow" style="display:none;"><span class="ea-row__k">ℹ️ Hinweis</span><span class="ea-row__v" id="aiHinw" style="font-style:italic;">–</span></div>
+          <a class="ea-map-btn" id="aiMapBtn" href="#" target="_blank">🗺 Navigation öffnen →</a>
+        </div>
+      </div>
+
+      <div class="ea-card" id="aiAngCard" style="display:none;">
+        <div class="ea-card__head">👨‍👩‍👧 Angehörige / Kontakt</div>
+        <div class="ea-card__body">
+          <div class="ea-row"><span class="ea-row__k">Name</span><span class="ea-row__v" id="aiAngName">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Telefon</span><span class="ea-row__v" id="aiAngTel">–</span></div>
+        </div>
+      </div>
+
+      <div class="ea-st">Lagebild</div>
+      <div class="ea-card">
+        <div class="ea-card__head">⚠️ Problem / Aufgabe</div>
+        <div class="ea-card__body">
+          <div class="ea-row"><span class="ea-row__k">Problem</span><span class="ea-row__v" id="aiProblem" style="white-space:pre-wrap;">–</span></div>
+          <div class="ea-row" id="aiNotizRow" style="display:none;"><span class="ea-row__k">Leitstelle</span><span class="ea-row__v" id="aiNotiz" style="font-style:italic;color:var(--blue);">–</span></div>
+        </div>
+      </div>
+
+      <div class="ea-card" id="aiRisCard" style="display:none;">
+        <div class="ea-card__head">🛡 Sicherheitshinweise</div>
+        <div class="ea-card__body"><div class="ea-tags" id="aiRisiken"></div></div>
+      </div>
+
+      <div class="ea-card">
+        <div class="ea-card__head">💊 Medizinische Hinweise</div>
+        <div class="ea-card__body">
+          <div class="ea-row"><span class="ea-row__k">Allergien</span><span class="ea-row__v" id="aiAll">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Medikamente</span><span class="ea-row__v" id="aiMed">–</span></div>
+          <div class="ea-row"><span class="ea-row__k">Anordnungen</span><span class="ea-row__v" id="aiAno">–</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ PLANUNG ══ -->
+  <div class="ea-panel" id="panel-planung">
+    <div class="ea-st">Automatische Pflegeprobleme</div>
+    <div id="planungList"></div>
+    <button class="ea-btn ea-btn--outline ea-btn--sm" onclick="addManualProblem()" style="margin-top:4px;">＋ Problem manuell hinzufügen</button>
+  </div>
+
+  <!-- ══ DURCHFÜHRUNG ══ -->
+  <div class="ea-panel" id="panel-durchfuehrung">
+    <div id="dfSaved" class="ea-saved">✓ Automatisch gespeichert</div>
+    <div id="dfList"></div>
+    <div style="display:flex;flex-direction:column;gap:9px;margin-top:10px;">
+      <button class="ea-btn ea-btn--outline ea-btn--sm" onclick="addDfMeasure()">＋ Maßnahme hinzufügen</button>
+      <button class="ea-btn ea-btn--primary ea-btn--sm" onclick="showSaved('dfSaved')">💾 Speichern</button>
+    </div>
+  </div>
+
+  <!-- ══ DOKUMENTATION ══ -->
+  <div class="ea-panel" id="panel-doku">
+    <div class="ea-st">Pflegezustand</div>
+    <div class="ea-card">
+      <div class="ea-card__body">
+        <div class="ea-fgroup">
+          <div class="ea-f"><label>Zustand bei Ankunft</label><textarea id="dokuAnkunft" rows="3" placeholder="Allgemeinzustand, Bewusstsein, Besonderheiten bei Ankunft …"></textarea></div>
+          <div class="ea-f"><label>Verlauf</label><textarea id="dokuVerlauf" rows="3" placeholder="Was wurde gemacht, wie reagierte Patient …"></textarea></div>
+          <div class="ea-f"><label>Zustand bei Verlassen</label><textarea id="dokuVerlassen" rows="3" placeholder="Allgemeinzustand, Stimmung, Übergabe …"></textarea></div>
+          <div class="ea-f"><label>Besonderheiten</label><textarea id="dokuBesonders" rows="2" placeholder="Auffälligkeiten, Vorkommnisse …"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ea-st">Vitalzeichen</div>
+    <div class="ea-card">
+      <div class="ea-card__head">❤️ Vitalzeichen</div>
+      <div class="ea-card__body">
+        <div class="ea-vitals">
+          <div class="ea-vital"><span class="ea-vital__lbl">Blutdruck <span class="ea-vital__unit">mmHg</span></span><input id="vBD" type="text" placeholder="120/80" inputmode="text"></div>
+          <div class="ea-vital"><span class="ea-vital__lbl">Puls <span class="ea-vital__unit">bpm</span></span><input id="vPuls" type="number" placeholder="72" inputmode="numeric"></div>
+          <div class="ea-vital"><span class="ea-vital__lbl">Temperatur <span class="ea-vital__unit">°C</span></span><input id="vTemp" type="number" placeholder="36.6" step="0.1" inputmode="decimal"></div>
+          <div class="ea-vital"><span class="ea-vital__lbl">SpO₂ <span class="ea-vital__unit">%</span></span><input id="vSpo2" type="number" placeholder="98" inputmode="numeric"></div>
+          <div class="ea-vital"><span class="ea-vital__lbl">Blutzucker <span class="ea-vital__unit">mg/dL</span></span><input id="vBZ" type="number" placeholder="100" inputmode="numeric"></div>
+          <div class="ea-vital"><span class="ea-vital__lbl">Atemfreq. <span class="ea-vital__unit">/min</span></span><input id="vAF" type="number" placeholder="16" inputmode="numeric"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+          <div class="ea-f"><label>Schmerzskala (0–10)</label><input id="vSchmerz" type="number" min="0" max="10" placeholder="0" inputmode="numeric"></div>
+          <div class="ea-f"><label>Behandelnder Arzt</label><input id="vArzt" type="text" placeholder="Dr. …"></div>
+        </div>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--primary ea-btn--sm" onclick="saveDoku(true)" style="margin-top:4px;">💾 Speichern</button>
+    <div id="dokuSaved" class="ea-saved">✓ Gespeichert</div>
+  </div>
+
+  <!-- ══ WUNDEN ══ -->
+  <div class="ea-panel" id="panel-wunden">
+    <button class="ea-btn ea-btn--outline ea-btn--sm" onclick="addWound()" style="margin-bottom:12px;">🩹 Neue Wunde erfassen</button>
+    <div id="wundList"></div>
+  </div>
+
+  <!-- ══ AKUT ══ -->
+  <div class="ea-panel" id="panel-akut">
+    <div class="ea-akut-box"><strong>🚨 Akutbereich</strong>Strukturierte Ersterhebung, Risikoscreening und Ereignisdokumentation. Notruf: <strong>144</strong></div>
+    <div class="ea-grid2" style="margin-bottom:14px;">
+      <a href="tel:144" class="ea-btn ea-btn--red" style="text-decoration:none;">📞 144 Notruf</a>
+      <a href="tel:141" class="ea-btn ea-btn--outline" style="text-decoration:none;color:var(--navy);border-color:var(--navy);">☎️ 141 Arzt</a>
+    </div>
+
+    <!-- ABCDE Schema -->
+    <div class="ea-assess-st">🔡 ABCDE-Schema – Erstbeurteilung</div>
+
+    <!-- Gesamtstatus-Banner -->
+    <div class="ea-abcde-banner" id="abcdeBanner">
+      <div class="ea-abcde-banner__ico" id="abcdeBannerIco">🔍</div>
+      <div class="ea-abcde-banner__info">
+        <div class="ea-abcde-banner__label">Patientenstatus gesamt</div>
+        <div class="ea-abcde-banner__status" id="abcdeBannerStatus">Noch nicht bewertet</div>
+        <div class="ea-abcde-dots">
+          <div class="ea-abcde-dot" id="dotA">A</div>
+          <div class="ea-abcde-dot" id="dotB">B</div>
+          <div class="ea-abcde-dot" id="dotC">C</div>
+          <div class="ea-abcde-dot" id="dotD">D</div>
+          <div class="ea-abcde-dot" id="dotE">E</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ea-abc-card" id="rowA">
+      <div class="ea-abc-card__head">
+        <span class="ea-abc-card__letter">A</span>
+        <span class="ea-abc-card__title">Airway – Atemweg</span>
+      </div>
+      <div class="ea-abc-status-btns">
+        <button class="ea-abc-sbtn ea-abc-sbtn--ok"   onclick="abcdeSelect('A','ok',this)">✓ OK</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--warn"  onclick="abcdeSelect('A','warn',this)">⚠ Auffällig</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--krit"  onclick="abcdeSelect('A','krit',this)">✕ Kritisch</button>
+      </div>
+      <textarea id="abcA" rows="2" placeholder="z. B. Atemweg frei, keine Obstruktion, Seitenlage…"></textarea>
+    </div>
+    <div class="ea-abc-card" id="rowB">
+      <div class="ea-abc-card__head">
+        <span class="ea-abc-card__letter">B</span>
+        <span class="ea-abc-card__title">Breathing – Atmung</span>
+      </div>
+      <div class="ea-abc-status-btns">
+        <button class="ea-abc-sbtn ea-abc-sbtn--ok"   onclick="abcdeSelect('B','ok',this)">✓ OK</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--warn"  onclick="abcdeSelect('B','warn',this)">⚠ Auffällig</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--krit"  onclick="abcdeSelect('B','krit',this)">✕ Kritisch</button>
+      </div>
+      <textarea id="abcB" rows="2" placeholder="z. B. AF 18/min, SpO₂ 96 %, bds. vesikuläres Atemgeräusch…"></textarea>
+    </div>
+    <div class="ea-abc-card" id="rowC">
+      <div class="ea-abc-card__head">
+        <span class="ea-abc-card__letter">C</span>
+        <span class="ea-abc-card__title">Circulation – Kreislauf</span>
+      </div>
+      <div class="ea-abc-status-btns">
+        <button class="ea-abc-sbtn ea-abc-sbtn--ok"   onclick="abcdeSelect('C','ok',this)">✓ OK</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--warn"  onclick="abcdeSelect('C','warn',this)">⚠ Auffällig</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--krit"  onclick="abcdeSelect('C','krit',this)">✕ Kritisch</button>
+      </div>
+      <textarea id="abcC" rows="2" placeholder="z. B. Puls 88/min reg., RR 120/80 mmHg, Haut warm/rosig…"></textarea>
+    </div>
+    <div class="ea-abc-card" id="rowD">
+      <div class="ea-abc-card__head">
+        <span class="ea-abc-card__letter">D</span>
+        <span class="ea-abc-card__title">Disability – Neurologie</span>
+      </div>
+      <div class="ea-abc-status-btns">
+        <button class="ea-abc-sbtn ea-abc-sbtn--ok"   onclick="abcdeSelect('D','ok',this)">✓ OK</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--warn"  onclick="abcdeSelect('D','warn',this)">⚠ Auffällig</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--krit"  onclick="abcdeSelect('D','krit',this)">✕ Kritisch</button>
+      </div>
+      <textarea id="abcD" rows="2" placeholder="z. B. wach/orientiert, GCS 15, Pupillen isokor/lichtreagibel, BZ 98 mg/dl…"></textarea>
+    </div>
+    <div class="ea-abc-card" id="rowE">
+      <div class="ea-abc-card__head">
+        <span class="ea-abc-card__letter">E</span>
+        <span class="ea-abc-card__title">Exposure – Entkleidung</span>
+      </div>
+      <div class="ea-abc-status-btns">
+        <button class="ea-abc-sbtn ea-abc-sbtn--ok"   onclick="abcdeSelect('E','ok',this)">✓ OK</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--warn"  onclick="abcdeSelect('E','warn',this)">⚠ Auffällig</button>
+        <button class="ea-abc-sbtn ea-abc-sbtn--krit"  onclick="abcdeSelect('E','krit',this)">✕ Kritisch</button>
+      </div>
+      <textarea id="abcE" rows="2" placeholder="z. B. Temp 36,8 °C, keine sichtbaren Verletzungen, Patient lag am Boden…"></textarea>
+    </div>
+    <button class="ea-btn ea-btn--outline ea-btn--sm ea-assess-save" onclick="saveAbcde(true)">💾 ABCDE speichern</button>
+    <div id="abcdeSaved" class="ea-saved">✓ Gespeichert</div>
+
+    <!-- SAMPLE Anamnese -->
+    <div class="ea-assess-st">📋 SAMPLE – Kurzanamnese</div>
+    <div class="ea-abc-row ea-abc-row--s">
+      <div class="ea-abc-letter">S<small>Signs</small></div>
+      <div class="ea-abc-right">
+        <label>Symptome &amp; Beschwerden</label>
+        <input id="smpS" type="text" placeholder="z. B. Brustschmerz, Atemnot, Schwindel…">
+      </div>
+    </div>
+    <div class="ea-abc-row ea-abc-row--sm">
+      <div class="ea-abc-letter">A<small>Allerg.</small></div>
+      <div class="ea-abc-right">
+        <label>Allergien</label>
+        <input id="smpA" type="text" placeholder="z. B. Penicillin, Latex, keine bekannt…">
+      </div>
+    </div>
+    <div class="ea-abc-row ea-abc-row--p">
+      <div class="ea-abc-letter">M<small>Medik.</small></div>
+      <div class="ea-abc-right">
+        <label>Medikamente (aktuelle Einnahme)</label>
+        <input id="smpM" type="text" placeholder="z. B. Metformin 500 mg, ASS 100 mg…">
+      </div>
+    </div>
+    <div class="ea-abc-row ea-abc-row--sm">
+      <div class="ea-abc-letter">P<small>Past</small></div>
+      <div class="ea-abc-right">
+        <label>Vorerkrankungen / relevante Anamnese</label>
+        <input id="smpP" type="text" placeholder="z. B. Diabetes Typ 2, Hypertonie, Herzinsuffizienz…">
+      </div>
+    </div>
+    <div class="ea-abc-row ea-abc-row--l">
+      <div class="ea-abc-letter">L<small>Last</small></div>
+      <div class="ea-abc-right">
+        <label>Letzte Mahlzeit / Flüssigkeit</label>
+        <input id="smpL" type="text" placeholder="z. B. heute Früh 07:00 Uhr, Tee und Brot…">
+      </div>
+    </div>
+    <div class="ea-abc-row ea-abc-row--ev">
+      <div class="ea-abc-letter">E<small>Events</small></div>
+      <div class="ea-abc-right">
+        <label>Ereignis – Was ist passiert?</label>
+        <textarea id="smpE" rows="2" placeholder="z. B. Patient hat sich beim Aufstehen übergeben, danach Schwindel…"></textarea>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--outline ea-btn--sm ea-assess-save" onclick="saveSample(true)">💾 SAMPLE speichern</button>
+    <div id="sampleSaved" class="ea-saved">✓ Gespeichert</div>
+
+    <!-- Glasgow Koma Skala -->
+    <div class="ea-assess-st">🧠 Glasgow Koma Skala (GCS)</div>
+    <div class="ea-score-card">
+      <div class="ea-score-head" onclick="toggleSection('gcsBody')">
+        <span class="ea-score-head__title">🧠 Glasgow Koma Skala</span>
+        <span class="ea-score-head__badge" id="gcsBadge">– / 15</span>
+      </div>
+      <div class="ea-score-body" id="gcsBody">
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">E – Augen öffnen</div>
+          <div class="ea-score-btns" id="gcsE">
+            <button class="ea-score-btn" data-g="E" data-v="4" onclick="gcsSelect('E',4,this)">4<br>Spontan</button>
+            <button class="ea-score-btn" data-g="E" data-v="3" onclick="gcsSelect('E',3,this)">3<br>Auf Anruf</button>
+            <button class="ea-score-btn" data-g="E" data-v="2" onclick="gcsSelect('E',2,this)">2<br>Auf Schmerz</button>
+            <button class="ea-score-btn" data-g="E" data-v="1" onclick="gcsSelect('E',1,this)">1<br>Keine</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">V – Verbale Antwort</div>
+          <div class="ea-score-btns" id="gcsV">
+            <button class="ea-score-btn" data-g="V" data-v="5" onclick="gcsSelect('V',5,this)">5<br>Orientiert</button>
+            <button class="ea-score-btn" data-g="V" data-v="4" onclick="gcsSelect('V',4,this)">4<br>Verwirrt</button>
+            <button class="ea-score-btn" data-g="V" data-v="3" onclick="gcsSelect('V',3,this)">3<br>Worte</button>
+            <button class="ea-score-btn" data-g="V" data-v="2" onclick="gcsSelect('V',2,this)">2<br>Laute</button>
+            <button class="ea-score-btn" data-g="V" data-v="1" onclick="gcsSelect('V',1,this)">1<br>Keine</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">M – Motorische Antwort</div>
+          <div class="ea-score-btns" id="gcsM">
+            <button class="ea-score-btn" data-g="M" data-v="6" onclick="gcsSelect('M',6,this)">6<br>Auf Befehl</button>
+            <button class="ea-score-btn" data-g="M" data-v="5" onclick="gcsSelect('M',5,this)">5<br>Gezielt</button>
+            <button class="ea-score-btn" data-g="M" data-v="4" onclick="gcsSelect('M',4,this)">4<br>Abwehr</button>
+            <button class="ea-score-btn" data-g="M" data-v="3" onclick="gcsSelect('M',3,this)">3<br>Beugung</button>
+            <button class="ea-score-btn" data-g="M" data-v="2" onclick="gcsSelect('M',2,this)">2<br>Streckung</button>
+            <button class="ea-score-btn" data-g="M" data-v="1" onclick="gcsSelect('M',1,this)">1<br>Keine</button>
+          </div>
+        </div>
+        <div class="ea-score-total">
+          <div class="ea-score-total__num" id="gcsTotalNum">–</div>
+          <div class="ea-score-total__info">
+            <div class="ea-score-total__level" id="gcsTotalLevel">Noch nicht bewertet</div>
+            <div class="ea-score-total__range">E+V+M · Skala 3–15</div>
+          </div>
+        </div>
+        <div class="ea-f" style="margin-top:8px;"><label style="font-size:.7rem;color:var(--muted);">Bemerkung (Pupillen, BZ, etc.)</label>
+          <input id="gcsBem" type="text" placeholder="z. B. Pupillen isokor, BZ 112 mg/dl…">
+        </div>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--outline ea-btn--sm ea-assess-save" onclick="saveGcs(true)">💾 GCS speichern</button>
+    <div id="gcsSaved" class="ea-saved">✓ Gespeichert</div>
+
+    <!-- Sturzrisiko (Morse Fall Scale) -->
+    <div class="ea-assess-st">🦽 Sturzrisiko-Einschätzung (Morse Fall Scale)</div>
+    <div class="ea-score-card">
+      <div class="ea-score-head" onclick="toggleSection('morseBody')">
+        <span class="ea-score-head__title">🦽 Sturzrisiko (Morse)</span>
+        <span class="ea-score-head__badge" id="morseBadge">Nicht erhoben</span>
+      </div>
+      <div class="ea-score-body" id="morseBody">
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">1. Sturzereignis in der Vergangenheit</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="morseSelect('m1',0,this)">0 – Nein</button>
+            <button class="ea-score-btn" onclick="morseSelect('m1',25,this)">25 – Ja</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">2. Sekundärdiagnose vorhanden</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="morseSelect('m2',0,this)">0 – Nein</button>
+            <button class="ea-score-btn" onclick="morseSelect('m2',15,this)">15 – Ja</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">3. Gehhilfe verwendet</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="morseSelect('m3',0,this)">0<br>Keine/Bettruhe</button>
+            <button class="ea-score-btn" onclick="morseSelect('m3',15,this)">15<br>Krücken/Stock</button>
+            <button class="ea-score-btn" onclick="morseSelect('m3',30,this)">30<br>Hält sich fest</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">4. IV-Zugang / Heparin-Lock</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="morseSelect('m4',0,this)">0 – Nein</button>
+            <button class="ea-score-btn" onclick="morseSelect('m4',20,this)">20 – Ja</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">5. Gang / Bewegung</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="morseSelect('m5',0,this)">0<br>Normal/Bettruhe</button>
+            <button class="ea-score-btn" onclick="morseSelect('m5',10,this)">10<br>Schwach</button>
+            <button class="ea-score-btn" onclick="morseSelect('m5',20,this)">20<br>Eingeschränkt</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">6. Kognition / Selbsteinschätzung</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="morseSelect('m6',0,this)">0<br>Grenzen bekannt</button>
+            <button class="ea-score-btn" onclick="morseSelect('m6',15,this)">15<br>Überschätzt sich</button>
+          </div>
+        </div>
+        <div class="ea-score-total">
+          <div class="ea-score-total__num" id="morseTotalNum">–</div>
+          <div class="ea-score-total__info">
+            <div class="ea-score-total__level" id="morseTotalLevel">Noch nicht erhoben</div>
+            <div class="ea-score-total__range">Skala 0–125 · 0–24 kein Risiko · 25–50 mittel · ≥51 hoch</div>
+          </div>
+        </div>
+        <div class="ea-f" style="margin-top:8px;"><label style="font-size:.7rem;color:var(--muted);">Maßnahmen / Bemerkung</label>
+          <textarea id="morseBem" rows="2" placeholder="z. B. Bettgitter angebracht, Klingel in Reichweite, Rutschsocken…"></textarea>
+        </div>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--outline ea-btn--sm ea-assess-save" onclick="saveMorse(true)">💾 Sturzrisiko speichern</button>
+    <div id="morseSaved" class="ea-saved">✓ Gespeichert</div>
+
+    <!-- Dekubitus-Risiko (Braden-Skala) -->
+    <div class="ea-assess-st">🛏️ Dekubitus-Risiko (Braden-Skala)</div>
+    <div class="ea-score-card">
+      <div class="ea-score-head" onclick="toggleSection('bradenBody')">
+        <span class="ea-score-head__title">🛏️ Dekubitusrisiko (Braden)</span>
+        <span class="ea-score-head__badge" id="bradenBadge">Nicht erhoben</span>
+      </div>
+      <div class="ea-score-body" id="bradenBody">
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">1. Sinneswahrnehmung</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="bradenSelect('b1',1,this)">1<br>Vollst. eingeschr.</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b1',2,this)">2<br>Stark eingeschr.</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b1',3,this)">3<br>Leicht eingeschr.</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b1',4,this)">4<br>Normal</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">2. Feuchtigkeit der Haut</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="bradenSelect('b2',1,this)">1<br>Ständig feucht</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b2',2,this)">2<br>Sehr feucht</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b2',3,this)">3<br>Manchmal feucht</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b2',4,this)">4<br>Selten feucht</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">3. Aktivität</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="bradenSelect('b3',1,this)">1<br>Bettlägerig</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b3',2,this)">2<br>Sitzt</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b3',3,this)">3<br>Geht selten</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b3',4,this)">4<br>Geht oft</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">4. Mobilität</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="bradenSelect('b4',1,this)">1<br>Vollst. immobil</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b4',2,this)">2<br>Stark eingeschr.</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b4',3,this)">3<br>Leicht eingeschr.</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b4',4,this)">4<br>Keine Einschränk.</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">5. Ernährung</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="bradenSelect('b5',1,this)">1<br>Sehr schlecht</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b5',2,this)">2<br>Mangelhaft</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b5',3,this)">3<br>Ausreichend</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b5',4,this)">4<br>Gut</button>
+          </div>
+        </div>
+        <div class="ea-score-row">
+          <div class="ea-score-row__label">6. Reibung &amp; Scherkräfte</div>
+          <div class="ea-score-btns">
+            <button class="ea-score-btn" onclick="bradenSelect('b6',1,this)">1<br>Problem</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b6',2,this)">2<br>Pot. Problem</button>
+            <button class="ea-score-btn" onclick="bradenSelect('b6',3,this)">3<br>Kein Problem</button>
+          </div>
+        </div>
+        <div class="ea-score-total">
+          <div class="ea-score-total__num" id="bradenTotalNum">–</div>
+          <div class="ea-score-total__info">
+            <div class="ea-score-total__level" id="bradenTotalLevel">Noch nicht erhoben</div>
+            <div class="ea-score-total__range">Skala 6–23 · ≤9 sehr hoch · 10–12 hoch · 13–14 mäßig · 15–18 gering · ≥19 kein</div>
+          </div>
+        </div>
+        <div class="ea-f" style="margin-top:8px;"><label style="font-size:.7rem;color:var(--muted);">Maßnahmen / Bemerkung</label>
+          <textarea id="bradenBem" rows="2" placeholder="z. B. Weichlagerungsmatratze, Umlagerung alle 2h, Hautpflege…"></textarea>
+        </div>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--outline ea-btn--sm ea-assess-save" onclick="saveBraden(true)">💾 Dekubitusrisiko speichern</button>
+    <div id="bradenSaved" class="ea-saved">✓ Gespeichert</div>
+
+    <!-- Akutes Ereignis -->
+    <div class="ea-assess-st">🚨 Akutes Ereignis dokumentieren</div>
+    <div class="ea-card">
+      <div class="ea-card__head">🚨 Zwischenfall erfassen</div>
+      <div class="ea-card__body">
+        <div class="ea-fgroup">
+          <div class="ea-f"><label>Ereigniszeit</label><input id="akutZeit" type="time"></div>
+          <div class="ea-f"><label>Art des Ereignisses</label>
+            <select id="akutArt">
+              <option value="">– bitte wählen –</option>
+              <option>Sturz</option><option>Bewusstseinstrübung</option>
+              <option>Atemnot</option><option>Krampfanfall</option>
+              <option>Herzrhythmusstörung</option><option>Hypoglykämie</option>
+              <option>Hyperglykämie</option><option>Blutung</option><option>Sonstiges</option>
+            </select>
+          </div>
+          <div class="ea-f"><label>Beschreibung</label><textarea id="akutBeschr" rows="3" placeholder="Was ist passiert? Wann? Wie reagierte der Patient?"></textarea></div>
+          <div class="ea-f"><label>Erstmaßnahmen</label><textarea id="akutMassnahmen" rows="2" placeholder="Welche Sofortmaßnahmen wurden ergriffen?"></textarea></div>
+          <div class="ea-f"><label>Notruf abgesetzt?</label>
+            <select id="akutNotruf">
+              <option value="nein">Nein</option>
+              <option value="ja">Ja – Rettungsdienst gerufen</option>
+              <option value="arzt">Ja – Arzt verständigt</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--primary ea-btn--sm" onclick="saveAkut(true)">💾 Ereignis speichern</button>
+    <div id="akutSaved" class="ea-saved">✓ Gespeichert</div>
+  </div>
+
+  <!-- ══ SCHMERZ / IV ══ -->
+  <div class="ea-panel" id="panel-schmerz">
+    <div class="ea-st">Schmerzassessment</div>
+    <div class="ea-card">
+      <div class="ea-card__head">💊 Schmerz NRS 0–10</div>
+      <div class="ea-card__body">
+        <div class="ea-pain-scale" id="painScale"></div>
+        <div class="ea-fgroup" style="margin-top:12px;">
+          <div class="ea-f"><label>Schmerzlokalisation</label><input id="painLoc" type="text" placeholder="z. B. linke Schulter, Unterbauch …"></div>
+          <div class="ea-f"><label>Schmerzqualität</label>
+            <select id="painQual">
+              <option>– bitte wählen –</option><option>Drückend</option><option>Stechend</option>
+              <option>Brennend</option><option>Ziehend</option><option>Pulsierend</option>
+              <option>Dumpf</option><option>Krampfartig</option><option>Sonstiges</option>
+            </select>
+          </div>
+          <div class="ea-f"><label>Medikament (nach AVO)</label><input id="painMed" type="text" placeholder="z. B. Paracetamol 500mg"></div>
+          <div class="ea-f"><label>Wirkung / Bemerkung</label><textarea id="painNote" rows="2" placeholder="Wirkung der Maßnahme, Verlauf …"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="ea-st">Infusionstherapie (IV)</div>
+    <div class="ea-card">
+      <div class="ea-card__head">💉 IV / Infusion</div>
+      <div class="ea-card__body">
+        <div class="ea-fgroup">
+          <div class="ea-f"><label>Lösung / Medikament</label><input id="ivMed" type="text" placeholder="z. B. NaCl 0.9% 500ml"></div>
+          <div class="ea-f"><label>Zugangsstelle</label><input id="ivZugang" type="text" placeholder="z. B. V. cubiti rechts"></div>
+          <div class="ea-f"><label>Beginn</label><input id="ivBeginn" type="time"></div>
+          <div class="ea-f"><label>Rate / Tropfen</label><input id="ivRate" type="text" placeholder="z. B. 30 Tr/min"></div>
+          <div class="ea-f"><label>Bemerkung</label><textarea id="ivNote" rows="2" placeholder="Komplikationen, Paravasate …"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <button class="ea-btn ea-btn--primary ea-btn--sm" onclick="saveSchmerz(true)">💾 Speichern</button>
+    <div id="schmerzSaved" class="ea-saved">✓ Gespeichert</div>
+  </div>
+
+  <!-- ══ UPLOADS ══ -->
+  <div class="ea-panel" id="panel-uploads">
+    <div class="ea-upload-box" onclick="document.getElementById('fileInp').click()">
+      <div class="ea-upload-box__ico">📷</div>
+      <div class="ea-upload-box__txt">Foto aufnehmen oder Datei wählen</div>
+    </div>
+    <input type="file" id="fileInp" accept="image/*,application/pdf,.doc,.docx,.txt" multiple style="display:none;" onchange="handleFiles(this)">
+    <div id="uploadProgress" style="display:none;font-size:.8rem;color:var(--muted);text-align:center;padding:6px 0">⏳ Wird hochgeladen…</div>
+    <div id="uploadError" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;color:#dc2626;font-size:.85rem;font-weight:600;padding:10px 14px;margin-bottom:8px;">⚠️ <span id="uploadErrorText"></span></div>
+    <div class="ea-st">Hochgeladene Dateien</div>
+    <div id="fileList" class="ea-file-list">
+      <div class="ea-empty"><div class="ea-empty__ico">📎</div>Noch keine Dateien.</div>
+    </div>
+  </div>
+
+  <!-- ══ ABSCHLUSS ══ -->
+  <div class="ea-panel" id="panel-abschluss">
+    <div class="ea-st">Einsatzzusammenfassung</div>
+    <div class="ea-card">
+      <div class="ea-card__head">📊 Übersicht</div>
+      <div id="abschlussSum">
+        <div class="ea-sum-item"><span class="ea-sum-item__ico">🧑</span><div><div class="ea-sum-item__lbl">Patient</div><div class="ea-sum-item__val" id="absPat">–</div></div></div>
+        <div class="ea-sum-item"><span class="ea-sum-item__ico">⏱</span><div><div class="ea-sum-item__lbl">Ankunftszeit</div><div class="ea-sum-item__val" id="absAnkunft">–</div></div></div>
+        <div class="ea-sum-item"><span class="ea-sum-item__ico">✅</span><div><div class="ea-sum-item__lbl">Durchgeführte Maßnahmen</div><div class="ea-sum-item__val" id="absDf">–</div></div></div>
+        <div class="ea-sum-item"><span class="ea-sum-item__ico">❤️</span><div><div class="ea-sum-item__lbl">Vitalzeichen erfasst</div><div class="ea-sum-item__val" id="absVital">–</div></div></div>
+        <div class="ea-sum-item"><span class="ea-sum-item__ico">📝</span><div><div class="ea-sum-item__lbl">Dokumentation</div><div class="ea-sum-item__val" id="absDoku">–</div></div></div>
+        <div class="ea-sum-item"><span class="ea-sum-item__ico">🩹</span><div><div class="ea-sum-item__lbl">Wunden dokumentiert</div><div class="ea-sum-item__val" id="absWunden">–</div></div></div>
+      </div>
+    </div>
+
+    <div class="ea-st">Abschluss</div>
+    <div class="ea-card">
+      <div class="ea-card__body">
+        <div class="ea-fgroup">
+          <div class="ea-f"><label>Verlassenszeit</label><input id="absVerlassen" type="time"></div>
+          <div class="ea-f"><label>Übergabe / Besonderheiten</label><textarea id="absUebergabe" rows="3" placeholder="An wen wurde übergeben? Besondere Vorkommnisse?"></textarea></div>
+          <div class="ea-f"><label>Nächster Termin</label><input id="absNaechster" type="text" placeholder="z. B. morgen 08:00 Uhr"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ea-st">Einverständnis &amp; Unterschrift Patient</div>
+    <div class="ea-card">
+      <div class="ea-card__body">
+
+        <div class="ea-f" style="margin-bottom:12px;">
+          <label>Wer unterschreibt?</label>
+          <div class="ea-sign-sel">
+            <label class="ea-sign-sel__item">
+              <input type="radio" name="signTyp" value="patient" id="signTypPatient" checked>
+              <span>Patient selbst</span>
+            </label>
+            <label class="ea-sign-sel__item">
+              <input type="radio" name="signTyp" value="angehoerig" id="signTypAngehoerig">
+              <span>Angehöriger</span>
+            </label>
+            <label class="ea-sign-sel__item">
+              <input type="radio" name="signTyp" value="sachwalter" id="signTypSachwalter">
+              <span>Sachwalter / Vorsorgebevollmächtigter</span>
+            </label>
+            <label class="ea-sign-sel__item ea-sign-sel__item--warn">
+              <input type="radio" name="signTyp" value="nichtmoeglich" id="signTypNicht">
+              <span>Unterschrift nicht möglich</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Name des Unterzeichners (Angehöriger / Sachwalter) -->
+        <div class="ea-fgroup" id="signSignerNameGroup" style="display:none;margin-bottom:12px;">
+          <div class="ea-f">
+            <label id="signSignerLabel">Name Angehöriger</label>
+            <input id="signSignerName" type="text" placeholder="Vor- und Nachname">
+          </div>
+        </div>
+
+        <!-- Unterschrifts-Canvas -->
+        <div id="signCanvasGroup">
+          <div class="ea-sign-canvas-wrap">
+            <canvas id="signCanvas" class="ea-sign-canvas" width="600" height="160"></canvas>
+            <button class="ea-sign-clear" type="button" onclick="clearSignature()">✕ Löschen</button>
+          </div>
+          <div class="ea-sign-hint">✍️ Unterschrift mit Finger oder Stift eintragen</div>
+        </div>
+
+        <!-- Unterschrift nicht möglich -->
+        <div id="signNichtMoeglichGroup" style="display:none;">
+          <div class="ea-fgroup" style="margin-bottom:10px;">
+            <div class="ea-f">
+              <label>Grund der Unterschriftsunmöglichkeit</label>
+              <select id="signNichtGrund">
+                <option value="">Bitte auswählen…</option>
+                <option value="bewusstlos">Bewusstlosigkeit / Handlungsunfähigkeit</option>
+                <option value="motorisch">Motorische Einschränkung (z. B. Lähmung, Tremor)</option>
+                <option value="kognitiv">Kognitive Einschränkung (Demenz, Desorientiertheit)</option>
+                <option value="ablehnung">Patient lehnt Unterschrift ab</option>
+                <option value="sonstiges">Sonstiges</option>
+              </select>
+            </div>
+          </div>
+          <label class="ea-sign-muendlich" for="signMuendlich">
+            <input type="checkbox" id="signMuendlich">
+            <span>Patient wurde <strong>mündlich informiert</strong> und ist mit der Durchführung <strong>einverstanden</strong></span>
+          </label>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ea-st" style="margin-top:4px;">Pflegekraft</div>
+    <div class="ea-card">
+      <div class="ea-card__body">
+        <div class="ea-fgroup">
+          <div class="ea-f"><label>Name Pflegekraft</label><input id="absName" type="text" placeholder="Vor- und Nachname"></div>
+          <div class="ea-f"><label>Dienstnummer / Kürzel</label><input id="absDNr" type="text" placeholder="z. B. PK-042"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="ea-btn ea-btn--green" onclick="completeEinsatz()" style="margin-top:8px;font-size:.95rem;">✅ Einsatz abschließen</button>
+    <div class="ea-done-box" id="eaDoneBox">✅ Einsatz erfolgreich abgeschlossen</div>
+  </div>
+
+</main>
+
+<!-- ── STATUS BAR ── -->
+<div class="ea-sbar">
+  <button class="ea-sbtn ea-sbtn--weg" id="sb_unterwegs" onclick="setStatus('unterwegs')">🚗 Unterwegs</button>
+  <button class="ea-sbtn ea-sbtn--ein" id="sb_eingetroffen" onclick="setStatus('eingetroffen')">🏠 Eingetroffen</button>
+  <button class="ea-sbtn ea-sbtn--end" id="sb_beendet" onclick="setStatus('beendet')">✅ Beendet</button>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════
+   EINSATZAKTE – Hauptskript
+   Daten: /api/einsaetze/aktuell | ?id=<eid>
+   Speicherung: localStorage pro Einsatz-ID
+═══════════════════════════════════════════════════ */
+
+var EID = null, einsatz = null, status = 'alarmiert', _lastLsGeaendert = '';
+var problems = [], wounds = [], uploads = [], painSel = null;
+
+/* ── Storage ── */
+var S = {
+  get:  function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set:  function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  getJ: function(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } },
+  setJ: function(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+function key(s){ return 'nursy_ea_'+(EID||'demo')+'_'+s; }
+
+/* ── Helpers ── */
+function txt(id,v){ var e=document.getElementById(id); if(e) e.textContent=v||'–'; }
+function sho(id){ var e=document.getElementById(id); if(e) e.style.display=''; }
+function hid(id){ var e=document.getElementById(id); if(e) e.style.display='none'; }
+function val(id){ var e=document.getElementById(id); return e?e.value:''; }
+function fmtD(iso){ if(!iso) return '–'; var p=iso.split('-'); return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:iso; }
+function escH(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+function escA(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+window.showSaved = function(id){
+  var e=document.getElementById(id); if(!e) return;
+  e.classList.add('show'); clearTimeout(e._t);
+  e._t=setTimeout(function(){ e.classList.remove('show'); },2000);
+};
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', function(){
+  // Tabs
+  document.querySelectorAll('.ea-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){ showTab(this.dataset.tab); });
+  });
+
+  // Pain scale
+  var ps = document.getElementById('painScale');
+  for(var i=0;i<=10;i++){
+    (function(n){
+      var b=document.createElement('button');
+      b.className='ea-pain-btn '+(n<=3?'low':n<=6?'mid':'high');
+      b.textContent=n;
+      b.addEventListener('click',function(){
+        painSel=n;
+        ps.querySelectorAll('.ea-pain-btn').forEach(function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+      });
+      ps.appendChild(b);
+    })(i);
+  }
+
+  // Auto-save on change
+  var autoSaveDoku=['dokuAnkunft','dokuVerlauf','dokuVerlassen','dokuBesonders',
+    'vBD','vPuls','vTemp','vSpo2','vBZ','vAF','vSchmerz','vArzt'];
+  autoSaveDoku.forEach(function(id){
+    var e=document.getElementById(id);
+    if(e) e.addEventListener('change',function(){ saveDoku(false); });
+  });
+  ['painLoc','painQual','painMed','painNote','ivMed','ivZugang','ivBeginn','ivRate','ivNote'].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e) e.addEventListener('change',function(){ saveSchmerz(false); });
+  });
+  ['akutZeit','akutArt','akutBeschr','akutMassnahmen','akutNotruf'].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e) e.addEventListener('change',function(){ saveAkut(false); });
+  });
+
+  // Wunden tab
+  document.querySelector('[data-tab="wunden"]').addEventListener('click', loadWunden);
+
+  // Default Verlassenszeit
+  var now=new Date();
+  var hm=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  var vel=document.getElementById('absVerlassen');
+  if(vel && !vel.value) vel.value=hm;
+
+  initMission();
+});
+
+/* ── Schicht beenden ── */
+window.schichtBeenden = function(){
+  if(!confirm('Schicht beenden und Fahrzeug abmelden?')) return;
+  fetch('/api/fahrzeuge/abmelden', {method:'POST',credentials:'include'})
+    .catch(function(){})
+    .finally(function(){
+      try{ localStorage.removeItem('nursy_me'); localStorage.removeItem('nursy_token'); }catch(e){}
+      window.location.href = '/auftragslage/login';
+    });
+};
+
+/* ── Auth & Mission Load ── */
+function initMission(){
+  fetch('/api/me',{credentials:'include'})
+    .then(function(r){ if(!r.ok) throw new Error('401'); return r.json(); })
+    .then(function(meData){
+      // Access guard: only fahrzeug crew, leitstelle and admin may view this page
+      var u=meData.user||{};
+      if(u.role==='care' && !u.fahrzeug){
+        window.location.href='/auftragslage/'; return Promise.reject('no_access');
+      }
+      // Persist vehicle info locally
+      try{
+        if(u.fahrzeug){ var stored=JSON.parse(localStorage.getItem('nursy_me')||'{}'); stored.fahrzeug=u.fahrzeug; localStorage.setItem('nursy_me',JSON.stringify(stored)); }
+      }catch(e){}
+      var p=new URLSearchParams(window.location.search);
+      EID=p.get('id')||null;
+      var url=EID?'/api/einsaetze/'+EID:'/api/einsaetze/aktuell';
+      return fetch(url,{credentials:'include'}).then(function(r){
+        if(!r.ok) throw new Error('no_einsatz');
+        return r.json();
+      });
+    })
+    .then(function(d){ EID=d.id||EID; applyEinsatz(d); })
+    .catch(function(err){
+      if(err==='no_access') return;
+      if(err.message==='401'){ window.location.href='/auftragslage/login'; return; }
+      applyEinsatz(demoEinsatz());
+    });
+}
+
+function demoEinsatz(){
+  return {
+    id:'demo',nummer:'EA-2024-001',art:'Hauskrankenpflege',dringlichkeit:'Normal',
+    datum:'2024-01-15',zeit:'08:30',status:'alarmiert',fahrzeug:'HKP-01',qualifikation:'DGKP',
+    patient_name:'Maria Muster',patient_geburt:'1945-03-12',patient_sv:'1234 120345',
+    patient_tel:'+43 664 123 456 7',patient_adresse:'Musterstraße 12',
+    patient_plz:'4020',patient_ort:'Linz',bezirk:'Linz-Stadt',
+    schluessel:'Safe #3 · Code: 1234',adressinfo:'3. Stock, Tür 12',
+    problem:'Morgenroutine: Körperpflege, Mobilisation, Medikamentengabe\nBewohnerin gut ansprechbar.',
+    risiken:['Sturzrisiko','Demenz'],allergien:'Penizillin',
+    medikamente:'Metformin 500mg, Ramipril 5mg',anordnungen:'Blutzucker messen, BD-Kontrolle',
+    ang_name:'Hans Muster',ang_tel:'+43 699 987 654 3',
+    notiz:'Schlüssel bei Nachbarin (Frau Hofer, Tür 10) als Backup'
+  };
+}
+
+/* ── Apply mission data ── */
+function applyEinsatz(e){
+  einsatz=e; EID=e.id||EID; status=e.status||'alarmiert';
+  _lastLsGeaendert = e.ls_geaendert || '';
+  hid('eaLoading'); sho('eaAuftragContent');
+
+  txt('eaPatName',e.patient_name||'Patient');
+  txt('eaNr',e.nummer||e.id||'–');
+  txt('eaZeit',(e.datum?fmtD(e.datum)+' ':''+(e.zeit?e.zeit+' Uhr':'')));
+  // Show vehicle badge
+  try{
+    var me=JSON.parse(localStorage.getItem('nursy_me')||'{}');
+    var fzEl=document.getElementById('eaFahrzeug');
+    var fzName=me.fahrzeug||e.fahrzeug||'';
+    if(fzEl && fzName){ fzEl.textContent='🚗 '+fzName; fzEl.style.display=''; }
+  }catch(e2){}
+
+  txt('aiNr',e.nummer||e.id||'–');
+  txt('aiArt',e.art||'–');
+  txt('aiDring',e.dringlichkeit||'–');
+  txt('aiZeit',(e.datum?fmtD(e.datum)+' ':''+(e.zeit?e.zeit+' Uhr':'–')));
+  txt('aiFz',e.fahrzeug||'–');
+  txt('aiQual',e.qualifikation||'–');
+
+  txt('aiPat',e.patient_name||'–');
+  txt('aiGeb',fmtD(e.patient_geburt));
+  txt('aiTel',e.patient_tel||'–');
+  if(e.patient_sv){ txt('aiSv',e.patient_sv); sho('aiSvRow'); }
+
+  var adr=[e.patient_adresse,(e.patient_plz||'')+' '+(e.patient_ort||'')].filter(Boolean).join(', ').trim();
+  txt('aiAdr',adr||e.patient_adresse||'–');
+  txt('aiBez',e.bezirk||'–');
+  if(e.schluessel){ txt('aiSchl',e.schluessel); sho('aiSchlRow'); }
+  if(e.adressinfo){ txt('aiHinw',e.adressinfo); sho('aiHinwRow'); txt('aiStock',e.adressinfo); sho('aiStockRow'); }
+
+  var mapsUrl = adr ? 'https://maps.google.com/?q=' + encodeURIComponent(adr) : null;
+  var mapBtn=document.getElementById('aiMapBtn');
+  if(mapBtn && mapsUrl) mapBtn.href = mapsUrl;
+  var btnNav=document.getElementById('btnNav');
+  if(btnNav){
+    if(mapsUrl){
+      btnNav.onclick=function(){ window.open(mapsUrl,'_blank'); };
+      btnNav.disabled=false; btnNav.style.opacity='';
+    } else {
+      btnNav.disabled=true; btnNav.style.opacity='.45';
+    }
+  }
+
+  txt('aiProblem',e.problem||'–');
+  if(e.notiz){ txt('aiNotiz',e.notiz); sho('aiNotizRow'); }
+
+  // Alarm banner
+  var banner=document.getElementById('eaAlarmBanner');
+  if(banner) banner.style.display=status==='alarmiert'?'flex':'none';
+  txt('eaAlarmTitle',e.art||'Neuer Einsatz');
+  txt('eaAlarmSub','Fahrzeug '+(e.fahrzeug||'–')+' · '+(e.dringlichkeit||'')+'  · Bitte Status setzen');
+
+  // Risiken
+  var ris=Array.isArray(e.risiken)?e.risiken:(typeof e.risiken==='string'&&e.risiken?[e.risiken]:[]);
+  if(ris.length){
+    var rc=document.getElementById('aiRisiken');
+    ris.forEach(function(r){ var s=document.createElement('span'); s.className='ea-tag'; s.textContent=r; rc.appendChild(s); });
+    sho('aiRisCard');
+  }
+
+  // Medizin
+  txt('aiAll',e.allergien||'Keine bekannt');
+  if(e.allergien&&e.allergien.trim()&&e.allergien.toLowerCase()!=='keine'){
+    var ae=document.getElementById('aiAll'); if(ae) ae.classList.add('ea-row__v--red');
+  }
+  txt('aiMed',e.medikamente||'–');
+  txt('aiAno',e.anordnungen||'–');
+
+  if(e.ang_name){ txt('aiAngName',e.ang_name); txt('aiAngTel',e.ang_tel||'–'); sho('aiAngCard'); }
+
+  // Call buttons
+  var tel=e.patient_tel;
+  document.getElementById('btnCall').onclick=function(){ if(tel) window.location.href='tel:'+tel.replace(/\s/g,''); };
+  var atl=e.ang_tel;
+  document.getElementById('btnCallAng').onclick=function(){ if(atl) window.location.href='tel:'+atl.replace(/\s/g,''); else alert('Keine Nummer hinterlegt.'); };
+
+  /* Gespeicherte Zeitstempel vom Server → localStorage übertragen */
+  if(e.zeit_eingetroffen && !S.get(key('ankunft'))){
+    S.set(key('ankunft'), e.zeit_eingetroffen);
+  }
+  var ankEl = document.getElementById('absAnkunft');
+  var ankVal = S.get(key('ankunft'));
+  if(ankEl && ankVal) ankEl.textContent = ankVal + ' Uhr';
+
+  renderStatus();
+  generateProblems(e);
+  loadSavedData();
+  if(EID&&EID!=='demo') setInterval(pollStatus,30000);
+}
+
+/* ── Status ── */
+var SL={alarmiert:'Alarmiert',unterwegs:'Unterwegs',eingetroffen:'Eingetroffen',beendet:'Beendet',einsatzbereit:'Einsatzbereit'};
+var SC={unterwegs:'ea-badge--unterwegs',eingetroffen:'ea-badge--eingetroffen',beendet:'ea-badge--beendet'};
+
+function renderStatus(){
+  var b=document.getElementById('eaStatusBadge');
+  if(b){ b.className='ea-badge '+(SC[status]||''); b.textContent=SL[status]||status; }
+  ['unterwegs','eingetroffen','beendet'].forEach(function(s){
+    var btn=document.getElementById('sb_'+s);
+    if(btn) btn.classList.toggle('on',s===status);
+  });
+  var banner=document.getElementById('eaAlarmBanner');
+  if(banner) banner.style.display=status==='alarmiert'?'flex':'none';
+  try{
+    if(status==='unterwegs'&&einsatz)
+      localStorage.setItem('nursy_enroute_status_v1',JSON.stringify({active:true,name:einsatz.patient_name||''}));
+    else
+      localStorage.setItem('nursy_enroute_status_v1',JSON.stringify({active:false}));
+  }catch(e){}
+}
+
+window.setStatus=function(s){
+  if(status===s) return;
+  status=s; renderStatus();
+  if(EID&&EID!=='demo'){
+    var _n=new Date();
+    var _hm=_n.getHours().toString().padStart(2,'0')+':'+_n.getMinutes().toString().padStart(2,'0');
+    fetch('/api/einsaetze/'+EID+'/status',{
+      method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({status:s, zeit:_hm})
+    }).then(function(r){ return r.ok?r.json():null; })
+      .then(function(d){
+        if(!d) return;
+        /* Ankunftszeit aus Server-Antwort übernehmen */
+        if(s==='eingetroffen' && d.zeit_eingetroffen){
+          S.set(key('ankunft'), d.zeit_eingetroffen);
+          txt('absAnkunft', d.zeit_eingetroffen+' Uhr');
+        } else if(s==='eingetroffen'){
+          var now=new Date();
+          var hm=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+          S.set(key('ankunft'),hm); txt('absAnkunft',hm+' Uhr');
+        }
+      }).catch(function(){
+        /* Fallback: lokale Zeit */
+        if(s==='eingetroffen'){
+          var now=new Date();
+          var hm=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+          S.set(key('ankunft'),hm); txt('absAnkunft',hm+' Uhr');
+        }
+      });
+  } else if(s==='eingetroffen'){
+    var now=new Date();
+    var hm=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+    S.set(key('ankunft'),hm); txt('absAnkunft',hm+' Uhr');
+  }
+};
+
+function pollStatus(){
+  if(!EID||EID==='demo') return;
+  fetch('/api/einsaetze/'+EID,{credentials:'include'}).then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){
+      if(!d) return;
+      // Status-Änderung
+      if(d.status && d.status!==status){ status=d.status; renderStatus(); }
+      // Inhalt von Leitstelle geändert → Banner anzeigen + Daten neu laden
+      var newLg = d.ls_geaendert || '';
+      if(newLg && newLg !== _lastLsGeaendert){
+        _lastLsGeaendert = newLg;
+        applyEinsatz(d);
+        var tb = document.getElementById('eaGeaendertBanner');
+        var tt = document.getElementById('eaGeaendertTime');
+        if(tt) tt.textContent = newLg ? ' · ' + newLg + ' Uhr' : '';
+        if(tb) tb.style.display = 'flex';
+      }
+    }).catch(function(){});
+}
+
+/* ── Tab switching ── */
+window.showTab=function(tab){
+  document.querySelectorAll('.ea-tab').forEach(function(b){ b.classList.toggle('active',b.dataset.tab===tab); });
+  document.querySelectorAll('.ea-panel').forEach(function(p){ p.classList.toggle('active',p.id==='panel-'+tab); });
+  if(tab==='abschluss') updateAbschluss();
+  if(tab==='uploads') loadEinsatzDokumente();
+  var at=document.querySelector('.ea-tab.active');
+  if(at) at.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+};
+
+/* ── Planung ── */
+function generateProblems(e){
+  problems=[];
+  var ris=Array.isArray(e.risiken)?e.risiken:[];
+  var prob=(e.problem||'').toLowerCase();
+
+  if(prob.includes('mobil')||ris.some(function(r){ return /mobil/i.test(r); })||prob.includes('transfer')){
+    problems.push({id:'p1',title:'Eingeschränkte Mobilität / Sturzrisiko',prio:'hoch',
+      ziel:'Mobilität erhalten, Stürze vermeiden, Selbstständigkeit fördern',
+      massnahmen:[
+        {id:'m1a',text:'Mobilisation unterstützen, Gehtraining',done:false},
+        {id:'m1b',text:'Umgebung sichern, Stolperfallen entfernen',done:false},
+        {id:'m1c',text:'Hilfsmittel einsetzen (Rollator, Gehstock)',done:false},
+        {id:'m1d',text:'Sturzrisiko bewerten und dokumentieren',done:false}
+      ]});
+  }
+  if(prob.includes('körperpflege')||prob.includes('waschen')||prob.includes('pflege')){
+    problems.push({id:'p2',title:'Unterstützung bei Körperpflege',prio:'mittel',
+      ziel:'Sauberkeit und Wohlbefinden sichern, Hautintegrität erhalten',
+      massnahmen:[
+        {id:'m2a',text:'Teil- oder Ganzkörperpflege durchführen',done:false},
+        {id:'m2b',text:'Hautbeobachtung, Eincremen',done:false},
+        {id:'m2c',text:'Mund- und Zahnpflege',done:false},
+        {id:'m2d',text:'An-/Auskleiden unterstützen',done:false}
+      ]});
+  }
+  if(prob.includes('medikament')||prob.includes('tablette')||(e.medikamente&&e.medikamente.trim())){
+    problems.push({id:'p3',title:'Medikamentengabe / Adhärenz',prio:'hoch',
+      ziel:'Korrekte und regelmäßige Medikamenteneinnahme sicherstellen',
+      massnahmen:[
+        {id:'m3a',text:'Medikamente nach Plan richten und verabreichen',done:false},
+        {id:'m3b',text:'Einnahme kontrollieren und dokumentieren',done:false},
+        {id:'m3c',text:'Unerwünschte Wirkungen beobachten',done:false}
+      ]});
+  }
+  if(ris.some(function(r){ return /wund|dekub/i.test(r); })||prob.includes('wund')||prob.includes('verband')){
+    problems.push({id:'p4',title:'Wundversorgung erforderlich',prio:'hoch',
+      ziel:'Wundheilung fördern, Infektionsprophylaxe',
+      massnahmen:[
+        {id:'m4a',text:'Wunde kontrollieren, Beurteilung dokumentieren',done:false},
+        {id:'m4b',text:'Verbandwechsel nach AVO',done:false},
+        {id:'m4c',text:'Wunddokumentation aktualisieren',done:false}
+      ]});
+  }
+  if(prob.includes('ernähr')||prob.includes('essen')||prob.includes('trinken')){
+    problems.push({id:'p5',title:'Ernährung / Flüssigkeitszufuhr',prio:'mittel',
+      ziel:'Ausreichende Flüssigkeits- und Nahrungsaufnahme sicherstellen',
+      massnahmen:[
+        {id:'m5a',text:'Mahlzeit vorbereiten / unterstützen',done:false},
+        {id:'m5b',text:'Trinkprotokoll führen',done:false},
+        {id:'m5c',text:'Schluckfähigkeit beobachten',done:false}
+      ]});
+  }
+  if(ris.some(function(r){ return /demenz/i.test(r); })||prob.includes('demenz')){
+    problems.push({id:'p6',title:'Kognitive Einschränkung / Demenz',prio:'mittel',
+      ziel:'Orientierung stärken, Sicherheit gewährleisten, Würde wahren',
+      massnahmen:[
+        {id:'m6a',text:'Orientierungshilfen anbieten, ruhig kommunizieren',done:false},
+        {id:'m6b',text:'Beschäftigung / Aktivierung anbieten',done:false},
+        {id:'m6c',text:'Sicherheit in der Umgebung prüfen',done:false}
+      ]});
+  }
+  if(!problems.length){
+    problems.push({id:'p_gen',title:'Allgemeine Pflegeunterstützung',prio:'niedrig',
+      ziel:'Wohlbefinden sichern, Selbstständigkeit fördern',
+      massnahmen:[
+        {id:'mg1',text:'Allgemeinzustand einschätzen',done:false},
+        {id:'mg2',text:'Pflegemaßnahmen nach Plan durchführen',done:false},
+        {id:'mg3',text:'Dokumentation aktualisieren',done:false}
+      ]});
+  }
+
+  // Merge saved checkbox state
+  var saved=S.getJ(key('problems'));
+  if(saved&&Array.isArray(saved)){
+    saved.forEach(function(sp){
+      var p=problems.find(function(x){ return x.id===sp.id; });
+      if(p&&sp.massnahmen){
+        sp.massnahmen.forEach(function(sm){
+          var m=p.massnahmen.find(function(x){ return x.id===sm.id; });
+          if(m) m.done=sm.done;
+        });
+      }
+    });
+    saved.filter(function(sp){ return sp.id.startsWith('custom_'); })
+      .forEach(function(sp){ if(!problems.find(function(x){ return x.id===sp.id; })) problems.push(sp); });
+  }
+
+  renderPlanung();
+  syncDurchfuehrung();
+}
+
+function renderPlanung(){
+  var list=document.getElementById('planungList');
+  if(!list) return;
+  list.innerHTML='';
+  problems.forEach(function(p){ list.appendChild(makeProbCard(p)); });
+}
+
+function makeProbCard(p){
+  var div=document.createElement('div'); div.className='ea-prob';
+  div.innerHTML=
+    '<div class="ea-prob__head">'+
+      '<span class="ea-prob__title">'+escH(p.title)+'</span>'+
+      '<span class="ea-prob__prio ea-prob__prio--'+p.prio+'">'+p.prio+'</span>'+
+    '</div>'+
+    '<div class="ea-prob__body">'+
+      '<div class="ea-prob__ziel">🎯 Ziel: '+escH(p.ziel)+'</div>'+
+      '<div id="ml_'+p.id+'"></div>'+
+      '<button class="ea-add-btn" onclick="addMeasure(\''+p.id+'\')">＋ Maßnahme ergänzen</button>'+
+    '</div>';
+  renderMeasures(p, div.querySelector('#ml_'+p.id));
+  return div;
+}
+
+function renderMeasures(p, container){
+  container.innerHTML='';
+  p.massnahmen.forEach(function(m){
+    var row=document.createElement('div'); row.className='ea-measure';
+    var cb=document.createElement('input'); cb.type='checkbox'; cb.checked=m.done;
+    var span=document.createElement('span');
+    span.className='ea-measure__text'+(m.done?' done':'');
+    span.textContent=m.text;
+    var del=document.createElement('button'); del.className='ea-measure__del'; del.textContent='✕';
+    cb.addEventListener('change',function(){
+      m.done=cb.checked; span.classList.toggle('done',m.done);
+      saveProblems(); syncDurchfuehrung();
+    });
+    del.addEventListener('click',function(){
+      p.massnahmen=p.massnahmen.filter(function(x){ return x.id!==m.id; });
+      renderMeasures(p,container); saveProblems(); syncDurchfuehrung();
+    });
+    row.appendChild(cb); row.appendChild(span); row.appendChild(del);
+    container.appendChild(row);
+  });
+}
+
+window.addMeasure=function(pid){
+  var p=problems.find(function(x){ return x.id===pid; }); if(!p) return;
+  var t=prompt('Neue Maßnahme:'); if(!t||!t.trim()) return;
+  p.massnahmen.push({id:'m_'+Date.now(),text:t.trim(),done:false});
+  renderPlanung(); saveProblems(); syncDurchfuehrung();
+};
+
+window.addManualProblem=function(){
+  var title=prompt('Pflegeproblem:'); if(!title||!title.trim()) return;
+  var ziel=prompt('Pflegeziel:')||'Zustand verbessern';
+  problems.push({id:'custom_'+Date.now(),title:title.trim(),prio:'mittel',ziel:ziel.trim(),
+    massnahmen:[{id:'m_'+Date.now(),text:'Maßnahme ergänzen',done:false}]});
+  renderPlanung(); saveProblems(); syncDurchfuehrung();
+};
+
+function saveProblems(){ S.setJ(key('problems'),problems); }
+
+/* ── Durchführung ── */
+function syncDurchfuehrung(){
+  var dfSaved=S.getJ(key('df'))||{};
+  var list=document.getElementById('dfList'); if(!list) return;
+  list.innerHTML='';
+  var all=[];
+  problems.forEach(function(p){ p.massnahmen.forEach(function(m){ all.push({pid:p.id,mid:m.id,text:m.text}); }); });
+  if(!all.length){
+    list.innerHTML='<div class="ea-empty"><div class="ea-empty__ico">📋</div>Bitte zuerst Pflegeplanung erstellen.</div>';
+    return;
+  }
+  all.forEach(function(item){
+    var d=dfSaved[item.mid]||{};
+    var card=document.createElement('div');
+    var badgeClass=d.done?'done':d.nd?'nd':'open';
+    var badgeText=d.done?'✓ Durchgeführt':d.nd?'✗ Nicht durchgef.':'Offen';
+    card.className='ea-df'+(d.done?' df-done':d.nd?' df-nd':'');
+    var hasDetail=d.done||d.nd;
+    card.innerHTML=
+      '<div class="ea-df__head">'+
+        '<span class="ea-df__name">'+escH(item.text)+'</span>'+
+        '<span class="ea-df__badge ea-df__badge--'+badgeClass+'">'+badgeText+'</span>'+
+      '</div>'+
+      '<div class="ea-df__btns">'+
+        '<button type="button" class="ea-df__tbtn'+(d.done?' sel-done':'')+'" data-k="'+item.mid+'" data-f="done">✓ Durchgeführt</button>'+
+        '<button type="button" class="ea-df__tbtn'+(d.nd?' sel-nd':'')+'" data-k="'+item.mid+'" data-f="nd">✗ Nicht durchgef.</button>'+
+      '</div>'+
+      (hasDetail?
+        '<div class="ea-df__detail">'+
+          '<div class="ea-df-row">'+
+            '<span style="font-size:.74rem;color:var(--muted);flex-shrink:0;width:54px;">Uhrzeit</span>'+
+            '<input type="time" value="'+(d.zeit||'')+'" data-k="'+item.mid+'" data-f="zeit" style="max-width:130px;flex:none;">'+
+          '</div>'+
+          '<div class="ea-df-row"><input type="text" value="'+escA(d.bem||'')+'" placeholder="Bemerkung …" data-k="'+item.mid+'" data-f="bem"></div>'+
+          (d.nd?'<div class="ea-df-row"><input type="text" value="'+escA(d.grund||'')+'" placeholder="Grund der Nichtdurchführung …" data-k="'+item.mid+'" data-f="grund"></div>':'')+
+        '</div>':'')+
+      '';
+    list.appendChild(card);
+  });
+
+  // Toggle buttons (Durchgeführt / Nicht durchgef.)
+  list.querySelectorAll('button[data-k]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var k=btn.dataset.k, f=btn.dataset.f;
+      var d2=S.getJ(key('df'))||{}; if(!d2[k]) d2[k]={};
+      // toggle: click again to deselect
+      var was=d2[k][f];
+      d2[k]['done']=false; d2[k]['nd']=false;
+      if(!was) d2[k][f]=true;
+      // set time if not already set
+      if(!was && !d2[k]['zeit']){
+        var now=new Date();
+        d2[k]['zeit']=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+      }
+      S.setJ(key('df'),d2); syncDurchfuehrung(); showSaved('dfSaved');
+    });
+  });
+  // Text / time inputs
+  list.querySelectorAll('input[data-k]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var k=inp.dataset.k, f=inp.dataset.f;
+      var d2=S.getJ(key('df'))||{}; if(!d2[k]) d2[k]={};
+      d2[k][f]=inp.value;
+      S.setJ(key('df'),d2); showSaved('dfSaved');
+    });
+  });
+}
+
+window.addDfMeasure=function(){
+  var t=prompt('Zusätzliche Maßnahme:'); if(!t||!t.trim()) return;
+  var cp=problems.find(function(p){ return p.id==='custom_extra'; });
+  if(!cp){ cp={id:'custom_extra',title:'Zusätzliche Maßnahmen',prio:'niedrig',ziel:'',massnahmen:[]}; problems.push(cp); }
+  cp.massnahmen.push({id:'m_'+Date.now(),text:t.trim(),done:false});
+  saveProblems(); syncDurchfuehrung();
+};
+
+/* ── Dokumentation ── */
+function loadSavedData(){
+  var doku=S.getJ(key('doku'))||{};
+  var dm={dokuAnkunft:doku.ankunft,dokuVerlauf:doku.verlauf,dokuVerlassen:doku.verlassen,
+    dokuBesonders:doku.besonders,vBD:doku.bd,vPuls:doku.puls,vTemp:doku.temp,
+    vSpo2:doku.spo2,vBZ:doku.bz,vAF:doku.af,vSchmerz:doku.schmerz,vArzt:doku.arzt};
+  Object.keys(dm).forEach(function(id){ var e=document.getElementById(id); if(e&&dm[id]!=null) e.value=dm[id]; });
+
+  var schm=S.getJ(key('schmerz'))||{};
+  var sm={painLoc:schm.loc,painMed:schm.med,painNote:schm.note,
+    ivMed:schm.ivMed,ivZugang:schm.ivZugang,ivBeginn:schm.ivBeginn,ivRate:schm.ivRate,ivNote:schm.ivNote};
+  Object.keys(sm).forEach(function(id){ var e=document.getElementById(id); if(e&&sm[id]!=null) e.value=sm[id]; });
+  if(schm.qual){ var q=document.getElementById('painQual'); if(q) q.value=schm.qual; }
+  if(schm.nrs!=null){
+    painSel=schm.nrs;
+    document.querySelectorAll('.ea-pain-btn').forEach(function(b){ b.classList.toggle('sel',parseInt(b.textContent)===schm.nrs); });
+  }
+
+  var akt=S.getJ(key('akut'))||{};
+  var am={akutZeit:akt.zeit,akutBeschr:akt.beschr,akutMassnahmen:akt.massnahmen};
+  Object.keys(am).forEach(function(id){ var e=document.getElementById(id); if(e&&am[id]!=null) e.value=am[id]; });
+  if(akt.art){ var aa=document.getElementById('akutArt'); if(aa) aa.value=akt.art; }
+  if(akt.notruf){ var an=document.getElementById('akutNotruf'); if(an) an.value=akt.notruf; }
+
+  var ankunft=S.get(key('ankunft'));
+  if(ankunft) txt('absAnkunft',ankunft+' Uhr');
+
+  /* ── ABCDE ── */
+  var ab=S.getJ(key('abcde'))||{};
+  ['A','B','C','D','E'].forEach(function(l){
+    var e=document.getElementById('abc'+l); if(e&&ab[l]) e.value=ab[l];
+    var st=ab['st'+l];
+    if(st){
+      abcdeStatus[l]=st;
+      /* select the right button */
+      var row=document.getElementById('row'+l);
+      if(row){
+        row.setAttribute('data-st',st);
+        row.querySelectorAll('.ea-abc-sbtn').forEach(function(b){
+          b.classList.toggle('sel', b.classList.contains('ea-abc-sbtn--'+st));
+        });
+      }
+      var dot=document.getElementById('dot'+l);
+      if(dot){ dot.className='ea-abcde-dot ea-abcde-dot--'+st; dot.textContent=l; }
+    }
+  });
+  if(ab.stA||ab.stB||ab.stC||ab.stD||ab.stE) updateAbcdeBanner();
+
+  /* ── SAMPLE ── */
+  var sm2=S.getJ(key('sample'))||{};
+  var smMap={smpS:'s',smpA:'a',smpM:'m',smpP:'p',smpL:'l',smpE:'e'};
+  Object.keys(smMap).forEach(function(id){ var e=document.getElementById(id); if(e&&sm2[smMap[id]]) e.value=sm2[smMap[id]]; });
+
+  /* ── GCS ── */
+  var gc=S.getJ(key('gcs'))||{};
+  if(gc.E){ gcsScores.E=gc.E; document.querySelectorAll('#gcsE .ea-score-btn').forEach(function(b){ b.classList.toggle('sel',parseInt(b.dataset.v)===gc.E); }); }
+  if(gc.V){ gcsScores.V=gc.V; document.querySelectorAll('#gcsV .ea-score-btn').forEach(function(b){ b.classList.toggle('sel',parseInt(b.dataset.v)===gc.V); }); }
+  if(gc.M){ gcsScores.M=gc.M; document.querySelectorAll('#gcsM .ea-score-btn').forEach(function(b){ b.classList.toggle('sel',parseInt(b.dataset.v)===gc.M); }); }
+  if(gc.E||gc.V||gc.M) updateGcsBadge();
+  var gcBem=document.getElementById('gcsBem'); if(gcBem&&gc.bem) gcBem.value=gc.bem;
+
+  /* ── Morse ── */
+  var mo=S.getJ(key('morse'))||{};
+  ['m1','m2','m3','m4','m5','m6'].forEach(function(k){
+    if(mo[k]!=null){ morseScores[k]=mo[k]; document.querySelectorAll('[onclick*="morseSelect(\''+k+'\'"]').forEach(function(b){ b.classList.toggle('sel',parseInt(b.textContent)===mo[k]); }); }
+  });
+  if(Object.keys(mo).length) updateMorseBadge();
+  var moBem=document.getElementById('morseBem'); if(moBem&&mo.bem) moBem.value=mo.bem;
+
+  /* ── Braden ── */
+  var br=S.getJ(key('braden'))||{};
+  ['b1','b2','b3','b4','b5','b6'].forEach(function(k){
+    if(br[k]!=null){ bradenScores[k]=br[k]; document.querySelectorAll('[onclick*="bradenSelect(\''+k+'\'"]').forEach(function(b){ b.classList.toggle('sel',parseInt(b.textContent)===br[k]); }); }
+  });
+  if(Object.keys(br).length) updateBradenBadge();
+  var brBem=document.getElementById('bradenBem'); if(brBem&&br.bem) brBem.value=br.bem;
+
+  /* ── Abschluss wiederherstellen & Unterschrift sperren ── */
+  var abschl=S.getJ(key('abschluss'))||{};
+  if(abschl.status==='abgeschlossen'){
+    var fmap={absVerlassen:'verlassen',absUebergabe:'uebergabe',absNaechster:'naechster',absName:'name',absDNr:'dnr'};
+    Object.keys(fmap).forEach(function(id){
+      var el=document.getElementById(id);
+      if(el && abschl[fmap[id]]!=null){ el.value=abschl[fmap[id]]; el.disabled=true; }
+    });
+    var complBtn=document.querySelector('[onclick="completeEinsatz()"]');
+    if(complBtn){ complBtn.disabled=true; complBtn.style.opacity='.5'; }
+    var doneBox=document.getElementById('eaDoneBox'); if(doneBox) doneBox.style.display='';
+    if(abschl.signatur && window.lockSignature){
+      /* Canvas might not be ready yet — defer one tick */
+      setTimeout(function(){ window.lockSignature(abschl.signatur); }, 50);
+    }
+  }
+}
+
+window.saveDoku=function(show){
+  S.setJ(key('doku'),{
+    ankunft:val('dokuAnkunft'),verlauf:val('dokuVerlauf'),verlassen:val('dokuVerlassen'),
+    besonders:val('dokuBesonders'),bd:val('vBD'),puls:val('vPuls'),temp:val('vTemp'),
+    spo2:val('vSpo2'),bz:val('vBZ'),af:val('vAF'),schmerz:val('vSchmerz'),arzt:val('vArzt')
+  });
+  if(show!==false) showSaved('dokuSaved');
+};
+
+/* ── Wunden ── */
+function renderWunden(){
+  var list=document.getElementById('wundList'); if(!list) return;
+  list.innerHTML='';
+  if(!wounds.length){
+    list.innerHTML='<div class="ea-empty"><div class="ea-empty__ico">🩹</div>Keine Wunden erfasst.</div>';
+    return;
+  }
+  wounds.forEach(function(w){ list.appendChild(makeWoundCard(w)); });
+}
+
+function makeWoundCard(w){
+  var div=document.createElement('div'); div.className='ea-wound';
+  div.innerHTML=
+    '<div class="ea-wound__head">'+
+      '<span class="ea-wound__title">🩹 '+(w.ort||'Neue Wunde')+'</span>'+
+      '<button class="ea-wound__del" onclick="removeWound(\''+w.id+'\')">✕</button>'+
+    '</div>'+
+    '<div class="ea-wound__body">'+
+      '<div class="ea-f"><label>Lokalisation</label><input type="text" value="'+escA(w.ort)+'" placeholder="z. B. Sakrum, rechter Unterschenkel" onchange="updateWound(\''+w.id+'\',\'ort\',this.value)"></div>'+
+      '<div class="ea-f"><label>Wundtyp</label><select onchange="updateWound(\''+w.id+'\',\'typ\',this.value)">'+
+        ['Dekubitus','Ulcus cruris','Diabetisches Fußsyndrom','Wunde (traumatisch)','Sonstiges'].map(function(o){ return '<option '+(w.typ===o?'selected':'')+'>'+o+'</option>'; }).join('')+
+      '</select></div>'+
+      '<div class="ea-f"><label>Größe (cm)</label><input type="text" value="'+escA(w.groesse)+'" placeholder="z. B. 3×2 cm" onchange="updateWound(\''+w.id+'\',\'groesse\',this.value)"></div>'+
+      '<div class="ea-f"><label>Exsudat</label><select onchange="updateWound(\''+w.id+'\',\'exsudat\',this.value)">'+
+        ['keines','serös','eitrig','blutig'].map(function(o){ return '<option '+(w.exsudat===o?'selected':'')+'>'+o+'</option>'; }).join('')+
+      '</select></div>'+
+      '<div class="ea-f"><label>Wundrand / Umgebung</label><input type="text" value="'+escA(w.rand)+'" placeholder="z. B. gerötet, mazeriert …" onchange="updateWound(\''+w.id+'\',\'rand\',this.value)"></div>'+
+      '<div class="ea-f"><label>Maßnahme / Verband</label><textarea rows="2" onchange="updateWound(\''+w.id+'\',\'verband\',this.value)">'+escH(w.verband||'')+'</textarea></div>'+
+      '<div class="ea-f"><label>Bemerkung</label><textarea rows="2" onchange="updateWound(\''+w.id+'\',\'bem\',this.value)">'+escH(w.bem||'')+'</textarea></div>'+
+    '</div>';
+  return div;
+}
+
+window.addWound=function(){
+  wounds.push({id:'w_'+Date.now(),ort:'',typ:'Sonstiges',groesse:'',exsudat:'keines',rand:'',verband:'',bem:''});
+  renderWunden(); saveWunden();
+};
+window.removeWound=function(id){
+  if(!confirm('Wunde entfernen?')) return;
+  wounds=wounds.filter(function(w){ return w.id!==id; });
+  renderWunden(); saveWunden();
+};
+window.updateWound=function(id,field,v){
+  var w=wounds.find(function(x){ return x.id===id; }); if(w){ w[field]=v; saveWunden(); }
+};
+function saveWunden(){ S.setJ(key('wunden'),wounds); }
+function loadWunden(){ wounds=S.getJ(key('wunden'))||[]; renderWunden(); }
+
+/* ── ABCDE ── */
+var abcdeStatus={A:null,B:null,C:null,D:null,E:null};
+
+window.abcdeSelect=function(letter,st,btn){
+  abcdeStatus[letter]=st;
+  /* Siblings deselect */
+  var par=btn.parentElement;
+  par.querySelectorAll('.ea-abc-sbtn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  /* Row color */
+  var row=document.getElementById('row'+letter);
+  if(row) row.setAttribute('data-st',st);
+  /* Dot update */
+  var dot=document.getElementById('dot'+letter);
+  if(dot){
+    dot.className='ea-abcde-dot ea-abcde-dot--'+st;
+    dot.textContent=letter;
+  }
+  updateAbcdeBanner();
+};
+
+function updateAbcdeBanner(){
+  var letters=['A','B','C','D','E'];
+  var vals=letters.map(function(l){ return abcdeStatus[l]; });
+  var assessed=vals.filter(function(v){ return v!==null; }).length;
+  var banner=document.getElementById('abcdeBanner');
+  var statusEl=document.getElementById('abcdeBannerStatus');
+  var icoEl=document.getElementById('abcdeBannerIco');
+  if(!banner||!statusEl) return;
+  if(assessed===0){ return; }
+  var hasCrit=vals.some(function(v){ return v==='krit'; });
+  var hasWarn=vals.some(function(v){ return v==='warn'; });
+  banner.className='ea-abcde-banner';
+  if(hasCrit){
+    banner.classList.add('ea-abcde-banner--kritisch');
+    if(icoEl) icoEl.textContent='🔴';
+    statusEl.textContent='Patient KRITISCH – Sofortmaßnahmen erforderlich!';
+  } else if(hasWarn){
+    banner.classList.add('ea-abcde-banner--eingeschraenkt');
+    if(icoEl) icoEl.textContent='🟠';
+    statusEl.textContent='Patient EINGESCHRÄNKT – engmaschige Überwachung';
+  } else {
+    banner.classList.add('ea-abcde-banner--stabil');
+    if(icoEl) icoEl.textContent='🟢';
+    statusEl.textContent='Patient STABIL – alle Parameter unauffällig';
+  }
+}
+
+window.saveAbcde=function(show){
+  S.setJ(key('abcde'),{
+    A:val('abcA'),B:val('abcB'),C:val('abcC'),D:val('abcD'),E:val('abcE'),
+    stA:abcdeStatus.A,stB:abcdeStatus.B,stC:abcdeStatus.C,stD:abcdeStatus.D,stE:abcdeStatus.E
+  });
+  if(show!==false) showSaved('abcdeSaved');
+};
+
+/* ── SAMPLE ── */
+window.saveSample=function(show){
+  S.setJ(key('sample'),{
+    s:val('smpS'),a:val('smpA'),m:val('smpM'),p:val('smpP'),l:val('smpL'),e:val('smpE')
+  });
+  if(show!==false) showSaved('sampleSaved');
+};
+
+/* ── GCS ── */
+var gcsScores={E:null,V:null,M:null};
+
+window.gcsSelect=function(grp,v,btn){
+  gcsScores[grp]=v;
+  document.querySelectorAll('#gcs'+grp+' .ea-score-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  updateGcsBadge();
+};
+
+function updateGcsBadge(){
+  var e=gcsScores.E||0, v=gcsScores.V||0, m=gcsScores.M||0;
+  var total=e+v+m;
+  var numEl=document.getElementById('gcsTotalNum');
+  var lvlEl=document.getElementById('gcsTotalLevel');
+  var badge=document.getElementById('gcsBadge');
+  if(!e&&!v&&!m){ return; }
+  if(numEl) numEl.textContent=total;
+  var level,cls;
+  if(total>=13){ level='Leicht (13–15)'; cls='low'; }
+  else if(total>=9){ level='Mittelschwer (9–12)'; cls='med'; }
+  else{ level='Schwer ≤8 – Intubation prüfen!'; cls='high'; }
+  if(lvlEl){ lvlEl.textContent=level; lvlEl.style.color=cls==='high'?'#b91c1c':cls==='med'?'#854d0e':'#15803d'; }
+  if(badge){ badge.textContent='GCS '+total+'/15'; badge.className='ea-score-head__badge ea-score-head__badge--'+cls; }
+}
+
+window.saveGcs=function(show){
+  S.setJ(key('gcs'),{E:gcsScores.E,V:gcsScores.V,M:gcsScores.M,bem:val('gcsBem')});
+  if(show!==false) showSaved('gcsSaved');
+};
+
+/* ── Morse Fall Scale ── */
+var morseScores={};
+
+window.morseSelect=function(grp,v,btn){
+  morseScores[grp]=v;
+  /* deselect siblings – find parent .ea-score-btns */
+  var par=btn.parentElement;
+  par.querySelectorAll('.ea-score-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  updateMorseBadge();
+};
+
+function updateMorseBadge(){
+  var keys=['m1','m2','m3','m4','m5','m6'];
+  var filled=keys.filter(function(k){ return morseScores[k]!=null; });
+  if(!filled.length) return;
+  var total=keys.reduce(function(s,k){ return s+(morseScores[k]||0); },0);
+  var numEl=document.getElementById('morseTotalNum');
+  var lvlEl=document.getElementById('morseTotalLevel');
+  var badge=document.getElementById('morseBadge');
+  if(numEl) numEl.textContent=total;
+  var level,cls;
+  if(total<=24){ level='Kein/geringes Risiko (0–24)'; cls='low'; }
+  else if(total<=50){ level='Mittleres Risiko (25–50)'; cls='med'; }
+  else{ level='Hohes Sturzrisiko (≥51)!'; cls='high'; }
+  if(lvlEl){ lvlEl.textContent=level; lvlEl.style.color=cls==='high'?'#b91c1c':cls==='med'?'#854d0e':'#15803d'; }
+  if(badge){ badge.textContent='Score '+total; badge.className='ea-score-head__badge ea-score-head__badge--'+cls; }
+}
+
+window.saveMorse=function(show){
+  var d=Object.assign({},morseScores,{bem:val('morseBem')});
+  S.setJ(key('morse'),d);
+  if(show!==false) showSaved('morseSaved');
+};
+
+/* ── Braden Scale ── */
+var bradenScores={};
+
+window.bradenSelect=function(grp,v,btn){
+  bradenScores[grp]=v;
+  var par=btn.parentElement;
+  par.querySelectorAll('.ea-score-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  updateBradenBadge();
+};
+
+function updateBradenBadge(){
+  var keys=['b1','b2','b3','b4','b5','b6'];
+  var filled=keys.filter(function(k){ return bradenScores[k]!=null; });
+  if(!filled.length) return;
+  var total=keys.reduce(function(s,k){ return s+(bradenScores[k]||0); },0);
+  var numEl=document.getElementById('bradenTotalNum');
+  var lvlEl=document.getElementById('bradenTotalLevel');
+  var badge=document.getElementById('bradenBadge');
+  if(numEl) numEl.textContent=total;
+  var level,cls;
+  if(total>=19){ level='Kein Dekubitusrisiko (≥19)'; cls='low'; }
+  else if(total>=15){ level='Geringes Risiko (15–18)'; cls='low'; }
+  else if(total>=13){ level='Mäßiges Risiko (13–14)'; cls='med'; }
+  else if(total>=10){ level='Hohes Risiko (10–12)'; cls='high'; }
+  else{ level='Sehr hohes Risiko (≤9)!'; cls='high'; }
+  if(lvlEl){ lvlEl.textContent=level; lvlEl.style.color=cls==='high'?'#b91c1c':cls==='med'?'#854d0e':'#15803d'; }
+  if(badge){ badge.textContent='Score '+total; badge.className='ea-score-head__badge ea-score-head__badge--'+cls; }
+}
+
+window.saveBraden=function(show){
+  var d=Object.assign({},bradenScores,{bem:val('bradenBem')});
+  S.setJ(key('braden'),d);
+  if(show!==false) showSaved('bradenSaved');
+};
+
+/* ── Toggle Section ── */
+window.toggleSection=function(id){
+  var el=document.getElementById(id); if(!el) return;
+  el.style.display=el.style.display==='none'?'':'none';
+};
+
+/* ── Akut ── */
+window.saveAkut=function(show){
+  S.setJ(key('akut'),{zeit:val('akutZeit'),art:val('akutArt'),beschr:val('akutBeschr'),
+    massnahmen:val('akutMassnahmen'),notruf:val('akutNotruf')});
+  if(show!==false) showSaved('akutSaved');
+};
+
+/* ── Schmerz/IV ── */
+window.saveSchmerz=function(show){
+  S.setJ(key('schmerz'),{nrs:painSel,loc:val('painLoc'),qual:val('painQual'),med:val('painMed'),
+    note:val('painNote'),ivMed:val('ivMed'),ivZugang:val('ivZugang'),
+    ivBeginn:val('ivBeginn'),ivRate:val('ivRate'),ivNote:val('ivNote')});
+  if(show!==false) showSaved('schmerzSaved');
+};
+
+/* ── Uploads ── */
+window.handleFiles=function(input){
+  if(!input.files||!input.files.length) return;
+  var prog=document.getElementById('uploadProgress');
+  if(prog) prog.style.display='block';
+  var errDiv=document.getElementById('uploadError');
+  if(errDiv) errDiv.style.display='none';
+
+  var files=Array.from(input.files);
+  input.value='';
+
+  var batchErrors=[];
+  var promises=files.map(function(f){
+    var fd=new FormData();
+    fd.append('file',f);
+    fd.append('beschreibung','');
+    var url= EID&&EID!=='demo'
+      ? '/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente'
+      : null;
+    if(!url){
+      /* no live einsatz — store locally only */
+      uploads.push({id:'local_'+Date.now(),name:f.name,size:f.size,type:f.type,local:true});
+      return Promise.resolve();
+    }
+    return fetch(url,{method:'POST',credentials:'include',body:fd})
+      .then(function(r){
+        if(r.status===401) throw new Error('Nicht angemeldet – bitte neu einloggen');
+        if(r.status===403) throw new Error('Kein Zugriff auf diesen Einsatz');
+        if(!r.ok) throw new Error('Serverfehler ('+r.status+')');
+        return r.json();
+      })
+      .then(function(d){
+        if(d.ok){
+          uploads.push({id:d.id,name:f.name,size:f.size,type:f.type,url:d.url});
+        } else {
+          uploads.push({id:'err_'+Date.now(),name:f.name,size:f.size,type:f.type,error:d.error||'Hochladen fehlgeschlagen'});
+        }
+      })
+      .catch(function(e){
+        var msg=e.message||'Verbindungsfehler';
+        uploads.push({id:'err_'+Date.now(),name:f.name,size:f.size,type:f.type,error:msg});
+        batchErrors.push(msg);
+      });
+  });
+
+  Promise.all(promises).then(function(){
+    if(prog) prog.style.display='none';
+    var errDiv=document.getElementById('uploadError');
+    var errTxt=document.getElementById('uploadErrorText');
+    if(errDiv&&errTxt){
+      if(batchErrors.length){
+        errTxt.textContent=batchErrors[0]+(batchErrors.length>1?' ('+batchErrors.length+' Dateien betroffen)':'');
+        errDiv.style.display='block';
+      } else {
+        errDiv.style.display='none';
+      }
+    }
+    renderFiles();
+  });
+};
+
+function loadEinsatzDokumente(){
+  if(!EID||EID==='demo') return;
+  fetch('/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente',{credentials:'include'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){
+      if(!d||!d.ok) return;
+      uploads=d.dokumente.map(function(x){
+        return {id:x.id,name:x.original_name,size:0,type:'',url:x.url};
+      });
+      renderFiles();
+    });
+}
+
+function renderFiles(){
+  var list=document.getElementById('fileList'); if(!list) return;
+  if(!uploads.length){ list.innerHTML='<div class="ea-empty"><div class="ea-empty__ico">📎</div>Noch keine Dateien.</div>'; return; }
+  list.innerHTML='';
+  uploads.forEach(function(f){
+    var isImg=/\.(png|jpg|jpeg|gif|webp|heic|heif)$/i.test(f.name||'');
+    var ico=isImg?'🖼️':'📄';
+    var item=document.createElement('div'); item.className='ea-file-item';
+    var dlBtn=f.url?'<a href="'+f.url+'" target="_blank" style="margin-left:auto;padding:4px 10px;border-radius:7px;background:var(--blue);color:#fff;font-size:.72rem;font-weight:700;text-decoration:none;white-space:nowrap;">Öffnen</a>':'';
+    var errBadge=f.error?'<span style="color:#dc2626;font-size:.72rem;margin-left:6px;">⚠️ '+escH(f.error)+'</span>':'';
+    item.innerHTML='<span style="font-size:1.3rem;">'+ico+'</span>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-weight:700;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(f.name)+'</div>'+
+        (f.size?'<div style="font-size:.72rem;color:var(--muted);">'+Math.round(f.size/1024)+' KB</div>':'')+
+        errBadge+
+      '</div>'+dlBtn;
+    list.appendChild(item);
+  });
+}
+
+/* ── Signature Canvas ── */
+(function(){
+  var canvas, ctx, drawing = false;
+
+  function getPos(e, cv){
+    var r = cv.getBoundingClientRect();
+    var scaleX = cv.width / r.width, scaleY = cv.height / r.height;
+    var src = (e.touches && e.touches.length) ? e.touches[0] : e;
+    return { x:(src.clientX - r.left)*scaleX, y:(src.clientY - r.top)*scaleY };
+  }
+
+  function initCanvas(){
+    canvas = document.getElementById('signCanvas');
+    if(!canvas) return;
+    ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    canvas.addEventListener('mousedown',  function(e){ drawing=true; ctx.beginPath(); var p=getPos(e,canvas); ctx.moveTo(p.x,p.y); e.preventDefault(); });
+    canvas.addEventListener('mousemove',  function(e){ if(!drawing) return; var p=getPos(e,canvas); ctx.lineTo(p.x,p.y); ctx.stroke(); });
+    canvas.addEventListener('mouseup',    function(){ drawing=false; });
+    canvas.addEventListener('mouseleave', function(){ drawing=false; });
+    canvas.addEventListener('touchstart', function(e){ drawing=true; ctx.beginPath(); var p=getPos(e,canvas); ctx.moveTo(p.x,p.y); e.preventDefault(); },{passive:false});
+    canvas.addEventListener('touchmove',  function(e){ if(!drawing) return; var p=getPos(e,canvas); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault(); },{passive:false});
+    canvas.addEventListener('touchend',   function(){ drawing=false; });
+  }
+
+  window.clearSignature = function(){
+    if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  window.getSignatureDataURL = function(){
+    if(!canvas) return '';
+    var blank = document.createElement('canvas');
+    blank.width = canvas.width; blank.height = canvas.height;
+    return canvas.toDataURL() === blank.toDataURL() ? '' : canvas.toDataURL();
+  };
+
+  window.lockSignature = function(signObj){
+    if(!signObj) return;
+    var wrap = document.getElementById('signCanvasGroup');
+    var nmGrp= document.getElementById('signNichtMoeglichGroup');
+    var snGrp= document.getElementById('signSignerNameGroup');
+    var hint = wrap ? wrap.querySelector('.ea-sign-hint') : null;
+    var cw   = wrap ? wrap.querySelector('.ea-sign-canvas-wrap') : null;
+    var clrBtn = wrap ? wrap.querySelector('.ea-sign-clear') : null;
+
+    /* Disable radio buttons */
+    document.querySelectorAll('input[name="signTyp"]').forEach(function(r){ r.disabled=true; });
+
+    var savedBadgeHtml = '<div class="ea-sign-saved-badge">🔒 Unterschrift gespeichert</div>';
+
+    if(signObj.typ === 'nichtmoeglich'){
+      /* Show locked "nicht möglich" info */
+      var grundMap={
+        bewusstlos:'Bewusstlosigkeit / Handlungsunfähigkeit',
+        motorisch:'Motorische Einschränkung',
+        kognitiv:'Kognitive Einschränkung',
+        ablehnung:'Patient lehnt Unterschrift ab',
+        sonstiges:'Sonstiges'
+      };
+      var grundTxt = grundMap[signObj.grund] || signObj.grund || '–';
+      var muendTxt = signObj.muendlich ? '✅ Mündliches Einverständnis bestätigt' : '';
+      if(nmGrp){
+        nmGrp.innerHTML = '<div class="ea-sign-locked-info">'+
+          '<strong>Unterschrift nicht möglich</strong><br>Grund: '+escH(grundTxt)+
+          (muendTxt?'<br><span style="color:#15803d;font-size:.8rem;">'+muendTxt+'</span>':'')+
+          '</div>'+savedBadgeHtml;
+        nmGrp.style.display='';
+      }
+      if(wrap) wrap.style.display='none';
+      if(snGrp) snGrp.style.display='none';
+    } else {
+      /* Draw saved signature on canvas + lock */
+      if(signObj.signatureSrc && canvas && ctx){
+        var img = new Image();
+        img.onload = function(){ ctx.drawImage(img,0,0,canvas.width,canvas.height); };
+        img.src = signObj.signatureSrc;
+      }
+      /* Disable drawing */
+      drawing = false;
+      canvas.removeEventListener('mousedown',  canvas._md||function(){});
+      canvas.removeEventListener('mousemove',  canvas._mm||function(){});
+      canvas.removeEventListener('touchstart', canvas._ts||function(){});
+      canvas.removeEventListener('touchmove',  canvas._tm||function(){});
+      canvas.style.pointerEvents = 'none';
+      canvas.classList.add('ea-sign-canvas--locked');
+      if(cw) cw.classList.add('ea-sign-canvas-wrap--locked');
+      if(clrBtn) clrBtn.style.display='none';
+      if(hint) hint.style.display='none';
+
+      /* Show underwriter name if applicable */
+      if((signObj.typ==='angehoerig'||signObj.typ==='sachwalter') && signObj.unterzeichnerName){
+        var lbl = signObj.typ==='angehoerig'?'Angehöriger':'Sachwalter';
+        if(snGrp){
+          snGrp.style.display='';
+          var inp=document.getElementById('signSignerName');
+          if(inp){ inp.value=signObj.unterzeichnerName; inp.disabled=true; }
+        }
+      }
+      /* Insert saved badge after canvas wrap */
+      if(cw && !cw.nextElementSibling.classList.contains('ea-sign-saved-badge')){
+        var badge=document.createElement('div');
+        badge.className='ea-sign-saved-badge';
+        badge.textContent='🔒 Unterschrift gespeichert';
+        cw.insertAdjacentElement('afterend',badge);
+      }
+    }
+  };
+
+  function updateSignUI(){
+    var sel = document.querySelector('input[name="signTyp"]:checked');
+    if(!sel) return;
+    var v = sel.value;
+    var cg  = document.getElementById('signCanvasGroup');
+    var ng  = document.getElementById('signNichtMoeglichGroup');
+    var snG = document.getElementById('signSignerNameGroup');
+    var snL = document.getElementById('signSignerLabel');
+    if(v === 'nichtmoeglich'){
+      if(cg) cg.style.display = 'none';
+      if(ng) ng.style.display = '';
+      if(snG) snG.style.display = 'none';
+    } else {
+      if(cg) cg.style.display = '';
+      if(ng) ng.style.display = 'none';
+      if(v === 'angehoerig' || v === 'sachwalter'){
+        if(snG) snG.style.display = '';
+        if(snL) snL.textContent = v === 'angehoerig' ? 'Name Angehöriger' : 'Name Sachwalter';
+      } else {
+        if(snG) snG.style.display = 'none';
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    initCanvas();
+    document.querySelectorAll('input[name="signTyp"]').forEach(function(r){
+      r.addEventListener('change', updateSignUI);
+    });
+  });
+})();
+
+/* ── Abschluss ── */
+function updateAbschluss(){
+  if(einsatz) txt('absPat',einsatz.patient_name||'–');
+  var ankunft=S.get(key('ankunft')); if(ankunft) txt('absAnkunft',ankunft+' Uhr');
+
+  var df=S.getJ(key('df'))||{};
+  var done=Object.values(df).filter(function(d){ return d.done; }).length;
+  var total=Object.keys(df).length;
+  txt('absDf',done+' / '+total+' durchgeführt');
+
+  var doku=S.getJ(key('doku'))||{};
+  var vcount=[doku.bd,doku.puls,doku.temp,doku.spo2].filter(Boolean).length;
+  txt('absVital',vcount?vcount+' Werte erfasst':'Nicht erfasst');
+
+  var dfilled=[doku.ankunft,doku.verlauf,doku.verlassen].filter(Boolean).length;
+  txt('absDoku',dfilled+' / 3 Felder ausgefüllt');
+
+  var wl=S.getJ(key('wunden'))||[];
+  txt('absWunden',wl.length?wl.length+' Wunde(n) dokumentiert':'Keine');
+
+  // Pre-fill Pflegekraft name + Dienstnummer from session
+  try{
+    var me=JSON.parse(S.get('nursy_me')||'{}');
+    var fullName = (me.vorname && me.nachname) ? (me.vorname+' '+me.nachname) : (me.name||me.email||'');
+    var ne=document.getElementById('absName'); if(ne&&!ne.value) ne.value=fullName;
+    var dn=document.getElementById('absDNr');  if(dn&&!dn.value) dn.value=me.dienstnummer||'';
+  }catch(e){}
+}
+
+window.completeEinsatz=function(){
+  saveDoku(false); saveSchmerz(false); saveAkut(false);
+  var signTypEl = document.querySelector('input[name="signTyp"]:checked');
+  var signTyp = signTypEl ? signTypEl.value : 'patient';
+  var signObj = { typ: signTyp };
+  if(signTyp === 'nichtmoeglich'){
+    signObj.grund = val('signNichtGrund');
+    var mCb = document.getElementById('signMuendlich');
+    signObj.muendlich = mCb ? mCb.checked : false;
+  } else {
+    signObj.signatureSrc = (window.getSignatureDataURL ? window.getSignatureDataURL() : '');
+    if(signTyp === 'angehoerig' || signTyp === 'sachwalter'){
+      signObj.unterzeichnerName = val('signSignerName');
+    }
+  }
+  S.setJ(key('abschluss'),{
+    verlassen:val('absVerlassen'),uebergabe:val('absUebergabe'),
+    naechster:val('absNaechster'),name:val('absName'),dnr:val('absDNr'),
+    signatur: signObj,
+    ts:new Date().toISOString(),status:'abgeschlossen'
+  });
+  setStatus('beendet');
+  var box=document.getElementById('eaDoneBox'); if(box) box.style.display='';
+  if(window.lockSignature) window.lockSignature(signObj);
+  /* Lock Abschluss inputs */
+  ['absVerlassen','absUebergabe','absNaechster','absName','absDNr'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.disabled=true;
+  });
+  var complBtn=document.querySelector('[onclick="completeEinsatz()"]');
+  if(complBtn){ complBtn.disabled=true; complBtn.style.opacity='.5'; }
+  setTimeout(function(){
+    if(confirm('Einsatz wurde abgeschlossen. Zurück zum Dashboard?'))
+      window.location.href='/auftragslage/';
+  },1200);
+};
+
+/* ── CHAT: Nachricht an Leitstelle ── */
+(function(){
+  var TYPES = [
+    {id:'rueckmeldung', ico:'💬', label:'Rückmeldung'},
+    {id:'folgeauftrag', ico:'🔄', label:'Folgeauftrag'},
+    {id:'dringend',     ico:'⚠️', label:'Dringend'},
+    {id:'wunsch',       ico:'💡', label:'Wunsch'},
+  ];
+  var selTyp = 'rueckmeldung';
+
+  // Inject HTML
+  var overlay = document.createElement('div');
+  overlay.className='chat-overlay';overlay.id='chatOverlay';
+  overlay.onclick=closeChat;
+  document.body.appendChild(overlay);
+
+  var fab = document.createElement('button');
+  fab.className='chat-fab';fab.id='chatFab';fab.title='Nachricht an Leitstelle';
+  fab.innerHTML='💬<span class="chat-fab__badge" id="chatBadge"></span>';
+  fab.onclick=openChat;
+  document.body.appendChild(fab);
+
+  var panel = document.createElement('div');
+  panel.className='chat-panel';panel.id='chatPanel';
+  panel.innerHTML=
+    '<div class="chat-panel__drag"></div>'+
+    '<div class="chat-panel__head">'+
+      '<span class="chat-panel__title">Nachricht an Leitstelle</span>'+
+      '<button class="chat-panel__close" onclick="(function(){document.getElementById(\'chatPanel\').classList.remove(\'open\');document.getElementById(\'chatOverlay\').classList.remove(\'open\')})()">✕</button>'+
+    '</div>'+
+    '<div class="chat-panel__body">'+
+      '<div class="chat-confirm" id="chatConfirm">'+
+        '<span class="chat-confirm__ico">✅</span>'+
+        '<span class="chat-confirm__txt">Nachricht gesendet!</span>'+
+        '<span class="chat-confirm__sub">Die Leitstelle wurde informiert.</span>'+
+      '</div>'+
+      '<div id="chatForm">'+
+        '<div class="chat-types" id="chatTypes"></div>'+
+        '<textarea class="chat-textarea" id="chatText" placeholder="Nachricht eingeben…" rows="4"></textarea>'+
+        '<button class="chat-send" id="chatSendBtn" onclick="chatSend()">Senden →</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(panel);
+
+  // Render type buttons
+  var grid = document.getElementById('chatTypes');
+  TYPES.forEach(function(t){
+    var btn = document.createElement('button');
+    btn.className='chat-type'+(t.id===selTyp?' sel':'');
+    btn.innerHTML='<span class="chat-type__ico">'+t.ico+'</span>'+t.label;
+    btn.onclick=function(){
+      selTyp=t.id;
+      document.querySelectorAll('.chat-type').forEach(function(b){b.classList.remove('sel');});
+      btn.classList.add('sel');
+    };
+    grid.appendChild(btn);
+  });
+
+  function openChat(){
+    document.getElementById('chatPanel').classList.add('open');
+    document.getElementById('chatOverlay').classList.add('open');
+    document.getElementById('chatConfirm').classList.remove('show');
+    document.getElementById('chatForm').style.display='';
+    document.getElementById('chatText').value='';
+    document.getElementById('chatText').focus();
+  }
+  function closeChat(){
+    document.getElementById('chatPanel').classList.remove('open');
+    document.getElementById('chatOverlay').classList.remove('open');
+  }
+
+  window.chatSend = function(){
+    var text = (document.getElementById('chatText').value||'').trim();
+    if(!text) return;
+    var btn = document.getElementById('chatSendBtn');
+    btn.disabled=true;btn.textContent='Senden…';
+    var me={};try{me=JSON.parse(localStorage.getItem('nursy_me')||'{}');}catch(e){}
+    fetch('/api/nachrichten',{
+      method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        text:text,typ:selTyp,
+        von_name:me.name||me.vorname||'',
+        von_dnr:me.dienstnummer||'',
+        fahrzeug:me.fahrzeug||''
+      })
+    }).then(function(r){return r.json();}).then(function(){
+      document.getElementById('chatForm').style.display='none';
+      document.getElementById('chatConfirm').classList.add('show');
+      btn.disabled=false;btn.textContent='Senden →';
+      setTimeout(closeChat,2200);
+    }).catch(function(){
+      btn.disabled=false;btn.textContent='Senden →';
+      alert('Fehler beim Senden. Bitte erneut versuchen.');
+    });
+  };
+})();
+</script>
+</body>
+</html>

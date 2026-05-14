@@ -1,0 +1,165 @@
+Erstelle eine mobile optimierte Pflegekraft-Einsatzakte (Auftrag), die automatisch aus den Leitstellen-Daten generiert wird.
+
+Diese Ansicht ist für Pflegekräfte im Einsatz gedacht und soll wie eine professionelle Pflege-App funktionieren.
+
+--------------------------------------------------
+1. Grundstruktur
+--------------------------------------------------
+
+Die Einsatzakte soll als Tabs oder Akkordeon aufgebaut sein:
+
+Tabs:
+- Auftrag
+- Pflegeplanung
+- Durchführung
+- Dokumentation
+- Wunden
+- Akut
+- Schmerz / IV
+- Uploads
+- Abschluss
+
+Design:
+- Mobile First (Smartphone optimiert)
+- Hauptfarbe Dunkelblau
+- Notfallbereiche in Rot
+- Bestätigungen in Grün
+- große Buttons (Pill-Style)
+- sehr übersichtlich und schnell bedienbar
+
+--------------------------------------------------
+2. Auftrag (Übersicht)
+--------------------------------------------------
+
+Zeige:
+- Einsatznummer
+- Einsatzart
+- Dringlichkeit
+- Einsatzbeginn
+- Einsatzdauer
+- benötigte Qualifikation
+
+Patient:
+- Name
+- Geburtsdatum
+- Sozialversicherungsnummer (nur klein angezeigt)
+- Telefonnummer
+
+Adresse:
+- Straße
+- Hausnummer
+- Stock
+- Tür
+- PLZ
+- Ort
+- Bezirk
+
+Sonderinfos:
+- Schlüsselsafe vorhanden + Code
+- wichtige Hinweise zur Adresse
+
+Angehörige:
+- Name
+- Beziehung
+- Telefonnummer
+
+Lagebild:
+- Problem
+- Beginn
+- Patient alleine?
+- akute Gefahr?
+
+Buttons:
+- Einsatz übernehmen
+- Navigation starten
+- Patient anrufen
+- Einsatz begonnen
+- Einsatz abgeschlossen
+
+--------------------------------------------------
+3. Automatische Pflegeplanung
+--------------------------------------------------
+
+Erstelle automatisch Pflegeprobleme basierend auf Auswahl:
+
+JE PROBLEM:
+- Pflegeproblem
+- Ziel
+- Maßnahmen
+- Priorität
+- Bearbeiten möglich
+
+Beispiele:
+
+Mobilität eingeschränkt:
+Problem:
+„Eingeschränkte Mobilität / Sturzrisiko“
+Maßnahmen:
+- Mobilisation unterstützen
+- Umgebung sichern
+- Hilfsmittel einsetzen
+
+Körperpflege:
+Problem:
+„Unterstützung bei Körperpflege“
+Maßnahmen:
+- Teil- oder Ganzkörperpflege
+- Hautbeobachtung
+
+Wunden:
+Problem:
+„Wundversorgung erforderlich“
+Maßnahmen:
+- Wundkontrolle
+- Verbandwechsel
+- Dokumentation
+
+ALLE Maßnahmen werden automatisch generiert.
+
+Pflegekraft kann:
+- Maßnahmen abhaken
+- Maßnahmen ergänzen
+- Maßnahmen löschen
+
+--------------------------------------------------
+4. Durchführungsnachweis
+--------------------------------------------------
+
+Automatisch aus Pflegeplanung erstellen:
+
+Pro Maßnahme:
+- Checkbox „durchgeführt“
+- Checkbox „nicht durchgeführt“
+- Uhrzeit
+- Bemerkung
+- Grund bei Nichtdurchführung
+
+Buttons:
+- Maßnahme hinzufügen
+- speichern
+- PDF erstellen
+
+WICHTIG:
+Diese Daten müssen automatisch gespeichert werden.
+
+--------------------------------------------------
+5. Pflegedokumentation
+--------------------------------------------------
+
+Felder:
+- Zustand bei Ankunft
+- Verlauf
+- Zustand bei Verlassen
+- Besonderheiten
+
+Vitalwerte:
+- Blutdruck
+- Puls
+- Temperatur
+- SpO2
+- Blutzucker
+- Atemfrequenz
+- Schmerzskala
+
+Weitere:
+- Arzt

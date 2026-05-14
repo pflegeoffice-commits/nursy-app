@@ -1,0 +1,42 @@
+{
+  "id": "akutplus-pflegeportal",
+  "name": "A+ Portal",
+  "short_name": "A+ Portal",
+  "description": "Akut Plus Pflegeportal – Dienstplan, Events & Info",
+  "start_url": "/portal/",
+  "scope": "/portal/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0f2744",
+  "theme_color": "#0f2744",
+  "lang": "de",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-portal-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-portal-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-portal-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-portal-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["medical", "productivity"]
+}

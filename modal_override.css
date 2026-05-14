@@ -1,0 +1,78 @@
+
+/* ===============================
+   PFLEGEPLANUNG MODAL – FINAL
+   Stabil, zentriert, Overlay aktiv
+================================ */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 26, 51, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.modal__panel {
+  position: relative;
+  width: min(1100px, calc(100% - 40px));
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 30px 90px rgba(15,26,51,.25);
+  z-index: 2;
+}
+
+/* Head */
+.modal__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal__head h3 {
+  margin: 0;
+  font-size: 28px;
+}
+
+/* Body Layout */
+.modal__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+@media (max-width: 900px) {
+  .modal__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Footer Buttons */
+.modal__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.modal__actions .btn {
+  flex: 1;
+  height: 54px;
+  font-size: 18px;
+  border-radius: 14px;
+}

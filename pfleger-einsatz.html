@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nursy">
+<meta name="theme-color" content="#0f2744">
+<link rel="manifest" href="/manifest-nursy.json">
+<link rel="apple-touch-icon" href="/icon-nursy-192.png">
+<title>Nursy – Pflegekraft Einsatz</title>
+<style>
+:root {
+  --bg: #eef4ff;
+  --card: #fff;
+  --text: #0f1a33;
+  --muted: rgba(15,26,51,.55);
+  --primary: #3f6fe8;
+  --red: #dc2626;
+  --green: #16a34a;
+  --amber: #d97706;
+  --line: rgba(63,111,232,.12);
+  --shadow: 0 4px 18px rgba(15,26,51,.10);
+  --nav-h: 64px;
+  --status-h: 68px;
+  --top-h: 64px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+
+/* ── TOP BAR ── */
+.pe-top {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--top-h);
+  background: var(--primary);
+  display: flex; align-items: center; gap: 10px; padding: 0 16px;
+  box-shadow: 0 2px 12px rgba(15,26,51,.18);
+  transition: background .3s;
+}
+.pe-top.status-unterwegs  { background: #d97706; }
+.pe-top.status-eingetroffen { background: #2563eb; }
+.pe-top.status-beendet    { background: #16a34a; }
+.pe-top.status-einsatzbereit { background: #6b7280; }
+.pe-top__icon { font-size: 1.5rem; flex-shrink: 0; }
+.pe-top__info { flex: 1; min-width: 0; }
+.pe-top__patient { font-size: .95rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.pe-top__nr { font-size: .72rem; color: rgba(255,255,255,.8); font-weight: 600; }
+.pe-top__badge {
+  font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;
+  background: rgba(255,255,255,.2); color: #fff; white-space: nowrap; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.3);
+}
+.pe-top__alarm {
+  font-size: .62rem; font-weight: 900; padding: 3px 8px; border-radius: 8px;
+  background: #ef4444; color: #fff; animation: pulse-alarm 1.2s infinite;
+}
+@keyframes pulse-alarm { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* ── SCROLL CONTENT ── */
+.pe-content {
+  position: fixed;
+  top: var(--top-h);
+  bottom: calc(var(--nav-h) + var(--status-h));
+  left: 0; right: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+}
+.pe-tab { display: none; padding: 14px 14px 20px; }
+.pe-tab.active { display: block; }
+
+/* ── STATUS BAR ── */
+.pe-status-bar {
+  position: fixed; bottom: var(--nav-h); left: 0; right: 0; z-index: 90;
+  height: var(--status-h);
+  background: #fff;
+  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 0;
+  padding: 8px 10px; gap: 6px;
+  box-shadow: 0 -2px 12px rgba(15,26,51,.07);
+}
+.pe-sb {
+  border: none; border-radius: 10px; font-size: .7rem; font-weight: 800;
+  cursor: pointer; transition: all .15s; padding: 6px 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: var(--bg); color: var(--muted);
+}
+.pe-sb__ico { font-size: 1.2rem; line-height: 1; }
+.pe-sb.unterwegs.on    { background: #fef3c7; color: #92400e; }
+.pe-sb.eingetroffen.on { background: #dbeafe; color: #1e40af; }
+.pe-sb.beendet.on      { background: #dcfce7; color: #14532d; }
+.pe-sb.einsatzbereit.on { background: #f3f4f6; color: #374151; }
+.pe-sb:active { transform: scale(.96); }
+
+/* ── BOTTOM NAV ── */
+.pe-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  height: var(--nav-h);
+  background: #fff;
+  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(4,1fr);
+  padding: 0; padding-bottom: env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -4px 20px rgba(15,26,51,.06);
+}
+.pe-nav-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border: none; background: none; cursor: pointer;
+  font-size: .65rem; font-weight: 700; color: var(--muted);
+  padding: 8px 4px; position: relative; transition: color .15s;
+}
+.pe-nav-btn__ico { font-size: 1.3rem; line-height: 1; }
+.pe-nav-btn.active { color: var(--primary); }
+.pe-nav-btn.active .pe-nav-btn__ico { filter: none; }
+.pe-badge {
+  position: absolute; top: 6px; right: calc(50% - 16px);
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: var(--red); color: #fff; border-radius: 8px;
+  font-size: .6rem; font-weight: 900; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── CARDS ── */
+.pe-card {
+  background: var(--card); border-radius: 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow); overflow: hidden;
+  border: 1px solid rgba(63,111,232,.08);
+}
+.pe-card__head {
+  padding: 12px 14px 8px; font-size: .78rem; font-weight: 900;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+  border-bottom: 1px solid var(--line); background: #f8faff;
+  display: flex; align-items: center; gap: 6px;
+}
+.pe-row { display: flex; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+.pe-row:last-child { border-bottom: none; }
+.pe-key { font-size: .78rem; font-weight: 700; color: var(--muted); min-width: 100px; flex-shrink: 0; }
+.pe-val { font-size: .82rem; color: var(--text); flex: 1; word-break: break-word; line-height: 1.45; }
+.pe-val--bold { font-weight: 800; }
+.pe-val--red  { color: var(--red); font-weight: 700; }
+.pe-val--green { color: var(--green); font-weight: 700; }
+
+/* Risk pills */
+.pe-risks { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; }
+.pe-risk { font-size: .72rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;
+  background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.pe-risk--o { background: #fff7ed; color: #92400e; border-color: #fed7aa; }
+.pe-risk--g { background: #f0fdf4; color: #14532d; border-color: #bbf7d0; }
+
+/* Action row */
+.pe-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+.pe-action-btn {
+  flex: 1; min-width: 120px; height: 44px; border: none; border-radius: 10px;
+  font-size: .8rem; font-weight: 800; cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.pe-action-btn--primary { background: var(--primary); color: #fff; }
+.pe-action-btn--green   { background: var(--green);   color: #fff; }
+.pe-action-btn--outline { background: #f0f4ff; color: var(--primary); border: 1px solid rgba(63,111,232,.25); }
+.pe-action-btn:active { transform: scale(.97); opacity: .88; }
+
+/* ── PLANUNG ── */
+.plan-cat { font-size: .72rem; font-weight: 900; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .05em; padding: 10px 14px 4px; }
+.plan-task {
+  display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px;
+  background: var(--card); border-bottom: 1px solid var(--line); cursor: pointer;
+  transition: background .12s;
+}
+.plan-task:last-child { border-bottom: none; }
+.plan-task:active { background: #f5f8ff; }
+.plan-check {
+  width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(63,111,232,.35);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  transition: all .15s; background: #fff;
+}
+.plan-task.done .plan-check { background: var(--green); border-color: var(--green); }
+.plan-check__tick { display: none; color: #fff; font-size: .8rem; font-weight: 900; }
+.plan-task.done .plan-check__tick { display: block; }
+.plan-task__text { font-size: .84rem; color: var(--text); line-height: 1.45; flex: 1; }
+.plan-task.done .plan-task__text { text-decoration: line-through; color: var(--muted); }
+.plan-add {
+  display: flex; gap: 8px; padding: 10px 14px 14px; background: var(--card);
+  border-top: 1px solid var(--line);
+}
+.plan-add input {
+  flex: 1; height: 38px; border: 1px solid rgba(63,111,232,.25); border-radius: 9px;
+  padding: 0 12px; font-size: .82rem; font-family: inherit; color: var(--text);
+  background: #f8faff; outline: none;
+}
+.plan-add input:focus { border-color: rgba(63,111,232,.5); }
+.plan-add-btn {
+  height: 38px; padding: 0 16px; border: none; border-radius: 9px;
+  background: var(--primary); color: #fff; font-size: .8rem; font-weight: 800; cursor: pointer;
+}
+.plan-progress { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #f8faff; }
+.plan-bar { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.plan-bar__fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s; }
+.plan-pct { font-size: .75rem; font-weight: 800; color: var(--green); min-width: 36px; text-align: right; }
+
+/* ── NACHWEIS ── */
+.nw-field { padding: 0 14px 10px; }
+.nw-label { font-size: .75rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+.nw-inp {
+  width: 100%; border: 1px solid rgba(63,111,232,.22); border-radius: 9px;
+  padding: 10px 12px; font-size: .83rem; font-family: inherit; color: var(--text);
+  background: #f8faff; outline: none; resize: vertical; min-height: 44px;
+}
+.nw-inp:focus { border-color: rgba(63,111,232,.5); }
+.nw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 14px 10px; }
+.nw-time-row { display: flex; gap: 8px; align-items: center; }
+.nw-time-row input[type=time] { flex: 1; height: 40px; border: 1px solid rgba(63,111,232,.22);
+  border-radius: 9px; padding: 0 12px; font-size: .9rem; font-family: inherit;
+  background: #f8faff; text-align: center; outline: none; }
+.nw-time-btn { height: 40px; padding: 0 14px; border: none; border-radius: 9px;
+  background: var(--primary); color: #fff; font-size: .78rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.nw-sign-box {
+  margin: 0 14px 10px; border: 2px dashed rgba(63,111,232,.3); border-radius: 12px;
+  height: 100px; display: flex; align-items: center; justify-content: center;
+  font-size: .82rem; color: var(--muted); cursor: pointer; background: #f8faff;
+}
+.nw-sign-box.signed { border-style: solid; border-color: var(--green); background: #f0fdf4; color: var(--green); }
+.nw-save-btn {
+  width: calc(100% - 28px); margin: 0 14px 14px; height: 48px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg, var(--green), #14532d); color: #fff;
+  font-size: .9rem; font-weight: 900; cursor: pointer; letter-spacing: .02em;
+}
+
+/* ── NACHRICHTEN ── */
+.msg-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
+.msg-bubble {
+  max-width: 85%; padding: 10px 14px; border-radius: 14px;
+  font-size: .83rem; line-height: 1.45; position: relative;
+}
+.msg-bubble.pfleger {
+  align-self: flex-end;
+  background: var(--primary); color: #fff; border-bottom-right-radius: 4px;
+}
+.msg-bubble.leitstelle {
+  align-self: flex-start;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--line); border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 8px rgba(15,26,51,.06);
+}
+.msg-bubble__sender { font-size: .68rem; font-weight: 800; opacity: .7; margin-bottom: 3px; }
+.msg-bubble__time   { font-size: .65rem; opacity: .6; margin-top: 4px; text-align: right; }
+.msg-input-row {
+  position: sticky; bottom: 0; background: var(--card); border-top: 1px solid var(--line);
+  padding: 10px 14px; display: flex; gap: 8px;
+}
+.msg-input {
+  flex: 1; border: 1px solid rgba(63,111,232,.25); border-radius: 20px;
+  padding: 10px 16px; font-size: .85rem; font-family: inherit; outline: none; background: #f8faff;
+}
+.msg-input:focus { border-color: rgba(63,111,232,.5); }
+.msg-send-btn {
+  width: 42px; height: 42px; border: none; border-radius: 50%;
+  background: var(--primary); color: #fff; font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── FLOATING CHAT ── */
+.fc-btn {
+  position: fixed; bottom: calc(var(--nav-h) + var(--status-h) + 14px); right: 16px;
+  width: 52px; height: 52px; border-radius: 50%; border: none;
+  background: var(--primary); color: #fff; font-size: 1.4rem;
+  box-shadow: 0 4px 18px rgba(63,111,232,.45);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 500; transition: transform .15s;
+}
+.fc-btn:active { transform: scale(.92); }
+.fc-btn__badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #dc2626; color: #fff; border-radius: 50%;
+  font-size: .6rem; font-weight: 900; min-width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff; padding: 0 3px;
+}
+.fc-panel {
+  position: fixed; z-index: 600;
+  width: min(320px, calc(100vw - 24px));
+  height: 360px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(15,26,51,.2);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  bottom: calc(var(--nav-h) + var(--status-h) + 76px); right: 12px;
+  transition: opacity .2s, transform .2s;
+  opacity: 0; transform: scale(.92) translateY(12px); pointer-events: none;
+}
+.fc-panel.open { opacity: 1; transform: scale(1) translateY(0); pointer-events: all; }
+.fc-handle {
+  background: var(--primary); color: #fff;
+  padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  cursor: grab; user-select: none; flex-shrink: 0; border-radius: 16px 16px 0 0;
+  touch-action: none;
+}
+.fc-handle:active { cursor: grabbing; }
+.fc-handle__title { font-size: .88rem; font-weight: 800; flex: 1; }
+.fc-handle__close {
+  width: 26px; height: 26px; border: none; border-radius: 50%;
+  background: rgba(255,255,255,.2); color: #fff; font-size: .8rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.fc-msgs {
+  flex: 1; overflow-y: auto; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.fc-input-row {
+  padding: 8px 10px; border-top: 1px solid var(--line);
+  display: flex; gap: 7px; flex-shrink: 0;
+}
+.fc-input {
+  flex: 1; border: 1px solid rgba(63,111,232,.25); border-radius: 18px;
+  padding: 8px 14px; font-size: .82rem; font-family: inherit; outline: none; background: #f8faff;
+}
+.fc-input:focus { border-color: rgba(63,111,232,.5); }
+.fc-send {
+  width: 36px; height: 36px; border: none; border-radius: 50%;
+  background: var(--primary); color: #fff; font-size: .9rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── EMPTY STATE ── */
+.pe-empty { text-align: center; padding: 40px 20px; }
+.pe-empty__ico { font-size: 3rem; margin-bottom: 12px; }
+.pe-empty__text { font-size: .9rem; color: var(--muted); line-height: 1.5; }
+
+/* Alarm banner */
+.pe-alarm-banner {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff; padding: 12px 14px; border-radius: 14px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 16px rgba(239,68,68,.35);
+}
+.pe-alarm-banner__ico { font-size: 1.8rem; flex-shrink: 0; animation: pulse-alarm 1s infinite; }
+.pe-alarm-banner__text { font-size: .88rem; font-weight: 800; line-height: 1.4; }
+.pe-alarm-banner__sub  { font-size: .75rem; opacity: .85; margin-top: 2px; }
+
+/* Map link */
+.pe-map-btn {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  background: #eef6ff; color: var(--primary); font-size: .82rem; font-weight: 800;
+  border: none; cursor: pointer; width: 100%; text-decoration: none;
+  border-top: 1px solid var(--line);
+}
+
+/* Loading */
+.pe-loading { display: flex; align-items: center; justify-content: center; height: 200px; flex-direction: column; gap: 12px; color: var(--muted); font-size: .85rem; }
+.pe-spinner { width: 32px; height: 32px; border: 3px solid var(--line); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── LOGIN OVERLAY ── */
+.pe-login {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg, #eef4ff);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.pe-login__card {
+  background: #fff; border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(15,26,51,.15);
+  padding: 32px 28px; width: 100%; max-width: 380px;
+}
+.pe-login__head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+}
+.pe-login__icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg,var(--primary),#1e3a8a);
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+}
+.pe-login__title  { font-size: 1.1rem; font-weight: 900; color: var(--text); }
+.pe-login__sub    { font-size: .75rem; color: var(--muted); }
+.pe-login__lbl    { font-size: .78rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 5px; }
+.pe-login__inp    {
+  width: 100%; padding: 11px 13px; border: 1.5px solid #dde4ef; border-radius: 10px;
+  font-size: .95rem; margin-bottom: 12px; outline: none; background: #f8faff; color: var(--text);
+}
+.pe-login__inp:focus { border-color: var(--primary); background: #fff; }
+.pe-login__btn    {
+  width: 100%; padding: 13px; border: none; border-radius: 10px; cursor: pointer;
+  background: linear-gradient(135deg,var(--primary),#1e3a8a);
+  color: #fff; font-weight: 900; font-size: .95rem;
+  box-shadow: 0 4px 14px rgba(63,111,232,.35); margin-top: 4px;
+}
+.pe-login__btn:disabled { opacity: .55; cursor: default; }
+.pe-login__err {
+  background: #fef2f2; border: 1.5px solid #fca5a5; color: #b91c1c;
+  border-radius: 8px; padding: 9px 13px; font-size: .8rem; font-weight: 700;
+  margin-top: 10px; display: none;
+}
+/* logout button in topbar */
+.pe-top__logout {
+  font-size: .68rem; font-weight: 800; color: rgba(255,255,255,.75);
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 7px; padding: 4px 9px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.pe-top__logout:hover { background: rgba(255,255,255,.25); }
+.pe-top__user {
+  font-size: .7rem; color: rgba(255,255,255,.75); white-space: nowrap; flex-shrink: 0; max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div class="pe-login" id="peLoginOverlay" style="display:none;">
+  <div class="pe-login__card">
+    <div class="pe-login__head">
+      <div class="pe-login__icon">🚑</div>
+      <div>
+        <div class="pe-login__title">Nursy Einsatz</div>
+        <div class="pe-login__sub">Bitte mit Ihrem Konto anmelden</div>
+      </div>
+    </div>
+    <label class="pe-login__lbl" for="peLoginEmail">E-Mail</label>
+    <input class="pe-login__inp" type="email" id="peLoginEmail" placeholder="pfleger@example.at" autocomplete="email">
+    <label class="pe-login__lbl" for="peLoginPw">Passwort</label>
+    <input class="pe-login__inp" type="password" id="peLoginPw" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')peDoLogin()">
+    <button class="pe-login__btn" id="peLoginBtn" onclick="peDoLogin()">Anmelden</button>
+    <div class="pe-login__err" id="peLoginErr"></div>
+  </div>
+</div>
+
+<!-- ── TOP BAR ── -->
+<div class="pe-top" id="peTop">
+  <img src="nursy-logo.png" alt="Nursy" class="pe-top__icon" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+  <div class="pe-top__info">
+    <div class="pe-top__patient" id="pePatient">Lade Einsatz…</div>
+    <div class="pe-top__nr" id="peNr">–</div>
+  </div>
+  <span class="pe-top__user" id="peUserName" style="display:none;"></span>
+  <span class="pe-top__badge" id="peStatusBadge">ALARMIERT</span>
+  <span id="gpsStatus" style="display:none;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:7px;background:rgba(255,255,255,.15);"></span>
+  <button class="pe-top__logout" id="peLogoutBtn" style="display:none;" onclick="peDoLogout()" title="Abmelden">Abmelden</button>
+</div>
+
+<!-- ── CONTENT ── -->
+<div class="pe-content" id="peContent">
+
+  <!-- TAB: AUFTRAG -->
+  <div class="pe-tab active" id="tab-auftrag">
+    <div class="pe-loading" id="peLoading">
+      <div class="pe-spinner"></div>
+      Einsatz wird geladen…
+    </div>
+    <div id="peAuftragContent" style="display:none;">
+      <!-- Schnellzugriff bei Eingetroffen -->
+      <div id="peQuickLinks" style="display:none;margin-bottom:14px;background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(37,99,235,.03));border:1.5px solid rgba(37,99,235,.22);border-radius:14px;padding:14px 14px 12px;">
+        <div style="font-size:.7rem;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">🏠 Eingetroffen – Schnellzugriff</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <a href="pflegeplanung.html" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1.5px solid rgba(37,99,235,.2);border-radius:10px;font-size:.82rem;font-weight:700;color:#1e40af;text-decoration:none;">
+            <span style="font-size:1.1rem;">📝</span>Pflegeplanung
+          </a>
+          <a href="vitalzeichen.html" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1.5px solid rgba(37,99,235,.2);border-radius:10px;font-size:.82rem;font-weight:700;color:#1e40af;text-decoration:none;">
+            <span style="font-size:1.1rem;">❤️</span>Vitalzeichen
+          </a>
+          <a href="durchfuehrungsnachweis.html" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1.5px solid rgba(37,99,235,.2);border-radius:10px;font-size:.82rem;font-weight:700;color:#1e40af;text-decoration:none;">
+            <span style="font-size:1.1rem;">📄</span>Durchführungsnachweis
+          </a>
+          <a href="dokumentation.html" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1.5px solid rgba(37,99,235,.2);border-radius:10px;font-size:.82rem;font-weight:700;color:#1e40af;text-decoration:none;">
+            <span style="font-size:1.1rem;">📋</span>Dokumentation
+          </a>
+        </div>
+      </div>
+
+      <!-- alarm banner -->
+      <div class="pe-alarm-banner" id="peAlarmBanner">
+        <div class="pe-alarm-banner__ico">🔔</div>
+        <div>
+          <div class="pe-alarm-banner__text" id="peAlarmText">Einsatz alarmiert</div>
+          <div class="pe-alarm-banner__sub" id="peAlarmSub">Bitte Status setzen</div>
+        </div>
+      </div>
+      <!-- einsatz info -->
+      <div class="pe-card">
+        <div class="pe-card__head">📋 Einsatzübersicht</div>
+        <div class="pe-row"><span class="pe-key">Einsatz-Nr.</span><span class="pe-val pe-val--bold" id="aiNr">–</span></div>
+        <div class="pe-row"><span class="pe-key">Art</span><span class="pe-val" id="aiArt">–</span></div>
+        <div class="pe-row"><span class="pe-key">Dringlichkeit</span><span class="pe-val" id="aiDring">–</span></div>
+        <div class="pe-row"><span class="pe-key">Beginn</span><span class="pe-val" id="aiZeit">–</span></div>
+        <div class="pe-row"><span class="pe-key">Fahrzeug</span><span class="pe-val" id="aiFz">–</span></div>
+        <div class="pe-row"><span class="pe-key">Qualifikation</span><span class="pe-val" id="aiQual">–</span></div>
+      </div>
+      <!-- patient -->
+      <div class="pe-card">
+        <div class="pe-card__head">🧑 Patientendaten</div>
+        <div class="pe-row"><span class="pe-key">Name</span><span class="pe-val pe-val--bold" id="aiPatient">–</span></div>
+        <div class="pe-row"><span class="pe-key">Geburtsdatum</span><span class="pe-val" id="aiGeburt">–</span></div>
+        <div class="pe-row"><span class="pe-key">Telefon</span><span class="pe-val" id="aiTel">–</span></div>
+      </div>
+      <!-- address -->
+      <div class="pe-card">
+        <div class="pe-card__head">📍 Einsatzadresse</div>
+        <div class="pe-row"><span class="pe-key">Adresse</span><span class="pe-val pe-val--bold" id="aiAdresse">–</span></div>
+        <div class="pe-row"><span class="pe-key">Bezirk</span><span class="pe-val" id="aiBezirk">–</span></div>
+        <div class="pe-row" id="aiSchluesselRow" style="display:none;"><span class="pe-key">Schlüsselsafe</span><span class="pe-val pe-val--bold" id="aiSchluessel">–</span></div>
+        <div class="pe-row" id="aiAdressinfoRow" style="display:none;"><span class="pe-key">Hinweis</span><span class="pe-val" id="aiAdressinfo">–</span></div>
+        <a class="pe-map-btn" id="aiMapLink" href="#" target="_blank">🗺 Navigation in Apple/Google Maps öffnen →</a>
+      </div>
+      <!-- problem -->
+      <div class="pe-card">
+        <div class="pe-card__head">⚠️ Lagebild & Aufgabe</div>
+        <div class="pe-row"><span class="pe-key">Problem</span><span class="pe-val" id="aiProblem" style="white-space:pre-wrap;">–</span></div>
+        <div class="pe-row" id="aiNotizRow" style="display:none;"><span class="pe-key">Leitstelle</span><span class="pe-val" id="aiNotiz" style="font-style:italic;">–</span></div>
+      </div>
+      <!-- risks -->
+      <div class="pe-card" id="aiRiskenCard" style="display:none;">
+        <div class="pe-card__head">🛡 Sicherheitshinweise</div>
+        <div class="pe-risks" id="aiRisiken"></div>
+      </div>
+      <!-- medical -->
+      <div class="pe-card" id="aiMedCard">
+        <div class="pe-card__head">💊 Medizinische Hinweise</div>
+        <div class="pe-row" id="aiAllRow"><span class="pe-key">Allergien</span><span class="pe-val pe-val--red" id="aiAllergien">–</span></div>
+        <div class="pe-row"><span class="pe-key">Medikamente</span><span class="pe-val" id="aiMedikamente">–</span></div>
+        <div class="pe-row"><span class="pe-key">Anordnungen</span><span class="pe-val" id="aiAnordnungen">–</span></div>
+      </div>
+      <!-- contact -->
+      <div class="pe-card" id="aiAngCard" style="display:none;">
+        <div class="pe-card__head">👨‍👩‍👧 Angehörige / Kontakt</div>
+        <div class="pe-row"><span class="pe-key">Name</span><span class="pe-val" id="aiAngName">–</span></div>
+        <div class="pe-row"><span class="pe-key">Telefon</span><span class="pe-val" id="aiAngTel">–</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PLANUNG -->
+  <div class="pe-tab" id="tab-planung">
+    <div class="pe-card" style="overflow:visible;">
+      <div class="pe-card__head">📝 Pflegeplanung
+        <span style="margin-left:auto;font-size:.7rem;font-weight:600;color:var(--muted);" id="planEditHint">Antippen zum Abhaken</span>
+      </div>
+      <div class="plan-progress">
+        <div class="plan-bar"><div class="plan-bar__fill" id="planBarFill" style="width:0%"></div></div>
+        <span class="plan-pct" id="planPct">0%</span>
+      </div>
+      <div id="planList"></div>
+      <div class="plan-add">
+        <input type="text" id="planNewTask" placeholder="Aufgabe hinzufügen…" maxlength="120" />
+        <button class="plan-add-btn" onclick="planAddTask()">＋</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: NACHWEIS -->
+  <div class="pe-tab" id="tab-nachweis">
+    <div class="pe-card">
+      <div class="pe-card__head">⏱ Einsatzzeiten</div>
+      <div style="padding: 12px 14px 8px;">
+        <div class="nw-grid" style="padding:0; margin-bottom:10px;">
+          <div>
+            <div class="nw-label">Ankunft</div>
+            <div class="nw-time-row">
+              <input type="time" id="nwAnkunft" />
+              <button class="nw-time-btn" onclick="nwSetNow('nwAnkunft')">Jetzt</button>
+            </div>
+          </div>
+          <div>
+            <div class="nw-label">Abfahrt</div>
+            <div class="nw-time-row">
+              <input type="time" id="nwAbfahrt" />
+              <button class="nw-time-btn" onclick="nwSetNow('nwAbfahrt')">Jetzt</button>
+            </div>
+          </div>
+        </div>
+        <div class="nw-label">Tatsächliche Einsatzdauer</div>
+        <input class="nw-inp" type="text" id="nwDauer" placeholder="z.B. 1,5 Stunden" />
+      </div>
+    </div>
+    <div class="pe-card">
+      <div class="pe-card__head">📋 Durchgeführte Maßnahmen</div>
+      <div style="padding: 10px 14px 4px;">
+        <textarea class="nw-inp" id="nwMassnahmen" rows="4" placeholder="Was wurde durchgeführt? Welche Maßnahmen wurden gesetzt?"></textarea>
+      </div>
+      <div class="nw-grid">
+        <div class="nw-field">
+          <div class="nw-label">Zustand bei Ankunft</div>
+          <textarea class="nw-inp" id="nwZustandAn" rows="3" placeholder="Allgemeinzustand…"></textarea>
+        </div>
+        <div class="nw-field">
+          <div class="nw-label">Zustand bei Verlassen</div>
+          <textarea class="nw-inp" id="nwZustandAb" rows="3" placeholder="Allgemeinzustand…"></textarea>
+        </div>
+      </div>
+      <div style="padding: 0 14px 10px;">
+        <div class="nw-label">Besonderheiten / Auffälligkeiten</div>
+        <textarea class="nw-inp" id="nwBesond" rows="2" placeholder="Probleme, Abweichungen vom Plan…"></textarea>
+      </div>
+      <div class="nw-grid">
+        <div class="nw-field">
+          <div class="nw-label">Weitere Versorgung?</div>
+          <select class="nw-inp" id="nwWeitere" style="height:40px;">
+            <option>Ja</option><option>Nein</option><option>Unklar</option>
+          </select>
+        </div>
+        <div class="nw-field">
+          <div class="nw-label">Empfehlung</div>
+          <select class="nw-inp" id="nwEmpfehlung" style="height:40px;">
+            <option>Weiterer Pflegeeinsatz</option>
+            <option>Arztkontakt</option>
+            <option>Rettung verständigen</option>
+            <option>Angehörige informieren</option>
+            <option>Keine weitere Maßnahme</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="pe-card">
+      <div class="pe-card__head">✍️ Unterschrift Pflegekraft</div>
+      <div class="nw-sign-box" id="nwSignBox" onclick="nwSign()">
+        <span id="nwSignText">Antippen zum Unterschreiben</span>
+      </div>
+    </div>
+    <button class="nw-save-btn" onclick="nwSave()">✅ Nachweis abschließen & senden</button>
+  </div>
+
+  <!-- TAB: NACHRICHTEN -->
+  <!-- TAB: ARCHIV -->
+  <div class="pe-tab" id="tab-archiv">
+    <div id="archivLoading" style="text-align:center;padding:40px 0;color:var(--muted);font-size:.9rem;">
+      <div class="pe-spinner"></div>Wird geladen…
+    </div>
+    <div id="archivList"></div>
+  </div>
+
+  <div class="pe-tab" id="tab-nachrichten">
+    <div class="msg-list" id="msgList">
+      <div class="pe-empty">
+        <div class="pe-empty__ico">💬</div>
+        <div class="pe-empty__text">Noch keine Nachrichten.<br>Sende eine Nachricht an die Leitstelle.</div>
+      </div>
+    </div>
+    <div class="msg-input-row">
+      <input class="msg-input" type="text" id="msgInput" placeholder="Nachricht an Leitstelle…" maxlength="500"
+        onkeydown="if(event.key==='Enter')msgSend()" />
+      <button class="msg-send-btn" onclick="msgSend()">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── FLOATING CHAT BUTTON ── -->
+<button class="fc-btn" id="fcBtn" onclick="fcToggle()" style="display:none;" aria-label="Nachrichten öffnen">
+  💬<span class="fc-btn__badge" id="fcBadge" style="display:none;">0</span>
+</button>
+
+<!-- ── FLOATING CHAT PANEL ── -->
+<div class="fc-panel" id="fcPanel">
+  <div class="fc-handle" id="fcHandle">
+    <span class="fc-handle__title">💬 Nachrichten · Leitstelle</span>
+    <button class="fc-handle__close" onclick="fcToggle()">✕</button>
+  </div>
+  <div class="fc-msgs" id="fcMsgList">
+    <div style="text-align:center;color:var(--muted);font-size:.82rem;padding:20px 0;">Noch keine Nachrichten.</div>
+  </div>
+  <div class="fc-input-row">
+    <input class="fc-input" id="fcInput" type="text" placeholder="Nachricht an Leitstelle…" maxlength="500"
+      onkeydown="if(event.key==='Enter')fcSend()" />
+    <button class="fc-send" onclick="fcSend()">➤</button>
+  </div>
+</div>
+
+<!-- ── STATUS BAR ── -->
+<div class="pe-status-bar">
+  <button class="pe-sb unterwegs" id="sb_unterwegs" onclick="setStatus('unterwegs')">
+    <span class="pe-sb__ico">🚗</span>Unterwegs
+  </button>
+  <button class="pe-sb eingetroffen" id="sb_eingetroffen" onclick="setStatus('eingetroffen')">
+    <span class="pe-sb__ico">🏠</span>Eingetroffen
+  </button>
+  <button class="pe-sb beendet" id="sb_beendet" onclick="setStatus('beendet')">
+    <span class="pe-sb__ico">✅</span>Beendet
+  </button>
+  <button class="pe-sb einsatzbereit" id="sb_einsatzbereit" onclick="setStatus('einsatzbereit')">
+    <span class="pe-sb__ico">🔔</span>Einsatzbereit
+  </button>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="pe-nav">
+  <button class="pe-nav-btn active" id="nav-auftrag" onclick="showTab('auftrag')">
+    <span class="pe-nav-btn__ico">📋</span>Auftrag
+  </button>
+  <button class="pe-nav-btn" id="nav-planung" onclick="showTab('planung')">
+    <span class="pe-nav-btn__ico">📝</span>Planung
+  </button>
+  <button class="pe-nav-btn" id="nav-nachweis" onclick="showTab('nachweis')">
+    <span class="pe-nav-btn__ico">📄</span>Nachweis
+  </button>
+  <button class="pe-nav-btn" id="nav-nachrichten" onclick="showTab('nachrichten')">
+    <span class="pe-nav-btn__ico">💬</span>Nachrichten
+  </button>
+  <button class="pe-nav-btn" id="nav-archiv" onclick="showTab('archiv')">
+    <span class="pe-nav-btn__ico">🗂️</span>Archiv
+    <span class="pe-badge" id="msgBadge" style="display:none;">0</span>
+  </button>
+</nav>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+var state = {
+  einsatz: null,
+  status: 'alarmiert',
+  plan: [],
+  messages: [],
+  unread: 0,
+  signed: false,
+  pollTimer: null
+};
+
+var DEMO = {
+  id: 'demo_001', nummer: 'E-2026-DEMO', art: 'Hausbesuch Pflege',
+  dringlichkeit: 'Mittel – Dringend', patient_name: 'Maria Mustermann',
+  patient_adresse: 'Musterstraße 12', patient_plz: '1010', patient_ort: 'Wien',
+  patient_geburt: '1948-03-15', patient_sv: '1234 150348', patient_tel: '0664 123456',
+  bezirk: '1. Bezirk', schluessel: 'Safe #42', adressinfo: 'Tür rechts, 2. Stock',
+  problem: 'Wundversorgung und Verbandswechsel am linken Unterschenkel.\nPatient berichtet über Schmerzen.',
+  risiken: ['Sturzgefahr','Schluckstörung'],
+  allergien: 'Penicillin', medikamente: 'Metformin 500mg, Ramipril 5mg',
+  anordnungen: 'Verbandswechsel laut ärztlicher Anordnung',
+  qualifikation: 'DGKP – Wundversorgung',
+  fahrzeug: 'N2', disponent: 'Disp. Wagner', datum: '29.04.2026', zeit: '10:30',
+  ang_name: 'Hans Mustermann', ang_tel: '0699 987654',
+  notiz: 'Bitte nach dem Einsatz Rückmeldung über Wundstatus',
+  status: 'alarmiert'
+};
+
+// ════════════════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════════════════
+function peShowLogin() {
+  document.getElementById('peLoginOverlay').style.display = 'flex';
+}
+function peHideLogin() {
+  document.getElementById('peLoginOverlay').style.display = 'none';
+}
+function peSetUser(user) {
+  var nameEl = document.getElementById('peUserName');
+  var logEl  = document.getElementById('peLogoutBtn');
+  if (nameEl && user) {
+    nameEl.textContent = user.vorname + ' ' + (user.nachname || '');
+    nameEl.style.display = '';
+  }
+  if (logEl) logEl.style.display = '';
+}
+// ── Push Notifications ────────────────────────────────────────────────────────
+
+var _peFahrzeug = '';
+
+function urlBase64ToUint8Array(base64String) {
+  var padding = '='.repeat((4 - base64String.length % 4) % 4);
+  var base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var raw     = window.atob(base64);
+  var arr     = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function initPushNotifications(fahrzeug) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (!fahrzeug) return;
+  _peFahrzeug = fahrzeug;
+
+  Notification.requestPermission().then(function(permission) {
+    if (permission !== 'granted') return;
+    fetch('/api/push/vapid-public-key')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (!d.key) return;
+        return navigator.serviceWorker.ready.then(function(reg) {
+          return reg.pushManager.getSubscription().then(function(existing) {
+            if (existing) {
+              // Re-register with current fahrzeug in case it changed
+              return fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({
+                  endpoint: existing.endpoint,
+                  keys: {
+                    p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(existing.getKey('p256dh')))),
+                    auth:   btoa(String.fromCharCode.apply(null, new Uint8Array(existing.getKey('auth'))))
+                  },
+                  fahrzeug: fahrzeug
+                })
+              });
+            }
+            return reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(d.key)
+            }).then(function(sub) {
+              var rawSub = sub.toJSON();
+              return fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({
+                  endpoint: rawSub.endpoint,
+                  keys: rawSub.keys,
+                  fahrzeug: fahrzeug
+                })
+              });
+            });
+          });
+        });
+      })
+      .catch(function() {});
+  });
+}
+
+function peDoLogin() {
+  var btn    = document.getElementById('peLoginBtn');
+  var errEl  = document.getElementById('peLoginErr');
+  var email  = document.getElementById('peLoginEmail').value.trim();
+  var pw     = document.getElementById('peLoginPw').value;
+  btn.disabled = true; btn.textContent = 'Anmelden…';
+  errEl.style.display = 'none';
+  fetch('/api/login/care', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({email: email, password: pw})
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+  .then(function(res){
+    if (res.ok && res.data.ok) {
+      peSetUser(res.data.user);
+      peHideLogin();
+      initMain();
+      initPushNotifications(res.data.user.fahrzeug);
+    } else {
+      errEl.textContent = res.data.error || 'Anmeldung fehlgeschlagen';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Anmelden';
+    }
+  })
+  .catch(function(){
+    errEl.textContent = 'Verbindungsfehler';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Anmelden';
+  });
+}
+function peDoLogout() {
+  fetch('/api/logout', {method:'POST'}).finally(function(){
+    document.getElementById('peUserName').style.display = 'none';
+    document.getElementById('peLogoutBtn').style.display = 'none';
+    peShowLogin();
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+function initMain() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var eid = urlParams.get('id');
+  if (eid) {
+    loadEinsatz('/api/einsaetze/' + eid);
+  } else {
+    loadEinsatz('/api/einsaetze/aktuell');
+  }
+  startPolling();
+  // Show floating chat button (page starts on Auftrag tab, not Nachrichten)
+  var fcBtn = document.getElementById('fcBtn');
+  if (fcBtn) fcBtn.style.display = 'flex';
+}
+
+function init() {
+  fetch('/api/me')
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if (res.ok && res.data.ok) {
+        peSetUser(res.data.user);
+        initMain();
+        if (res.data.user && res.data.user.fahrzeug) {
+          initPushNotifications(res.data.user.fahrzeug);
+        }
+      } else {
+        peShowLogin();
+      }
+    })
+    .catch(function(){ peShowLogin(); });
+}
+
+function loadEinsatz(url) {
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (!data || data.error) {
+        useDemo();
+      } else {
+        applyEinsatz(data);
+      }
+    })
+    .catch(function() { useDemo(); });
+}
+
+function useDemo() {
+  applyEinsatz(DEMO);
+}
+
+function applyEinsatz(e) {
+  state.einsatz = e;
+  state.status  = e.status || 'alarmiert';
+  renderHeader();
+  renderAuftrag();
+  state.plan = generatePlan(e);
+  renderPlan();
+  loadMessages();
+  document.getElementById('peLoading').style.display = 'none';
+  document.getElementById('peAuftragContent').style.display = 'block';
+  // GPS-Ortung starten sobald Fahrzeug bekannt
+  if (e.fahrzeug) gpsStart(e.fahrzeug);
+}
+
+// ════════════════════════════════════════════════════════
+//  HEADER
+// ════════════════════════════════════════════════════════
+var STATUS_LABELS = {
+  alarmiert: '🔴 ALARMIERT', unterwegs: '🚗 UNTERWEGS',
+  eingetroffen: '🏠 EINGETROFFEN', beendet: '✅ BEENDET', einsatzbereit: '🔔 EINSATZBEREIT'
+};
+var STATUS_CLASSES = {
+  alarmiert: '', unterwegs: 'status-unterwegs', eingetroffen: 'status-eingetroffen',
+  beendet: 'status-beendet', einsatzbereit: 'status-einsatzbereit'
+};
+
+function renderHeader() {
+  var e = state.einsatz;
+  var top = document.getElementById('peTop');
+  top.className = 'pe-top ' + (STATUS_CLASSES[state.status] || '');
+  setText('pePatient', e.patient_name || 'Unbekannt');
+  setText('peNr', (e.nummer || e.id || '–') + ' · ' + (e.fahrzeug || '') + ' · ' + (e.datum || '') + ' ' + (e.zeit || ''));
+  setText('peStatusBadge', STATUS_LABELS[state.status] || state.status.toUpperCase());
+  var banner = document.getElementById('peAlarmBanner');
+  if (banner) banner.style.display = state.status === 'alarmiert' ? 'flex' : 'none';
+  setText('peAlarmText', e.art || 'Einsatz alarmiert');
+  setText('peAlarmSub', 'Fahrzeug ' + (e.fahrzeug || '–') + ' · ' + (e.dringlichkeit || '') + ' · Bitte Status setzen');
+  // Schnellzugriff nur bei eingetroffen
+  var ql = document.getElementById('peQuickLinks');
+  if (ql) ql.style.display = state.status === 'eingetroffen' ? 'block' : 'none';
+  renderStatusButtons();
+}
+
+function renderStatusButtons() {
+  ['unterwegs','eingetroffen','beendet','einsatzbereit'].forEach(function(s) {
+    var btn = document.getElementById('sb_' + s);
+    if (btn) btn.classList.toggle('on', s === state.status);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  AUFTRAG TAB
+// ════════════════════════════════════════════════════════
+function renderAuftrag() {
+  var e = state.einsatz;
+  setText('aiNr',       e.nummer || e.id || '–');
+  setText('aiArt',      e.art || '–');
+  setText('aiDring',    e.dringlichkeit || '–');
+  setText('aiZeit',     (e.datum || '') + (e.zeit ? ' · ' + e.zeit + ' Uhr' : ''));
+  setText('aiFz',       e.fahrzeug || '–');
+  setText('aiQual',     e.qualifikation || '–');
+  setText('aiPatient',  e.patient_name || '–');
+  setText('aiGeburt',   fmtDate(e.patient_geburt) || '–');
+  setText('aiTel',      e.patient_tel || '–');
+  var adr = [e.patient_adresse, (e.patient_plz||'') + ' ' + (e.patient_ort||'')].filter(function(s){ return s&&s.trim(); }).join(', ');
+  setText('aiAdresse',  adr || '–');
+  setText('aiBezirk',   e.bezirk || '–');
+  setText('aiProblem',  e.problem || '–');
+
+  show('aiSchluesselRow', !!e.schluessel);
+  setText('aiSchluessel', e.schluessel || '');
+  show('aiAdressinfoRow', !!e.adressinfo);
+  setText('aiAdressinfo', e.adressinfo || '');
+  show('aiNotizRow', !!e.notiz);
+  setText('aiNotiz', e.notiz || '');
+
+  // Map link – plattformübergreifend (iOS: Apple Maps, alle anderen: Google Maps)
+  var _adressParts = [e.patient_adresse||'', e.patient_plz||'', e.patient_ort||''].filter(Boolean).join(' ').trim();
+  var mapLink = document.getElementById('aiMapLink');
+  if (mapLink) {
+    if (!_adressParts) {
+      mapLink.style.display = 'none';
+    } else {
+      mapLink.style.display = '';
+      var mapQuery = encodeURIComponent(_adressParts);
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      mapLink.href = isIOS
+        ? 'maps://maps.apple.com/?q=' + mapQuery
+        : 'https://www.google.com/maps/search/?api=1&query=' + mapQuery;
+    }
+  }
+
+  // Risks
+  var risks = e.risiken || [];
+  var risCard = document.getElementById('aiRiskenCard');
+  var risList = document.getElementById('aiRisiken');
+  if (risks.length && risList && risCard) {
+    risCard.style.display = 'block';
+    risList.innerHTML = risks.map(function(r) {
+      var label = (typeof r === 'object') ? r.l : r;
+      var cls = (label.includes('MRSA') || label.includes('Infektion')) ? '' : ' pe-risk--o';
+      return '<span class="pe-risk' + cls + '">' + label + '</span>';
+    }).join('');
+  }
+
+  setText('aiAllergien',   e.allergien   || '–');
+  setText('aiMedikamente', e.medikamente || '–');
+  setText('aiAnordnungen', e.anordnungen || '–');
+
+  show('aiAngCard', !!(e.ang_name || e.ang_tel));
+  setText('aiAngName', e.ang_name || '–');
+  setText('aiAngTel',  e.ang_tel  || '–');
+}
+
+// ════════════════════════════════════════════════════════
+//  PLANUNG
+// ════════════════════════════════════════════════════════
+function generatePlan(e) {
+  var tasks = [];
+  var q = (e.qualifikation || '').toLowerCase();
+  var p = (e.problem || '').toLowerCase();
+  var a = (e.art || '').toLowerCase();
+  var risks = (e.risiken || []).map(function(r){ return typeof r==='object' ? r.l : r; });
+
+  function add(cat, text) { tasks.push({ id: Date.now()+Math.random(), cat: cat, text: text, done: false }); }
+
+  if (risks.indexOf('MRSA/MRGN') >= 0) add('⚠️ Hygiene', 'Schutzausrüstung anlegen (Handschuhe, Maske, Schürze) — MRSA');
+  add('📍 Ankunft', 'Patient identifizieren & begrüßen');
+  add('📍 Ankunft', 'Allgemeinzustand einschätzen & befragen');
+  add('📍 Ankunft', 'Vitaldaten erheben (RR, Puls, SpO₂, Temperatur)');
+  if (risks.indexOf('Sturzgefahr') >= 0) add('🛡 Sicherheit', 'Umgebung auf Sturzrisiken prüfen & sichern');
+
+  if (q.indexOf('wund') >= 0 || p.indexOf('wund') >= 0 || p.indexOf('verband') >= 0) {
+    add('🩹 Wundversorgung', 'Wundbeurteilung: Größe, Tiefe, Sekretion, Rötung');
+    add('🩹 Wundversorgung', 'Wunde reinigen (NaCl 0,9%)');
+    add('🩹 Wundversorgung', 'Verbandswechsel aseptisch durchführen');
+    add('🩹 Wundversorgung', 'Wundstatus dokumentieren');
+  }
+  if (q.indexOf('medik') >= 0 || p.indexOf('medik') >= 0 || p.indexOf('insulin') >= 0) {
+    add('💊 Medikation', 'Medikamentenplan prüfen & abgleichen');
+    add('💊 Medikation', 'Medikamente stellen & verabreichen');
+    add('💊 Medikation', 'Einnahme bestätigen & dokumentieren');
+  }
+  if (p.indexOf('katheter') >= 0 || p.indexOf('blase') >= 0) {
+    add('🔧 Katheter', 'Urinkatheter: Zustand & Durchfluss prüfen');
+    add('🔧 Katheter', 'Drainagebeutel leeren & Urin beurteilen');
+  }
+  if (p.indexOf('infusion') >= 0 || p.indexOf('iv') >= 0 || p.indexOf('intravenös') >= 0) {
+    add('💉 Infusion', 'Venösen Zugang prüfen (Rötung, Schwellung)');
+    add('💉 Infusion', 'Infusion anlegen / wechseln');
+  }
+  if (p.indexOf('mobilisation') >= 0 || p.indexOf('lagerung') >= 0 || risks.indexOf('Dekubitusverdacht') >= 0) {
+    add('🤸 Mobilisation', 'Lagerung überprüfen & ggf. anpassen');
+    add('🤸 Mobilisation', 'Mobilisation / Transfer unterstützen');
+    add('🤸 Mobilisation', 'Druckstellen inspizieren');
+  }
+  if (p.indexOf('körperpflege') >= 0 || p.indexOf('hygiene') >= 0 || a.indexOf('grundpflege') >= 0) {
+    add('🛁 Körperpflege', 'Ganzkörperpflege / Waschen durchführen');
+    add('🛁 Körperpflege', 'Mundpflege');
+    add('🛁 Körperpflege', 'Kleidung wechseln');
+  }
+  if (risks.indexOf('Schluckstörung') >= 0) {
+    add('🥄 Ernährung', 'Essen anreichen — langsam, auf Schluckstörung achten');
+    add('🥄 Ernährung', 'Flüssigkeitszufuhr kontrollieren & dokumentieren');
+  }
+
+  if (!tasks.length || tasks.length < 4) {
+    add('🔍 Allgemein', 'Allgemeine Befindlichkeit erfragen');
+    add('🔍 Allgemein', 'Schmerzsituation einschätzen (NRS 0–10)');
+    add('🔍 Allgemein', 'Medikamentencompliance prüfen');
+    add('🔍 Allgemein', 'Sicherheit im Wohnbereich beurteilen');
+  }
+
+  add('📄 Abschluss', 'Patient verabschieden & Zustand bei Verlassen erfassen');
+  add('📄 Abschluss', 'Pflegedokumentation vollständig ausfüllen');
+  add('📄 Abschluss', 'Rückmeldung an Leitstelle senden');
+  return tasks;
+}
+
+function renderPlan() {
+  var list = document.getElementById('planList');
+  if (!list) return;
+  if (!state.plan.length) { list.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:.82rem;">Keine Aufgaben.</div>'; return; }
+  var cats = {};
+  state.plan.forEach(function(t) { if (!cats[t.cat]) cats[t.cat] = []; cats[t.cat].push(t); });
+  var html = '';
+  Object.keys(cats).forEach(function(cat) {
+    html += '<div class="plan-cat">' + cat + '</div>';
+    cats[cat].forEach(function(t) {
+      html += '<div class="plan-task' + (t.done?' done':'') + '" onclick="planToggle(\'' + t.id + '\')" data-id="' + t.id + '">'
+            + '<div class="plan-check"><span class="plan-check__tick">✓</span></div>'
+            + '<div class="plan-task__text">' + escHtml(t.text) + '</div></div>';
+    });
+  });
+  list.innerHTML = html;
+  renderPlanProgress();
+}
+
+function planToggle(id) {
+  state.plan.forEach(function(t){ if(t.id == id) t.done = !t.done; });
+  renderPlan();
+}
+
+function planAddTask() {
+  var inp = document.getElementById('planNewTask');
+  var text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  state.plan.push({ id: Date.now()+Math.random(), cat: '➕ Eigene Aufgaben', text: text, done: false });
+  inp.value = '';
+  renderPlan();
+}
+
+function renderPlanProgress() {
+  var total = state.plan.length;
+  var done  = state.plan.filter(function(t){ return t.done; }).length;
+  var pct   = total ? Math.round(done/total*100) : 0;
+  var fill  = document.getElementById('planBarFill'); if (fill) fill.style.width = pct + '%';
+  var pctEl = document.getElementById('planPct');     if (pctEl) pctEl.textContent = pct + '%';
+}
+
+// ════════════════════════════════════════════════════════
+//  NACHWEIS
+// ════════════════════════════════════════════════════════
+function nwSetNow(id) {
+  var el = document.getElementById(id);
+  if (el) el.value = new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+}
+function nwSign() {
+  state.signed = true;
+  var box = document.getElementById('nwSignBox'); if (!box) return;
+  box.className = 'nw-sign-box signed';
+  var me = JSON.parse(localStorage.getItem('nursy_me') || '{}');
+  var name = (me.vorname||'') + ' ' + (me.nachname||'Pflegekraft');
+  document.getElementById('nwSignText').textContent = '✓ Unterschrieben: ' + name.trim() + ' · ' + new Date().toLocaleString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function nwSave() {
+  if (!state.einsatz) return;
+  if (!state.signed) { alert('Bitte zuerst unterschreiben.'); return; }
+  var text = '📄 Nachweis übermittelt – Ankunft: '
+    + (document.getElementById('nwAnkunft').value||'–')
+    + ', Abfahrt: ' + (document.getElementById('nwAbfahrt').value||'–')
+    + '. ' + ((document.getElementById('nwMassnahmen').value||'').slice(0,80)||'Keine Notiz');
+  msgSendText(text);
+  setStatus('beendet');
+  alert('✅ Nachweis erfolgreich gesendet!');
+}
+
+// ════════════════════════════════════════════════════════
+//  STATUS
+// ════════════════════════════════════════════════════════
+function setStatus(s) {
+  state.status = s;
+  renderHeader();
+  if (state.einsatz && state.einsatz.id && !state.einsatz.id.startsWith('demo')) {
+    var n = new Date();
+    var hm = n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+    var eid = state.einsatz.id;
+    var cgName = (document.getElementById('peUserName') || {}).textContent || '';
+    fetch('/api/einsaetze/' + eid + '/status', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({status: s, zeit: hm, akteur: cgName.trim(), akteur_typ: 'pfleger'})
+    }).catch(function(){});
+  }
+  // Auto-message
+  var labels = {unterwegs:'🚗 Ich bin unterwegs.', eingetroffen:'🏠 Ich bin eingetroffen.', beendet:'✅ Einsatz beendet.', einsatzbereit:'🔔 Ich bin wieder einsatzbereit.'};
+  if (labels[s]) msgSendText(labels[s]);
+
+  // Benachrichtigung an Klienten-Dashboard
+  try {
+    var pflegerName = (state.einsatz && state.einsatz.pfleger_name) || 'Ihre Pflegekraft';
+    if(s === 'unterwegs'){
+      localStorage.setItem('nursy_enroute_status_v1', JSON.stringify({active:true, name: pflegerName}));
+    } else if(s === 'eingetroffen' || s === 'beendet' || s === 'einsatzbereit'){
+      localStorage.setItem('nursy_enroute_status_v1', JSON.stringify({active:false}));
+    }
+  } catch(e) {}
+
+  // Nach Abschluss zurück zur Auftragslage
+  if (s === 'beendet') {
+    setTimeout(function(){
+      window.location.href = '/auftragslage/';
+    }, 2000);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  NACHRICHTEN
+// ════════════════════════════════════════════════════════
+function loadMessages() {
+  if (!state.einsatz || state.einsatz.id.startsWith('demo')) {
+    renderMessages([
+      { sender:'leitstelle', text:'Einsatz bestätigt. Viel Erfolg!', created_at: new Date().toISOString() }
+    ]);
+    return;
+  }
+  fetch('/api/einsaetze/' + state.einsatz.id + '/nachrichten')
+    .then(function(r){ return r.json(); })
+    .then(function(data) { renderMessages(data); })
+    .catch(function(){});
+}
+
+function renderMessages(msgs) {
+  var list = document.getElementById('msgList');
+  if (!list) return;
+  if (!msgs || !msgs.length) {
+    list.innerHTML = '<div class="pe-empty"><div class="pe-empty__ico">💬</div><div class="pe-empty__text">Noch keine Nachrichten.</div></div>';
+    return;
+  }
+  list.innerHTML = msgs.map(function(m) {
+    var t = m.created_at ? new Date(m.created_at).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'}) : '';
+    return '<div class="msg-bubble ' + m.sender + '">'
+      + '<div class="msg-bubble__sender">' + (m.sender === 'leitstelle' ? '🎛 Leitstelle' : '👤 Ich') + '</div>'
+      + escHtml(m.text)
+      + '<div class="msg-bubble__time">' + t + '</div>'
+      + '</div>';
+  }).join('');
+  list.scrollTop = list.scrollHeight;
+  state.messages = msgs;
+}
+
+function msgSend() {
+  var inp = document.getElementById('msgInput');
+  var text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  inp.value = '';
+  msgSendText(text);
+}
+
+function msgSendText(text) {
+  var msg = { sender: 'pfleger', text: text, created_at: new Date().toISOString() };
+  state.messages.push(msg);
+  renderMessages(state.messages);
+  if (state.einsatz && state.einsatz.id && !state.einsatz.id.startsWith('demo')) {
+    fetch('/api/einsaetze/' + state.einsatz.id + '/nachrichten', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text: text, sender: 'pfleger' })
+    }).catch(function(){});
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  POLLING
+// ════════════════════════════════════════════════════════
+function startPolling() {
+  state.pollTimer = setInterval(function() {
+    if (!state.einsatz || state.einsatz.id.startsWith('demo')) return;
+    fetch('/api/einsaetze/' + state.einsatz.id + '/nachrichten')
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        var prev = state.messages.length;
+        if (data.length > prev) {
+          var newOnes = data.slice(prev).filter(function(m){ return m.sender === 'leitstelle'; });
+          var onNachrichtenTab = document.getElementById('tab-nachrichten').classList.contains('active');
+          if (newOnes.length && !onNachrichtenTab) {
+            if (!fcOpen) {
+              state.unread += newOnes.length;
+              updateMsgBadge();
+              fcUpdateBadge();
+            }
+          }
+          renderMessages(data);
+          if (fcOpen) fcRenderMessages(data);
+        }
+      }).catch(function(){});
+  }, 15000);
+}
+
+function updateMsgBadge() {
+  var b = document.getElementById('msgBadge');
+  if (!b) return;
+  b.style.display = state.unread > 0 ? 'flex' : 'none';
+  b.textContent = state.unread;
+}
+
+// ════════════════════════════════════════════════════════
+//  TAB NAVIGATION
+// ════════════════════════════════════════════════════════
+function showTab(name) {
+  ['auftrag','planung','nachweis','nachrichten','archiv'].forEach(function(t) {
+    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+    document.getElementById('nav-' + t).classList.toggle('active', t === name);
+  });
+  if (name === 'nachrichten') { state.unread = 0; updateMsgBadge(); }
+  if (name === 'archiv') { loadArchiv(); }
+  // Show floating button only when NOT on Nachrichten tab
+  var fcBtn = document.getElementById('fcBtn');
+  if (fcBtn) fcBtn.style.display = name === 'nachrichten' ? 'none' : 'flex';
+  window.scrollTo(0,0);
+}
+
+// ════════════════════════════════════════════════════════
+//  ARCHIV
+// ════════════════════════════════════════════════════════
+var _archivLoaded = false;
+function loadArchiv() {
+  if (_archivLoaded) return;
+  var fz = state.einsatz && state.einsatz.fahrzeug;
+  var cgName = (document.getElementById('peUserName') || {}).textContent || '';
+  // Load completed missions for this vehicle/caregiver
+  fetch('/api/einsaetze?archiv=1')
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(all) {
+      var done = all.filter(function(e){
+        return e.status === 'beendet' && (!fz || e.fahrzeug === fz);
+      }).slice(0,30);
+      renderArchiv(done);
+      _archivLoaded = true;
+    })
+    .catch(function(){ renderArchiv([]); });
+}
+
+function renderArchiv(list) {
+  var el = document.getElementById('archivList');
+  var lo = document.getElementById('archivLoading');
+  if (lo) lo.style.display = 'none';
+  if (!list.length) {
+    el.innerHTML = '<div class="pe-empty"><div class="pe-empty__ico">🗂️</div><div class="pe-empty__text">Noch keine abgeschlossenen Einsätze in Ihrem Archiv.</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(e) {
+    return '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;margin-bottom:12px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">' +
+        '<div>' +
+          '<div style="font-size:.88rem;font-weight:800;color:#0f1a33;">' + escHtml(e.patient_name || '–') + '</div>' +
+          '<div style="font-size:.74rem;color:var(--muted);margin-top:2px;">' + escHtml(e.art || '–') + ' · ' + fmtDate(e.datum) + ' ' + (e.zeit||'') + '</div>' +
+        '</div>' +
+        '<span style="font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:7px;background:#dcfce7;color:#166534;">✅ Beendet</span>' +
+      '</div>' +
+      '<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.74rem;">' +
+        '<span style="color:var(--muted);">Fahrzeug</span><span style="font-weight:600;">' + escHtml(e.fahrzeug||'–') + '</span>' +
+        '<span style="color:var(--muted);">Adresse</span><span style="font-weight:600;">' + escHtml(e.patient_adresse||'–') + '</span>' +
+        (e.zeit_beendet ? '<span style="color:var(--muted);">Beendet um</span><span style="font-weight:600;">' + escHtml(e.zeit_beendet) + ' Uhr</span>' : '') +
+        (e.problem ? '<span style="color:var(--muted);">Problem</span><span style="font-weight:600;">' + escHtml(e.problem.slice(0,50)) + '</span>' : '') +
+      '</div>' +
+      '<div id="proto_' + e.id + '" style="margin-top:10px;display:none;"></div>' +
+      '<button onclick="toggleProto(' + JSON.stringify(e.id) + ')" style="margin-top:10px;width:100%;background:transparent;border:1.5px solid #e2e8f0;border-radius:8px;padding:7px;font-size:.74rem;font-weight:700;color:#475569;cursor:pointer;">📋 Protokoll anzeigen</button>' +
+    '</div>';
+  }).join('');
+}
+
+var _protoOpen = {};
+function toggleProto(eid) {
+  var el = document.getElementById('proto_' + eid);
+  if (!el) return;
+  if (_protoOpen[eid]) {
+    el.style.display = 'none'; _protoOpen[eid] = false; return;
+  }
+  el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted);font-size:.8rem;">Wird geladen…</div>';
+  el.style.display = 'block';
+  fetch('/api/einsaetze/' + eid + '/protokoll')
+    .then(function(r){ return r.json(); })
+    .then(function(rows) {
+      if (!rows.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:8px;">Kein Protokoll vorhanden.</div>'; return; }
+      var icons = {status:'🔄', erstellt:'📝', gps:'📍', default:'·'};
+      el.innerHTML = '<div style="border-left:2px solid #e2e8f0;padding-left:12px;margin-top:4px;">' +
+        rows.map(function(p){
+          var ico = icons[p.aktion] || icons.default;
+          var t = (p.zeitpunkt||'').slice(11,16);
+          return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;">' +
+            '<span style="font-size:.8rem;flex-shrink:0;">' + ico + '</span>' +
+            '<div><div style="font-size:.78rem;font-weight:700;color:#1e293b;">' + escHtml(p.details||p.aktion) + '</div>' +
+            '<div style="font-size:.7rem;color:var(--muted);">' + t + (p.akteur ? ' · ' + escHtml(p.akteur) : '') + '</div></div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+      _protoOpen[eid] = true;
+    }).catch(function(){ el.innerHTML = '<div style="color:#dc2626;font-size:.78rem;">Fehler beim Laden.</div>'; });
+}
+
+// ════════════════════════════════════════════════════════
+//  FLOATING CHAT
+// ════════════════════════════════════════════════════════
+var fcOpen = false;
+
+function fcToggle() {
+  fcOpen = !fcOpen;
+  var panel = document.getElementById('fcPanel');
+  if (!panel) return;
+  panel.classList.toggle('open', fcOpen);
+  if (fcOpen) {
+    fcRenderMessages(state.messages);
+    state.unread = 0;
+    updateMsgBadge();
+    fcUpdateBadge();
+    setTimeout(function(){
+      var list = document.getElementById('fcMsgList');
+      if (list) list.scrollTop = list.scrollHeight;
+      var inp = document.getElementById('fcInput');
+      if (inp) inp.focus();
+    }, 150);
+  }
+}
+
+function fcRenderMessages(msgs) {
+  var list = document.getElementById('fcMsgList');
+  if (!list) return;
+  if (!msgs || !msgs.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.82rem;padding:20px 0;">Noch keine Nachrichten.</div>';
+    return;
+  }
+  list.innerHTML = msgs.map(function(m) {
+    var t = m.created_at ? new Date(m.created_at).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'}) : '';
+    return '<div class="msg-bubble ' + m.sender + '">'
+      + '<div class="msg-bubble__sender">' + (m.sender === 'leitstelle' ? '🎛 Leitstelle' : '👤 Ich') + '</div>'
+      + escHtml(m.text)
+      + '<div class="msg-bubble__time">' + t + '</div>'
+      + '</div>';
+  }).join('');
+  list.scrollTop = list.scrollHeight;
+}
+
+function fcUpdateBadge() {
+  var badge = document.getElementById('fcBadge');
+  if (!badge) return;
+  if (state.unread > 0 && !fcOpen) {
+    badge.style.display = 'flex';
+    badge.textContent = state.unread;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function fcSend() {
+  var inp = document.getElementById('fcInput');
+  var text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  inp.value = '';
+  msgSendText(text);
+  // Sync floating panel immediately
+  fcRenderMessages(state.messages);
+}
+
+// ── Drag (touch + mouse) ──
+(function() {
+  var panel, handle, dragging = false, startX, startY, origLeft, origTop;
+  function getPanel() { return document.getElementById('fcPanel'); }
+
+  function startDrag(clientX, clientY) {
+    panel = getPanel();
+    if (!panel || !fcOpen) return;
+    var rect = panel.getBoundingClientRect();
+    panel.style.transition = 'none';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+    panel.style.left = rect.left + 'px';
+    panel.style.top  = rect.top  + 'px';
+    origLeft = rect.left; origTop = rect.top;
+    startX = clientX; startY = clientY;
+    dragging = true;
+  }
+
+  function onMove(clientX, clientY) {
+    if (!dragging || !panel) return;
+    var dx = clientX - startX, dy = clientY - startY;
+    var newLeft = Math.max(0, Math.min(window.innerWidth  - panel.offsetWidth,  origLeft + dx));
+    var newTop  = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, origTop  + dy));
+    panel.style.left = newLeft + 'px';
+    panel.style.top  = newTop  + 'px';
+  }
+
+  function endDrag() {
+    dragging = false;
+    if (panel) panel.style.transition = '';
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var h = document.getElementById('fcHandle');
+    if (!h) return;
+    // Touch
+    h.addEventListener('touchstart', function(e){ var t=e.touches[0]; startDrag(t.clientX,t.clientY); }, {passive:true});
+    document.addEventListener('touchmove', function(e){ if(dragging){ var t=e.touches[0]; onMove(t.clientX,t.clientY); } }, {passive:true});
+    document.addEventListener('touchend', endDrag);
+    // Mouse
+    h.addEventListener('mousedown', function(e){ startDrag(e.clientX,e.clientY); e.preventDefault(); });
+    document.addEventListener('mousemove', function(e){ if(dragging) onMove(e.clientX,e.clientY); });
+    document.addEventListener('mouseup', endDrag);
+  });
+})();
+
+// ════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════
+function setText(id, val) { var e = document.getElementById(id); if (e) e.textContent = val; }
+function show(id, visible) { var e = document.getElementById(id); if (e) e.style.display = visible ? '' : 'none'; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d) {
+  if (!d) return '';
+  var parts = d.split('-'); if (parts.length === 3) return parts[2]+'.'+parts[1]+'.'+parts[0];
+  return d;
+}
+
+// ════════════════════════════════════════════════════════
+//  GPS-ORTUNG
+// ════════════════════════════════════════════════════════
+var _gpsWatchId = null;
+var _gpsLastSent = 0;
+var _gpsFahrzeug = '';
+
+function gpsStart(fahrzeug) {
+  _gpsFahrzeug = fahrzeug || '';
+  if (!navigator.geolocation || !_gpsFahrzeug) {
+    gpsSetStatus('no-gps');
+    return;
+  }
+  gpsSetStatus('suche');
+  _gpsWatchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      gpsSetStatus('aktiv');
+      var now = Date.now();
+      if (now - _gpsLastSent < 20000) return; // max alle 20s senden
+      _gpsLastSent = now;
+      fetch('/api/fahrzeuge/position', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fahrzeug: _gpsFahrzeug,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        })
+      }).catch(function(){});
+    },
+    function(err) {
+      gpsSetStatus('fehler');
+    },
+    { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
+  );
+}
+
+function gpsStop() {
+  if (_gpsWatchId !== null) {
+    navigator.geolocation.clearWatch(_gpsWatchId);
+    _gpsWatchId = null;
+  }
+}
+
+function gpsSetStatus(s) {
+  var el = document.getElementById('gpsStatus');
+  if (!el) return;
+  var map = {
+    'aktiv':   { t:'📍 GPS aktiv',  c:'#16a34a' },
+    'suche':   { t:'🔍 GPS sucht…', c:'#d97706' },
+    'fehler':  { t:'⚠️ GPS Fehler', c:'#dc2626' },
+    'no-gps':  { t:'',              c:'' },
+  };
+  var v = map[s] || { t:'', c:'' };
+  el.textContent = v.t;
+  el.style.color = v.c;
+  el.style.display = v.t ? 'inline' : 'none';
+}
+
+// ════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', init);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>

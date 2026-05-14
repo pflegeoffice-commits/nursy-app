@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Klient Login</title>
+  <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="/manifest-client.json">
+    <link rel="apple-touch-icon" href="/icon-nursy-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Zurück zur Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="index.html#features">Funktionen</a>
+        <a href="index.html#how">So funktioniert’s</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="auth">
+    <div class="auth__wrap">
+      <div class="auth__head">
+        <h1>Klient Login</h1>
+      </div>
+
+      <div class="card">
+        <form class="form"  data-login-role="client">
+          <div class="form-error" role="alert"></div>
+          <div class="field"><label class="field__label">E-Mail-Adresse oder Benutzer-ID</label><input class="control" type="text" placeholder="name@beispiel.at oder p1a2b3c4" required id="loginEmail" /><div class="help">E-Mail-Adresse oder die vom Pfleger erhaltene Benutzer-ID.</div></div>
+
+          <div class="field"><label class="field__label">Passwort</label><input class="control" type="password" placeholder="mind. 8 Zeichen" minlength="8" required id="loginPassword" /><div class="help">Dein persönliches Passwort.</div></div>
+
+          <button class="control btn primary" id="loginSubmit" type="submit">Anmelden</button>
+
+        <p class="note">Noch kein Konto? <a href="register-client.html">Als Klient registrieren</a></p>
+
+        <p class="note" style="margin-top:8px;">
+          <a href="passwort-reset.html" style="color:var(--muted);font-size:.85rem;">Passwort vergessen?</a>
+        </p>
+
+      <p class="note" style="margin-top:12px;">
+        <a href="login-care.html">Zum Pflegekraft-Login</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+</body>
+</html>

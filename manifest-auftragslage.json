@@ -1,0 +1,42 @@
+{
+  "id": "akutplus-auftragslage",
+  "name": "Akut Plus Auftragslage",
+  "short_name": "Auftragslage",
+  "description": "Akut Plus – Aktive Einsätze & Auftragsverwaltung",
+  "start_url": "/auftragslage/",
+  "scope": "/auftragslage/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0f2744",
+  "theme_color": "#0f2744",
+  "lang": "de",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-auftragslage-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-auftragslage-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-auftragslage-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-auftragslage-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["medical", "productivity"]
+}

@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nursy">
+<meta name="theme-color" content="#0f2744">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>Nursy – Fahrzeug anmelden</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f2744;--navy2:#1a3a5c;--blue:#2563eb;--blue-l:#3b82f6;
+  --green:#16a34a;--red:#dc2626;--muted:#64748b;--border:rgba(255,255,255,.15);
+}
+html,body{height:100%;background:var(--navy);}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  color:#fff;display:flex;flex-direction:column;min-height:100%;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* ── Header ── */
+.hdr{display:flex;align-items:center;gap:12px;padding:18px 20px 14px;}
+.hdr__logo{width:42px;height:42px;border-radius:12px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;flex-shrink:0;}
+.hdr__title{font-size:1.1rem;font-weight:800;}
+.hdr__sub{font-size:.75rem;opacity:.6;margin-top:1px;}
+
+/* ── Step indicator ── */
+.steps{display:flex;align-items:center;gap:6px;margin:0 16px 18px;}
+.step{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;opacity:.4;white-space:nowrap;}
+.step.active{opacity:1;}
+.step.done{opacity:.65;color:#4ade80;}
+.step__n{width:22px;height:22px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;flex-shrink:0;}
+.step__sep{flex:1;height:1px;background:rgba(255,255,255,.15);}
+
+/* ── Card ── */
+.card{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:20px;margin:0 16px;padding:20px 18px;backdrop-filter:blur(8px);}
+.card+.card{margin-top:14px;}
+
+/* ── Label ── */
+.label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.55);margin-bottom:10px;}
+
+/* ── Bundesland grid ── */
+.bl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.bl-btn{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s;color:#fff;}
+.bl-btn:active{transform:scale(.96);}
+.bl-btn.sel{background:var(--blue);border-color:var(--blue-l);}
+.bl-btn__ico{font-size:1.4rem;}
+.bl-btn__name{font-size:.72rem;font-weight:800;text-align:center;line-height:1.2;}
+
+/* ── Vehicle grid ── */
+.fz-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.fz-btn{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;color:#fff;}
+.fz-btn:active{transform:scale(.96);}
+.fz-btn.sel{background:var(--blue);border-color:var(--blue-l);}
+.fz-btn__ico{font-size:1.4rem;}
+.fz-btn__name{font-size:.78rem;font-weight:800;letter-spacing:.02em;}
+.fz-btn__sub{font-size:.6rem;opacity:.65;text-align:center;}
+.fz-btn.besetzt{opacity:.75;border-color:rgba(251,146,60,.5);background:rgba(251,146,60,.1);}
+.fz-btn.besetzt .fz-btn__sub{color:#fb923c;}
+.takeover-box{background:rgba(251,146,60,.15);border:1.5px solid rgba(251,146,60,.5);border-radius:12px;padding:12px 14px;font-size:.82rem;color:#fdba74;margin-bottom:14px;display:none;}
+.takeover-box.show{display:block;}
+
+/* Custom vehicle input */
+.fz-custom{display:flex;gap:8px;margin-top:10px;}
+.fz-custom input{flex:1;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:10px;padding:10px 12px;color:#fff;font-size:.9rem;font-family:inherit;text-transform:uppercase;}
+.fz-custom input::placeholder{color:rgba(255,255,255,.35);text-transform:none;}
+.fz-custom input:focus{outline:none;border-color:var(--blue-l);}
+.fz-custom button{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:10px;padding:10px 14px;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;}
+
+/* ── Selected bar ── */
+.sel-bar{display:none;align-items:center;gap:10px;background:rgba(59,130,246,.2);border:1.5px solid rgba(59,130,246,.4);border-radius:12px;padding:10px 14px;margin-bottom:14px;}
+.sel-bar.show{display:flex;}
+.sel-bar__ico{font-size:1.2rem;}
+.sel-bar__info{flex:1;}
+.sel-bar__name{font-weight:800;font-size:.88rem;}
+.sel-bar__sub{font-size:.68rem;opacity:.6;}
+.sel-bar__change{background:none;border:none;color:rgba(255,255,255,.55);font-size:.75rem;cursor:pointer;}
+
+/* ── Fields ── */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.65;}
+.field input{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:12px;padding:13px 14px;color:#fff;font-size:1rem;font-family:inherit;}
+.field input::placeholder{color:rgba(255,255,255,.35);}
+.field input:focus{outline:none;border-color:var(--blue-l);background:rgba(37,99,235,.2);}
+.field .hint{font-size:.7rem;opacity:.5;margin-top:2px;}
+
+/* ── Button ── */
+.btn-primary{width:100%;padding:15px;border-radius:999px;border:none;background:var(--blue-l);color:#fff;font-size:1rem;font-weight:800;cursor:pointer;transition:opacity .15s;margin-top:4px;}
+.btn-primary:active{opacity:.85;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── Error ── */
+.error-box{background:rgba(220,38,38,.15);border:1.5px solid rgba(220,38,38,.4);border-radius:12px;padding:12px 14px;font-size:.85rem;color:#fca5a5;margin-bottom:14px;display:none;}
+.error-box.show{display:block;}
+
+/* ── Spinner ── */
+.spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Demo-Schnellstart ── */
+.demo-bar{margin:0 16px 14px;background:rgba(250,204,21,.12);border:1.5px solid rgba(250,204,21,.35);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.demo-bar__ico{font-size:1.5rem;flex-shrink:0;}
+.demo-bar__text{flex:1;}
+.demo-bar__title{font-size:.78rem;font-weight:800;color:#fde047;margin-bottom:2px;}
+.demo-bar__sub{font-size:.7rem;color:rgba(255,255,255,.55);line-height:1.3;}
+.demo-bar__btn{flex-shrink:0;background:#facc15;color:#0f2744;border:none;border-radius:10px;font-size:.75rem;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;}
+.demo-bar__btn:active{opacity:.8;transform:scale(.97);}
+
+/* ── Welcome Splash ── */
+.splash{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .5s ease;overflow:hidden;}
+.splash.show{opacity:1;pointer-events:all;}
+.splash__car{width:min(88vw,480px);animation:carSlide .9s cubic-bezier(.22,.68,0,1.2) forwards;opacity:0;}
+@keyframes carSlide{from{transform:translateX(-60px) scale(.88);opacity:0;}to{transform:translateX(0) scale(1);opacity:1;}}
+.splash__text{margin-top:0;text-align:center;animation:fadeUp .8s .5s ease forwards;opacity:0;}
+@keyframes fadeUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.splash__welcome{font-size:clamp(1.4rem,5vw,2rem);font-weight:900;letter-spacing:-.01em;color:#fff;}
+.splash__welcome span{color:#facc15;}
+.splash__sub{margin-top:6px;font-size:clamp(.85rem,3vw,1.05rem);color:rgba(255,255,255,.65);font-weight:500;}
+.splash__fz{margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 18px;font-size:.9rem;font-weight:800;color:#fff;}
+.splash__bar{position:absolute;bottom:0;left:0;height:3px;background:#facc15;width:0;animation:barFill var(--dur,3s) 0.3s linear forwards;}
+@keyframes barFill{from{width:0}to{width:100%}}
+
+/* ── Footer ── */
+.footer{padding:18px 20px;text-align:center;font-size:.75rem;opacity:.4;margin-top:auto;}
+
+/* Responsive */
+@media(min-width:480px){.card{max-width:440px;margin:0 auto;}.steps,.action-row{max-width:440px;margin-left:auto;margin-right:auto;}}
+.action-row{margin:14px 16px 0;}
+</style>
+</head>
+<body>
+
+<!-- ══ WELCOME SPLASH ══ -->
+<div class="splash" id="splash">
+  <img class="splash__car" src="/fahrzeug-car.png" alt="Fahrzeug" id="splashCar">
+  <div class="splash__text">
+    <div class="splash__welcome">Herzlich Willkommen<br><span>im Dienst.</span></div>
+    <div class="splash__sub" id="splashSub">Guten Dienst!</div>
+    <div class="splash__fz" id="splashFz">🚗 –</div>
+  </div>
+  <div class="splash__bar" id="splashBar"></div>
+</div>
+
+<div class="hdr">
+  <div class="hdr__logo">N</div>
+  <div>
+    <div class="hdr__title">Fahrzeug anmelden</div>
+    <div class="hdr__sub">Nursy Pflegekraft-Login</div>
+  </div>
+</div>
+
+
+<!-- ══ DIREKT-LOGIN (zugewiesene Pfleger) ══ -->
+<div id="direktLogin" style="margin:0 16px 18px;">
+  <div class="card">
+    <div class="label" style="margin-bottom:8px;">🧑‍⚕️ Direkt anmelden</div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.5;">Für Pfleger, die vom Admin einem Fahrzeug zugewiesen wurden.</div>
+    <div class="error-box" id="direktErrBox"></div>
+    <div class="field">
+      <label>Dienstnummer</label>
+      <input type="text" id="direktDnr" placeholder="z. B. AP-001" autocomplete="username"
+             autocorrect="off" autocapitalize="characters" spellcheck="false">
+    </div>
+    <div class="field">
+      <label>Passwort</label>
+      <input type="password" id="direktPw" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="btnDirekt" onclick="doDirektLogin()">🔐 Direkt anmelden</button>
+  </div>
+  <div style="margin-top:14px;text-align:center;">
+    <button onclick="showFahrzeugFlow()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:.78rem;cursor:pointer;text-decoration:underline;padding:4px;">
+      Fahrzeug manuell wählen →
+    </button>
+  </div>
+</div>
+
+<!-- ══ FAHRZEUG-FLOW (Standard) ══ -->
+<div id="fahrzeugFlow" style="display:none;">
+
+<!-- Step indicator -->
+<div class="steps" id="stepsBar">
+  <div class="step active" id="s1"><div class="step__n">1</div>Bundesland</div>
+  <div class="step__sep"></div>
+  <div class="step" id="s2"><div class="step__n">2</div>Fahrzeug</div>
+  <div class="step__sep"></div>
+  <div class="step" id="s3"><div class="step__n">3</div>Anmelden</div>
+</div>
+
+<!-- ══ STEP 1: Bundesland ══ -->
+<div id="step1">
+  <div class="card">
+    <div class="label">Bundesland wählen</div>
+    <div class="bl-grid" id="blGrid">
+      <button class="bl-btn" data-bl="Wien"             onclick="selectBl('Wien')"><span class="bl-btn__ico">🏙️</span><span class="bl-btn__name">Wien</span></button>
+      <button class="bl-btn" data-bl="Niederösterreich" onclick="selectBl('Niederösterreich')"><span class="bl-btn__ico">🌾</span><span class="bl-btn__name">Niederösterreich</span></button>
+      <button class="bl-btn" data-bl="Oberösterreich"   onclick="selectBl('Oberösterreich')"><span class="bl-btn__ico">🏔️</span><span class="bl-btn__name">Oberösterreich</span></button>
+      <button class="bl-btn" data-bl="Steiermark"       onclick="selectBl('Steiermark')"><span class="bl-btn__ico">🍃</span><span class="bl-btn__name">Steiermark</span></button>
+      <button class="bl-btn" data-bl="Tirol"            onclick="selectBl('Tirol')"><span class="bl-btn__ico">⛰️</span><span class="bl-btn__name">Tirol</span></button>
+      <button class="bl-btn" data-bl="Salzburg"         onclick="selectBl('Salzburg')"><span class="bl-btn__ico">🎼</span><span class="bl-btn__name">Salzburg</span></button>
+      <button class="bl-btn" data-bl="Kärnten"          onclick="selectBl('Kärnten')"><span class="bl-btn__ico">🏖️</span><span class="bl-btn__name">Kärnten</span></button>
+      <button class="bl-btn" data-bl="Vorarlberg"       onclick="selectBl('Vorarlberg')"><span class="bl-btn__ico">🏞️</span><span class="bl-btn__name">Vorarlberg</span></button>
+      <button class="bl-btn" data-bl="Burgenland"       onclick="selectBl('Burgenland')"><span class="bl-btn__ico">🍷</span><span class="bl-btn__name">Burgenland</span></button>
+    </div>
+    <div style="margin-top:16px;">
+      <button class="btn-primary" id="btnStep1" onclick="goStep2()" disabled>Weiter →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 2: Fahrzeug ══ -->
+<div id="step2" style="display:none;">
+  <div class="card">
+    <!-- Selected Bundesland bar -->
+    <div class="sel-bar show" id="blBar">
+      <span class="sel-bar__ico" id="blBarIco">📍</span>
+      <div class="sel-bar__info">
+        <div class="sel-bar__name" id="blBarName">–</div>
+        <div class="sel-bar__sub">Bundesland</div>
+      </div>
+      <button class="sel-bar__change" onclick="goStep1()">← ändern</button>
+    </div>
+    <div class="label">Fahrzeug wählen</div>
+    <div class="fz-grid" id="fzGrid"></div>
+    <div class="fz-custom">
+      <input type="text" id="fzCustom" placeholder="Fahrzeugnummer eingeben (z. B. W-01)" maxlength="12">
+      <button onclick="selectCustomFz()">→</button>
+    </div>
+    <div style="margin-top:16px;">
+      <button class="btn-primary" id="btnStep2" onclick="goStep3()" disabled>Weiter →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 3: Login ══ -->
+<div id="step3" style="display:none;">
+  <div class="card">
+    <!-- Vehicle summary bar -->
+    <div class="sel-bar show" id="fzBar">
+      <span class="sel-bar__ico">🚗</span>
+      <div class="sel-bar__info">
+        <div class="sel-bar__name" id="fzBarName">–</div>
+        <div class="sel-bar__sub" id="fzBarSub">–</div>
+      </div>
+      <button class="sel-bar__change" onclick="goStep2()">← ändern</button>
+    </div>
+
+    <div class="takeover-box" id="takeoverBox"></div>
+    <div class="error-box" id="errBox"></div>
+
+    <div class="field">
+      <label>Dienstnummer</label>
+      <input type="text" id="inputDnr" placeholder="z. B. PK-001" autocomplete="username"
+             autocorrect="off" autocapitalize="characters" spellcheck="false">
+      <span class="hint" id="dnrHint">Wird automatisch in Großbuchstaben umgewandelt</span>
+    </div>
+    <div class="field">
+      <label>Passwort</label>
+      <input type="password" id="inputPw" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn-primary" id="btnLogin" onclick="doLogin()">🔐 Jetzt anmelden</button>
+  </div>
+
+  <div style="margin:12px 16px 0;text-align:center;">
+    <button onclick="showDirektLogin()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:.78rem;cursor:pointer;text-decoration:underline;padding:4px;">
+      ← Direkt anmelden
+    </button>
+  </div>
+</div>
+
+</div><!-- end #fahrzeugFlow -->
+
+<div class="footer">Nursy · Fahrzeug-Login · © 2025</div>
+
+<script>
+'use strict';
+var selBl  = null;
+var selFz  = null;
+var selFzBezirk = '';
+var selFzBelegtVon = '';
+var selFzDienstnummer = '';
+var allFahrzeuge = [];
+
+function esc(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+var BL_CONFIG = {
+  'Wien':             {ico:'🏙️'},
+  'Niederösterreich': {ico:'🌾'},
+  'Oberösterreich':   {ico:'🏔️'},
+  'Steiermark':       {ico:'🍃'},
+  'Tirol':            {ico:'⛰️'},
+  'Salzburg':         {ico:'🎵'},
+  'Kärnten':          {ico:'💧'},
+  'Vorarlberg':       {ico:'🏞️'},
+  'Burgenland':       {ico:'🍷'},
+};
+
+/* ── Load all vehicles on init ── */
+function loadAll(){
+  // Show all 9 Bundesländer immediately — no spinner, no waiting
+  renderBlFallback();
+  // Restore last used bundesland from localStorage right away
+  try{
+    var last = localStorage.getItem('nursy_last_bl');
+    if(last && BL_CONFIG[last]) selectBl(last);
+  }catch(e){}
+  // Fetch vehicle data in the background to enable grid selection in step 2
+  fetch('/api/fahrzeuge')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d) return;
+      allFahrzeuge = d.fahrzeuge || [];
+    })
+    .catch(function(){ /* ignore – manual entry always available */ });
+}
+
+/* ── Step 1: Bundesland ── */
+function renderBlGrid(bls){
+  var grid = document.getElementById('blGrid');
+  grid.innerHTML = '';
+  bls.forEach(function(bl){
+    var cfg = BL_CONFIG[bl] || {ico:'📍'};
+    var btn = document.createElement('button');
+    btn.className = 'bl-btn';
+    btn.dataset.bl = bl;
+    btn.innerHTML =
+      '<span class="bl-btn__ico">'+cfg.ico+'</span>'+
+      '<span class="bl-btn__name">'+esc(bl)+'</span>';
+    btn.addEventListener('click', function(){ selectBl(bl); });
+    grid.appendChild(btn);
+  });
+}
+
+function renderBlFallback(){
+  var bls = Object.keys(BL_CONFIG);
+  renderBlGrid(bls);
+}
+
+function selectBl(bl){
+  selBl = bl;
+  document.querySelectorAll('.bl-btn').forEach(function(b){
+    b.classList.toggle('sel', b.dataset.bl === bl);
+  });
+  document.getElementById('btnStep1').disabled = false;
+  try{ localStorage.setItem('nursy_last_bl', bl); }catch(e){}
+}
+
+/* ── Step 2: Fahrzeug ── */
+function renderFzGrid(bl){
+  var grid = document.getElementById('fzGrid');
+  var fzs = allFahrzeuge.filter(function(f){ return f.bundesland === bl; });
+  grid.innerHTML = '';
+  if(!fzs.length){
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:14px 10px;font-size:.82rem;color:#64748b;line-height:1.6;">Für dieses Bundesland sind noch keine Fahrzeuge eingetragen.<br><span style="font-size:.75rem;">Bitte Fahrzeugnummer unten manuell eingeben.</span></div>';
+    return;
+  }
+  // Group by Bezirk
+  var bezirke = {};
+  fzs.forEach(function(f){
+    var bz = f.bezirk || '';
+    if(!bezirke[bz]) bezirke[bz] = [];
+    bezirke[bz].push(f);
+  });
+  Object.keys(bezirke).sort().forEach(function(bz){
+    if(bz){
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'grid-column:1/-1;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.55;padding:6px 0 2px;';
+      lbl.textContent = bz;
+      grid.appendChild(lbl);
+    }
+    bezirke[bz].forEach(function(fz){
+      var btn = document.createElement('button');
+      btn.className = 'fz-btn' + (fz.caregiver_name ? ' besetzt' : '');
+      btn.dataset.name = fz.name;
+      btn.innerHTML =
+        '<span class="fz-btn__ico">'+(fz.caregiver_name ? '🔒' : '🚗')+'</span>'+
+        '<span class="fz-btn__name">'+esc(fz.name)+'</span>'+
+        '<span class="fz-btn__sub">'+(fz.caregiver_name ? '👤 '+esc(fz.caregiver_name) : 'Frei')+'</span>';
+      btn.addEventListener('click', function(){ selectFz(fz.name, fz.bezirk||'', fz.caregiver_name||'', fz.dienstnummer||''); });
+      grid.appendChild(btn);
+    });
+  });
+}
+
+function selectFz(name, bezirk, belegtVon, dienstnummer){
+  selFz = name;
+  selFzBezirk = bezirk || '';
+  selFzBelegtVon = belegtVon || '';
+  selFzDienstnummer = dienstnummer || '';
+  document.querySelectorAll('.fz-btn').forEach(function(b){
+    b.classList.toggle('sel', b.dataset.name === name);
+  });
+  document.getElementById('btnStep2').disabled = false;
+  document.getElementById('fzCustom').value = '';
+  try{ localStorage.setItem('nursy_last_fahrzeug', name); }catch(e){}
+}
+
+function selectCustomFz(){
+  var v = document.getElementById('fzCustom').value.trim().toUpperCase();
+  if(!v) return;
+  selFz = v;
+  selFzBezirk = '';
+  selFzBelegtVon = '';
+  selFzDienstnummer = '';
+  document.querySelectorAll('.fz-btn').forEach(function(b){ b.classList.remove('sel'); });
+  document.getElementById('btnStep2').disabled = false;
+}
+
+/* ── Navigation ── */
+function stepInd(n){
+  [1,2,3].forEach(function(i){
+    var el = document.getElementById('s'+i);
+    el.classList.remove('active','done');
+    if(i < n) el.classList.add('done');
+    else if(i === n) el.classList.add('active');
+  });
+}
+
+function goStep1(){
+  document.getElementById('step1').style.display='';
+  document.getElementById('step2').style.display='none';
+  document.getElementById('step3').style.display='none';
+  stepInd(1); hideErr();
+}
+
+function goStep2(){
+  if(!selBl) return;
+  var cfg = BL_CONFIG[selBl] || {ico:'📍'};
+  document.getElementById('blBarIco').textContent = cfg.ico;
+  document.getElementById('blBarName').textContent = selBl;
+  renderFzGrid(selBl);
+  // Pre-select last vehicle if same Bundesland (free or occupied)
+  try{
+    var lv = localStorage.getItem('nursy_last_fahrzeug');
+    if(lv){
+      var fz = allFahrzeuge.find(function(f){ return f.name===lv && f.bundesland===selBl; });
+      if(fz) setTimeout(function(){ selectFz(fz.name, fz.bezirk||'', fz.caregiver_name||'', fz.dienstnummer||''); }, 50);
+    }
+  }catch(e){}
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='';
+  document.getElementById('step3').style.display='none';
+  stepInd(2); hideErr();
+}
+
+function goStep3(){
+  if(!selFz) return;
+  document.getElementById('fzBarName').textContent = selFz;
+  document.getElementById('fzBarSub').textContent  = (selBl||'')+(selFzBezirk?' · '+selFzBezirk:'');
+  // Übernahme-Hinweis
+  var tb = document.getElementById('takeoverBox');
+  if(selFzBelegtVon){
+    tb.innerHTML = '⚠️ Dieses Fahrzeug ist bereits belegt von <strong>'+esc(selFzBelegtVon)+'</strong>. Mit Ihrer Anmeldung übernehmen Sie das Fahrzeug.';
+    tb.classList.add('show');
+  } else {
+    tb.classList.remove('show');
+  }
+  // Dienstnummer vorausfüllen wenn vom Admin zugewiesen
+  var dnrInput = document.getElementById('inputDnr');
+  var dnrHint  = document.getElementById('dnrHint');
+  if(selFzDienstnummer){
+    dnrInput.value = selFzDienstnummer;
+    dnrInput.style.background = 'rgba(37,99,235,.25)';
+    dnrInput.style.borderColor = 'rgba(59,130,246,.7)';
+    if(dnrHint) dnrHint.textContent = '✓ Vom Admin zugewiesen — nur Passwort eingeben';
+    document.getElementById('inputPw').focus();
+  } else {
+    dnrInput.value = '';
+    dnrInput.style.background = '';
+    dnrInput.style.borderColor = '';
+    if(dnrHint) dnrHint.textContent = 'Wird automatisch in Großbuchstaben umgewandelt';
+    dnrInput.focus();
+  }
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='none';
+  document.getElementById('step3').style.display='';
+  stepInd(3); hideErr();
+}
+
+/* ── Login ── */
+
+function doLogin(){
+  var dnr = document.getElementById('inputDnr').value.trim().toUpperCase();
+  var pw  = document.getElementById('inputPw').value;
+  if(!dnr || !pw){ showErr('Bitte Dienstnummer und Passwort eingeben.'); return; }
+  if(!selFz){ showErr('Kein Fahrzeug gewählt.'); return; }
+  var btn = document.getElementById('btnLogin');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Anmelden…';
+  hideErr();
+  fetch('/api/login/fahrzeug', {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({dienstnummer:dnr, password:pw, fahrzeug:selFz})
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+  .then(function(res){
+    if(!res.ok){
+      showErr(res.d.error || 'Anmeldung fehlgeschlagen.');
+      btn.disabled=false; btn.textContent='🔐 Jetzt anmelden'; return;
+    }
+    var userName = '';
+    try{
+      var u = res.d.user || {};
+      localStorage.setItem('nursy_me', JSON.stringify(u));
+      if(res.d.token) localStorage.setItem('nursy_token', res.d.token);
+      userName = u.name || u.vorname || '';
+    }catch(e){}
+    showSplash(selFz, userName);
+  })
+  .catch(function(){
+    showErr('Verbindungsfehler. Bitte erneut versuchen.');
+    btn.disabled=false; btn.textContent='🔐 Jetzt anmelden';
+  });
+}
+
+/* ── Welcome Splash ── */
+function showSplash(fzName, userName){
+  var DELAY = 3000;
+  var sub = document.getElementById('splashSub');
+  var fzEl = document.getElementById('splashFz');
+  var bar = document.getElementById('splashBar');
+  if(sub && userName) sub.textContent = 'Schönen Dienst, '+userName+'!';
+  if(fzEl && fzName) fzEl.textContent = '🚗 '+fzName+(selBl?' · '+selBl:'');
+  if(bar) bar.style.setProperty('--dur',(DELAY/1000)+'s');
+  document.getElementById('splash').classList.add('show');
+  setTimeout(function(){
+    /* Prüfen ob bereits unterschrieben (selber Dienst / 12h-Fenster) */
+    fetch('/api/fahrzeug/check', {credentials:'include'})
+      .then(function(r){ return r.json(); })
+      .then(function(chk){
+        if(chk.signed){
+          /* Bereits unterschrieben → direkt zur Auftragslage */
+          window.location.href = '/auftragslage/';
+        } else {
+          /* Noch nicht unterschrieben → Pflichtformular vor Dienstbeginn */
+          window.location.href = '/fahrzeug-bestaetigung.html?from=auftragslage';
+        }
+      })
+      .catch(function(){
+        /* Fallback: Formular anzeigen */
+        window.location.href = '/fahrzeug-bestaetigung.html?from=auftragslage';
+      });
+  }, DELAY);
+}
+
+/* ── Helpers ── */
+function showErr(msg){ var b=document.getElementById('errBox'); b.textContent='⚠️ '+msg; b.classList.add('show'); }
+function hideErr(){ document.getElementById('errBox').classList.remove('show'); }
+function showDirektErr(msg){ var b=document.getElementById('direktErrBox'); b.textContent='⚠️ '+msg; b.classList.add('show'); }
+function hideDirektErr(){ document.getElementById('direktErrBox').classList.remove('show'); }
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+/* ── Mode toggle ── */
+function showFahrzeugFlow(){
+  document.getElementById('direktLogin').style.display = 'none';
+  document.getElementById('fahrzeugFlow').style.display = '';
+}
+function showDirektLogin(){
+  document.getElementById('direktLogin').style.display = '';
+  document.getElementById('fahrzeugFlow').style.display = 'none';
+}
+
+/* ── Direkt-Login ── */
+function doDirektLogin(){
+  var dnr = document.getElementById('direktDnr').value.trim().toUpperCase();
+  var pw  = document.getElementById('direktPw').value;
+  if(!dnr || !pw){ showDirektErr('Bitte Dienstnummer und Passwort eingeben.'); return; }
+  var btn = document.getElementById('btnDirekt');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Anmelden…';
+  hideDirektErr();
+  fetch('/api/login/pfleger-direkt', {
+    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+    body: JSON.stringify({dienstnummer:dnr, password:pw})
+  })
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+  .then(function(res){
+    if(!res.ok){
+      if(res.d.kein_fahrzeug){
+        // No vehicle assigned — switch to manual vehicle selection
+        showDirektErr('Kein Fahrzeug zugewiesen. Bitte Fahrzeug manuell wählen.');
+        btn.disabled=false; btn.textContent='🔐 Direkt anmelden';
+        setTimeout(function(){ showFahrzeugFlow(); hideDirektErr(); }, 1800);
+        return;
+      }
+      showDirektErr(res.d.error || 'Anmeldung fehlgeschlagen.');
+      btn.disabled=false; btn.textContent='🔐 Direkt anmelden'; return;
+    }
+    var u = res.d.user || {};
+    try{
+      localStorage.setItem('nursy_me', JSON.stringify(u));
+      if(res.d.token) localStorage.setItem('nursy_token', res.d.token);
+    }catch(e){}
+    showSplash(u.fahrzeug || '', u.vorname || u.name || '');
+  })
+  .catch(function(){
+    showDirektErr('Verbindungsfehler. Bitte erneut versuchen.');
+    btn.disabled=false; btn.textContent='🔐 Direkt anmelden';
+  });
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', function(){
+  // Auto-uppercase Dienstnummer (both inputs)
+  document.getElementById('inputDnr').addEventListener('input', function(){
+    var p=this.selectionStart; this.value=this.value.toUpperCase(); this.setSelectionRange(p,p);
+  });
+  document.getElementById('direktDnr').addEventListener('input', function(){
+    var p=this.selectionStart; this.value=this.value.toUpperCase(); this.setSelectionRange(p,p);
+  });
+  document.getElementById('inputPw').addEventListener('keydown', function(e){
+    if(e.key==='Enter') doLogin();
+  });
+  document.getElementById('direktPw').addEventListener('keydown', function(e){
+    if(e.key==='Enter') doDirektLogin();
+  });
+  loadAll();
+});
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>

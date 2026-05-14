@@ -1,0 +1,232 @@
+Bitte programmiere für meine bestehende Nursy-App zusätzliche Pflegeplanungs-Vorlagen.
+
+Wichtig:
+Die bestehende Struktur darf NICHT verändert werden.
+
+NICHT ändern:
+- keine neuen Tabs
+- keine neuen Spalten
+- kein neues Layout
+- keine neue Pflegeplanungsverwaltung
+- keine Änderung an Buttons
+- keine Änderung an bestehenden Funktionen
+- keine Pflegestufe/Pflegegrad ergänzen
+
+Es sollen ausschließlich neue Datensätze in die bestehende Vorlagenliste eingefügt werden.
+
+Die bestehende Tabelle besteht aus:
+- Symptome
+- Maßnahme
+- Ziel
+
+Bitte ergänze mindestens 150 neue Pflegeplanungs-Vorlagen für die gesamte Pflege.
+
+Jeder Eintrag muss genau diese Struktur haben:
+
+{
+  symptom: "...",
+  massnahme: "...",
+  ziel: "..."
+}
+
+Falls der bestehende Code andere Feldnamen verwendet, verwende bitte exakt die vorhandenen Feldnamen aus dem Projekt, z. B.:
+- symptome statt symptom
+- maßnahme oder massnahme
+- ziel
+
+Bitte die neuen Vorlagen direkt in das bestehende Array der Pflegeplanungs-Vorlagen einfügen.
+
+Die Vorlagen sollen folgende Bereiche abdecken:
+
+1. Mobilität
+- eingeschränkte Mobilität
+- unsicherer Gang
+- Sturzrisiko
+- Transfer Bett/Rollstuhl
+- Rollatornutzung
+- Bettlägerigkeit
+- Kontrakturgefahr
+- Bewegungseinschränkung
+- Schwäche nach Krankenhausaufenthalt
+
+2. Körperpflege
+- Unterstützung bei Körperpflege
+- Teilwaschung
+- Ganzkörperpflege
+- Intimhygiene
+- Mundpflege
+- Prothesenpflege
+- Haarpflege
+- Nagelpflege
+- Hautpflege
+- Ankleiden/Auskleiden
+
+3. Ernährung und Trinken
+- geringe Nahrungsaufnahme
+- Dehydrationsrisiko
+- Schluckstörung
+- Appetitlosigkeit
+- Mangelernährung
+- Unterstützung beim Essen
+- Trinkplan
+- Sondenkost
+- PEG-Versorgung
+
+4. Ausscheidung
+- Inkontinenz
+- Obstipation
+- Durchfall
+- Harnverhalt
+- Katheterversorgung
+- Harnwegsinfektionsrisiko
+- Stomaversorgung
+- Toilettentraining
+- Hautschutz bei Inkontinenz
+
+5. Behandlungspflege
+- Infusion vorbereiten
+- Infusion überwachen
+- Infusionszugang kontrollieren
+- Infektionsrisiko bei Zugang
+- Rötung an Einstichstelle
+- Schwellung an Einstichstelle
+- Schmerzen an Einstichstelle
+- Paravasat-Risiko
+- Medikamentengabe laut Anordnung
+- Medikamenteneinnahme unsicher
+- Nebenwirkungsbeobachtung
+- subkutane Injektion
+- Insulingabe
+- Blutzuckerkontrolle
+- Blutdruckkontrolle
+- Vitalzeichenkontrolle
+- Sauerstoffgabe
+- Absaugung nach Qualifikation und Anordnung
+
+6. Wunde und Haut
+- Wundversorgung
+- Verbandwechsel
+- Dekubitusrisiko
+- bestehender Dekubitus
+- Hautrötung
+- trockene Haut
+- Hautmazeration
+- Infektionsrisiko Wunde
+- Wundschmerz
+- Ödeme
+
+7. Schmerz
+- akuter Schmerz
+- chronischer Schmerz
+- Bewegungsschmerz
+- Ruheschmerz
+- Schmerz bei Wundversorgung
+- Schmerzmittelwirkung beobachten
+
+8. Atmung
+- Atemnot
+- Belastungsdyspnoe
+- Sekretansammlung
+- Husten
+- COPD
+- Sauerstoffbedarf
+- Atemangst
+
+9. Demenz und Orientierung
+- Desorientierung
+- Vergesslichkeit
+- Unruhe
+- Weglauftendenz
+- Tag-Nacht-Umkehr
+- Angst
+- herausforderndes Verhalten
+- fehlende Krankheitseinsicht
+
+10. Schlaf und Ruhe
+- Schlafstörung
+- nächtliche Unruhe
+- Schmerzen nachts
+- Angst nachts
+- fehlender Tag-Nacht-Rhythmus
+
+11. Prophylaxen
+- Sturzprophylaxe
+- Dekubitusprophylaxe
+- Pneumonieprophylaxe
+- Thromboseprophylaxe
+- Kontrakturenprophylaxe
+- Intertrigoprophylaxe
+- Obstipationsprophylaxe
+- Dehydrationsprophylaxe
+- Aspirationsprophylaxe
+
+12. Betreuung und Alltag
+- Einsamkeit
+- fehlende Tagesstruktur
+- eingeschränkte Alltagskompetenz
+- Unterstützungsbedarf im Haushalt
+- Angehörigenentlastung
+- Aktivierung
+- Beschäftigung
+- soziale Isolation
+
+13. Notfall und Risiko
+- akute Verschlechterung
+- Sturzereignis
+- Fieber
+- Verwirrtheit
+- allergische Reaktion
+- Kreislaufprobleme
+- Unterzuckerung
+- Überzuckerung
+- Atemnot akut
+- Schmerzen akut
+
+14. Palliativpflege
+- Schmerzen in palliativer Situation
+- Atemnot in palliativer Situation
+- Angst
+- Unruhe
+- Mundtrockenheit
+- Schwäche
+- Übelkeit
+- Angehörigenbegleitung
+
+15. Reisebegleitung / Akuteinsätze
+- Mobilitätsunterstützung bei Reise
+- Medikamentensicherheit während Reise
+- Toilettenhilfe unterwegs
+- Orientierung in fremder Umgebung
+- Erschöpfung während Reise
+- Notfallbereitschaft während Reise
+
+Formulierungsregeln:
+- kurz und klar
+- praxisnah
+- für Pflegekräfte im Alltag geeignet
+- keine langen theoretischen Texte
+- keine medizinischen Diagnosen als Hauptfokus
+- immer pflegerisch formulieren
+- Maßnahmen nur im Rahmen der Qualifikation, ärztlichen Anordnung und österreichischen Pflegepraxis formulieren
+
+Beispiele für Stil:
+
+{
+  symptom: "Infusionszugang vorhanden / Infektionsrisiko",
+  massnahme: "Einstichstelle kontrollieren, Verband sauber und trocken halten, hygienisch arbeiten, Auffälligkeiten dokumentieren und weiterleiten",
+  ziel: "Keine Infektionszeichen, Zugang bleibt komplikationslos nutzbar"
+}
+
+{
+  symptom: "Eingeschränkte Mobilität",
+  massnahme: "Mobilisation nach Ressourcen unterstützen, Hilfsmittel bereitstellen, sichere Umgebung schaffen",
+  ziel: "Mobilität wird erhalten und Sturzrisiko reduziert"
+}
+
+{
+  symptom: "Unterstützungsbedarf bei der Körperpflege",
+  massnahme: "Körperpflege teilweise oder vollständig unterstützen, Ressourcen fördern, Hautzustand beobachten",
+  ziel: "Körperpflege ist sichergestellt und Selbstständigkeit bleibt erhalten"
+}
+
+Bitte gib am Ende kurz aus, wie viele neue Vorlagen ergänzt wurden.

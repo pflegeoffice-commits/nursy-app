@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Passwort zurücksetzen</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="/manifest-client.json">
+  <link rel="apple-touch-icon" href="/icon-nursy-192.png">
+  <meta name="theme-color" content="#0f2744">
+  <style>
+    .reset-card { max-width: 420px; margin: 0 auto; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .msg-box {
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: .88rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .msg-box.ok  { background: #dcfce7; color: #15803d; }
+    .msg-box.err { background: #fee2e2; color: #b91c1c; }
+    .pw-toggle-wrap { position: relative; }
+    .pw-toggle-wrap input { padding-right: 2.8rem; }
+    .pw-toggle {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; font-size: 1.1rem;
+      color: var(--muted); padding: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Zurück zur Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <main class="auth">
+    <div class="auth__wrap reset-card">
+
+      <!-- ── Schritt 1: E-Mail eingeben ── -->
+      <div id="stepRequest" class="step active">
+        <div class="auth__head">
+          <h1>Passwort vergessen</h1>
+          <p style="color:var(--muted);font-size:.9rem;margin-top:6px;">
+            Gib deine E-Mail-Adresse ein. Wenn ein Konto existiert, schicken wir dir einen Reset-Link.
+          </p>
+        </div>
+        <div class="card">
+          <div class="msg-box" id="reqMsg"></div>
+          <div class="form">
+            <div class="field">
+              <label class="field__label">E-Mail-Adresse</label>
+              <input class="control" type="email" id="reqEmail" placeholder="name@beispiel.at" required autocomplete="email" />
+            </div>
+            <button class="control btn primary" id="reqBtn" onclick="sendRequest()">Link anfordern</button>
+            <p class="note" style="margin-top:16px;"><a href="login-client.html">Zurück zum Login</a></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Schritt 2: Neues Passwort setzen ── -->
+      <div id="stepReset" class="step">
+        <div class="auth__head">
+          <h1>Neues Passwort</h1>
+          <p style="color:var(--muted);font-size:.9rem;margin-top:6px;">
+            Wähle ein neues Passwort für dein Nursy-Konto.
+          </p>
+        </div>
+        <div class="card">
+          <div class="msg-box" id="resetMsg"></div>
+          <div class="form">
+            <div class="field">
+              <label class="field__label">Neues Passwort</label>
+              <div class="pw-toggle-wrap">
+                <input class="control" type="password" id="newPw" placeholder="mind. 8 Zeichen" minlength="8" autocomplete="new-password" />
+                <button type="button" class="pw-toggle" onclick="togglePw('newPw',this)" title="Anzeigen/Verbergen">👁</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label">Passwort bestätigen</label>
+              <div class="pw-toggle-wrap">
+                <input class="control" type="password" id="newPw2" placeholder="Wiederholen" minlength="8" autocomplete="new-password" />
+                <button type="button" class="pw-toggle" onclick="togglePw('newPw2',this)" title="Anzeigen/Verbergen">👁</button>
+              </div>
+            </div>
+            <button class="control btn primary" id="resetBtn" onclick="doReset()">Passwort setzen</button>
+            <p class="note" style="margin-top:16px;" id="backToLogin" style="display:none;">
+              <a href="login-client.html">Zum Login</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Schritt 3: Erfolg ── -->
+      <div id="stepDone" class="step">
+        <div class="auth__head">
+          <h1>Passwort geändert</h1>
+        </div>
+        <div class="card" style="text-align:center;padding:32px 24px;">
+          <div style="font-size:2.5rem;margin-bottom:16px;">✅</div>
+          <p style="font-weight:700;color:#15803d;margin-bottom:8px;">Dein Passwort wurde erfolgreich geändert.</p>
+          <p style="color:var(--muted);font-size:.88rem;margin-bottom:24px;">Du kannst dich jetzt mit dem neuen Passwort anmelden.</p>
+          <a href="login-client.html" class="control btn primary" style="display:inline-block;text-decoration:none;text-align:center;">Zum Login</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    var _token = null;
+
+    function showStep(id) {
+      document.querySelectorAll('.step').forEach(function(s){ s.classList.remove('active'); });
+      document.getElementById(id).classList.add('active');
+    }
+
+    function showMsg(boxId, type, text) {
+      var el = document.getElementById(boxId);
+      el.className = 'msg-box ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+    }
+
+    function hideMsg(boxId) {
+      var el = document.getElementById(boxId);
+      el.style.display = 'none';
+    }
+
+    function togglePw(inputId, btn) {
+      var inp = document.getElementById(inputId);
+      if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+      else { inp.type = 'password'; btn.textContent = '👁'; }
+    }
+
+    function setLoading(btnId, loading) {
+      var btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.textContent = loading ? 'Bitte warten…' : (btnId === 'reqBtn' ? 'Link anfordern' : 'Passwort setzen');
+    }
+
+    /* ── Schritt 1: Link anfordern ── */
+    function sendRequest() {
+      var email = document.getElementById('reqEmail').value.trim();
+      if (!email) { showMsg('reqMsg','err','Bitte E-Mail eingeben.'); return; }
+      hideMsg('reqMsg');
+      setLoading('reqBtn', true);
+      fetch('/api/client/passwort-vergessen', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email: email })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        setLoading('reqBtn', false);
+        if (data.ok === false) {
+          showMsg('reqMsg','err', data.error || 'Fehler aufgetreten.');
+        } else {
+          showMsg('reqMsg','ok','Falls diese E-Mail bei uns registriert ist, wurde ein Link gesendet. Bitte prüfe dein Postfach (auch Spam).');
+          document.getElementById('reqBtn').disabled = true;
+        }
+      })
+      .catch(function() {
+        setLoading('reqBtn', false);
+        showMsg('reqMsg','err','Verbindungsfehler. Bitte versuche es erneut.');
+      });
+    }
+
+    /* ── Schritt 2: Neues Passwort setzen ── */
+    function doReset() {
+      var pw  = document.getElementById('newPw').value;
+      var pw2 = document.getElementById('newPw2').value;
+      hideMsg('resetMsg');
+      if (pw.length < 8) { showMsg('resetMsg','err','Passwort muss mindestens 8 Zeichen haben.'); return; }
+      if (pw !== pw2)    { showMsg('resetMsg','err','Passwörter stimmen nicht überein.'); return; }
+      if (!_token)       { showMsg('resetMsg','err','Kein gültiger Reset-Token. Bitte Link erneut anfordern.'); return; }
+      setLoading('resetBtn', true);
+      fetch('/api/client/passwort-reset', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ token: _token, password: pw })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        setLoading('resetBtn', false);
+        if (data.ok === false) {
+          showMsg('resetMsg','err', data.error || 'Fehler aufgetreten.');
+        } else {
+          showStep('stepDone');
+        }
+      })
+      .catch(function() {
+        setLoading('resetBtn', false);
+        showMsg('resetMsg','err','Verbindungsfehler. Bitte versuche es erneut.');
+      });
+    }
+
+    /* ── Init: Token aus URL lesen ── */
+    (function init() {
+      var params = new URLSearchParams(window.location.search);
+      _token = params.get('token');
+      if (_token) {
+        showStep('stepReset');
+      }
+    })();
+
+    /* Enter-Taste ── */
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter') return;
+      var active = document.querySelector('.step.active');
+      if (!active) return;
+      if (active.id === 'stepRequest') sendRequest();
+      else if (active.id === 'stepReset') doReset();
+    });
+  </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}</script>
+</body>
+</html>

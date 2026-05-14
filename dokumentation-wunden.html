@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Wunddokumentation</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .wd-page{padding:24px 16px 48px;box-sizing:border-box}
+    .wd-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}
+    .wd-head h1{margin:0 0 6px;font-size:34px}
+    .wd-head p{margin:0;color:var(--muted)}
+
+    .wd-layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start;max-width:100%}
+    .wd-layout>*{min-width:0;overflow:hidden;max-width:100%}
+    @media(max-width:900px){.wd-layout{grid-template-columns:1fr}}
+
+    .wd-card{background:#fff;border:var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow);overflow:hidden;width:100%;box-sizing:border-box}
+    .wd-section-title{font-size:.78rem;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+
+    /* --- MAP --- */
+    .wd-map-wrap{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:11px;padding:12px 10px}
+    .wd-map{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .wd-side-label{font-size:.7rem;font-weight:700;color:#374151;text-align:center;margin-bottom:4px}
+    .wd-svg-col svg{display:block;width:100%;max-height:200px}
+    .wd-zone{fill:#edf2ff;stroke:#b7c7f4;stroke-width:1.4;cursor:pointer;transition:fill .12s,stroke .12s}
+    .wd-zone:hover{fill:#c7d8fb}
+    .wd-zone.sel{fill:#3f6fe8;stroke:#1e50c0}
+    .wd-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:#6b7280}
+    .wd-legend i{width:9px;height:9px;display:inline-block;border-radius:999px;margin-right:5px;vertical-align:middle}
+    .wd-legend .li-unsel{background:#edf2ff;border:1px solid #b7c7f4}
+    .wd-legend .li-sel{background:#3f6fe8}
+    .wd-summary{margin-top:8px;font-size:.76rem;color:#6b7280;line-height:1.5}
+
+    /* --- WOUND CARDS --- */
+    .wd-wounds{display:flex;flex-direction:column;gap:14px}
+    .wd-wound-card{background:#f1f5ff;border:1.5px solid #b7c7f4;border-radius:13px;overflow:hidden;transition:border-color .2s}
+    .wd-wound-card.done{border-color:#2f8f4e;background:#f0faf4}
+
+    /* Card header – always visible, acts as toggle */
+    .wd-wound-card__head{
+      display:flex;align-items:center;gap:8px;
+      padding:13px 14px;
+      cursor:pointer;
+      user-select:none;
+      transition:background .12s;
+    }
+    .wd-wound-card__head:hover{background:rgba(63,111,232,.06)}
+    .wd-wound-card.done .wd-wound-card__head:hover{background:rgba(47,143,78,.06)}
+    .wd-wound-num{background:#3f6fe8;color:#fff;font-size:.72rem;font-weight:900;border-radius:999px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .wd-wound-card.done .wd-wound-num{background:#2f8f4e}
+    .wd-wound-loc{font-size:.82rem;font-weight:700;color:#1e3a8a;flex:1}
+    .wd-wound-card.done .wd-wound-loc{color:#1a6b3e}
+    .wd-wound-done-badge{
+      font-size:.68rem;font-weight:800;
+      background:#2f8f4e;color:#fff;
+      border-radius:999px;padding:2px 9px;
+      white-space:nowrap;flex-shrink:0;
+    }
+    .wd-wound-toggle{
+      width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(63,111,232,.22);
+      background:#fff;display:flex;align-items:center;justify-content:center;
+      font-size:11px;color:#3f6fe8;flex-shrink:0;
+      transition:transform .2s,background .12s;cursor:pointer;
+    }
+    .wd-wound-card.done .wd-wound-toggle{border-color:rgba(47,143,78,.3);color:#2f8f4e}
+    .wd-wound-card.collapsed .wd-wound-toggle{transform:rotate(-90deg)}
+
+    /* Card body – collapsible */
+    .wd-wound-card__body{padding:0 14px 14px}
+    .wd-wound-card.collapsed .wd-wound-card__body{display:none}
+
+    /* grid2 */
+    .wd-g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+    .wd-g2>*{min-width:0}
+    @media(max-width:480px){.wd-g2{grid-template-columns:1fr}}
+
+    .wd-field{margin-bottom:10px;max-width:100%;overflow:hidden}
+    .wd-label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+    .wd-input{display:block;width:100%;max-width:100%;min-width:0;border:1.5px solid #dbe2f0;border-radius:9px;padding:9px 12px;font-size:.86rem;font-family:inherit;color:#1e293b;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+    .wd-input:focus{border-color:#3f6fe8;box-shadow:0 0 0 3px rgba(63,111,232,.13)}
+    select.wd-input{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+    textarea.wd-input{resize:vertical;min-height:72px;line-height:1.5;-webkit-appearance:none;appearance:none}
+
+    .wd-no-wound{padding:14px;border-radius:11px;border:1.5px dashed #b7c7f4;background:#f8fafc;color:#6b7280;font-size:.82rem;text-align:center}
+
+    /* --- FINISH SECTION --- */
+    .wd-finish{
+      margin-top:4px;
+      border-top:1.5px solid #c7d8f4;
+      padding:12px 0 0;
+    }
+    .wd-finish__title{font-size:.72rem;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+    .wd-finish__done{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 12px;
+      background:rgba(47,143,78,.10);
+      border:1.5px solid rgba(47,143,78,.28);
+      border-radius:10px;
+      font-size:.82rem;font-weight:700;color:#1a6b3e;
+    }
+    .wd-finish__done span{font-size:16px}
+    .wd-finish__done-meta{font-size:.72rem;font-weight:500;color:#2f8f4e;margin-top:2px}
+    .wd-finish__undo{
+      margin-left:auto;height:26px;padding:0 10px;
+      border-radius:7px;border:1px solid rgba(47,143,78,.3);
+      background:#fff;color:#2f8f4e;font-size:.72rem;font-weight:700;
+      cursor:pointer;font-family:inherit;white-space:nowrap;
+    }
+    .wd-btn-finish{
+      display:inline-flex;align-items:center;gap:6px;
+      height:34px;padding:0 16px;border-radius:9px;
+      border:none;background:#2f8f4e;color:#fff;
+      font-size:.82rem;font-weight:800;cursor:pointer;
+      font-family:inherit;white-space:nowrap;
+      transition:opacity .12s;
+    }
+    .wd-btn-finish:hover{opacity:.88}
+
+    /* Global shared fields */
+    .wd-shared{margin-top:16px;padding-top:16px;border-top:1.5px solid #e5e7eb;width:100%;box-sizing:border-box}
+    .wd-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+    html,body{overflow-x:hidden;max-width:100vw}
+    .wd-page,.wd-layout,.wd-card,.wd-shared,.wd-wound-card,.wd-field,.wd-wounds{max-width:100%;box-sizing:border-box}
+
+    /* ── Entzündungszeichen Chips ── */
+    .wd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+    .wd-chip{display:inline-flex;align-items:center;padding:5px 11px;border:1.5px solid #dbe2f0;border-radius:999px;font-size:.78rem;font-weight:600;color:#374151;cursor:pointer;background:#fff;transition:background .12s,border-color .12s,color .12s;user-select:none;-webkit-user-select:none}
+    .wd-chip input[type="checkbox"]{display:none}
+    .wd-chip:has(input:checked){background:#3f6fe8;border-color:#3f6fe8;color:#fff}
+    /* ── Foto-Buttons ── */
+    .wd-foto-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+    .wd-foto-btn{border:1.5px solid #3f6fe8;border-radius:9px;padding:8px 14px;font-size:.82rem;font-weight:700;color:#1e40af;background:#eef3ff;cursor:pointer;font-family:inherit;transition:background .12s;white-space:nowrap}
+    .wd-foto-btn:hover{background:#dde7ff}
+    .wd-foto-btn--sec{border-color:#64748b;color:#374151;background:#f1f5f9}
+    .wd-foto-btn--sec:hover{background:#e2e8f0}
+    .wd-foto-name{font-size:.75rem;color:#2f8f4e;font-weight:600;margin-top:2px;min-height:14px}
+
+    /* ── Datei-Input mobil-freundlich ── */
+    input[type="file"].wd-input{
+      padding:8px 10px;cursor:pointer;
+      background:#f8fafc;font-size:.82rem;color:#374151;
+    }
+    input[type="file"].wd-input::file-selector-button{
+      background:#3f6fe8;color:#fff;border:none;
+      border-radius:7px;padding:6px 12px;margin-right:10px;
+      font-size:.78rem;font-weight:700;cursor:pointer;
+      font-family:inherit;
+    }
+
+    /* ── Mobile fixes ── */
+    @media(max-width:640px){
+      .wd-page{padding:16px 12px 64px}
+      .wd-head h1{font-size:22px}
+      .wd-head p{font-size:.82rem}
+      .wd-head{flex-direction:column;gap:4px;margin-bottom:14px}
+      .wd-card{padding:14px 12px}
+
+      /* Körperkarte: SVGs untereinander auf sehr kleinen Screens */
+      .wd-map{grid-template-columns:1fr 1fr;gap:4px}
+      .wd-svg-col svg{max-height:175px}
+      .wd-side-label{font-size:.65rem}
+
+      /* Wundkarten-Header: mehrzeilig erlauben */
+      .wd-wound-card__head{flex-wrap:wrap;gap:6px 8px;padding:11px 12px}
+      .wd-wound-loc{min-width:0;word-break:break-word}
+      .wd-wound-done-badge{order:3;flex-basis:100%;text-align:center;border-radius:8px;padding:4px 10px}
+      .wd-wound-toggle{order:4;margin-left:auto}
+
+      /* Wundkarten-Body */
+      .wd-wound-card__body{padding:0 12px 14px}
+      .wd-input{font-size:.9rem;min-height:42px}
+      select.wd-input{min-height:44px}
+      textarea.wd-input{min-height:80px}
+
+      /* Datei-Input: volle Breite, deutlicher */
+      input[type="file"].wd-input{padding:10px;min-height:44px;background:#eef3ff}
+
+      /* Abschluss-Status: Rückgängig-Button in neue Zeile */
+      .wd-finish__done{flex-wrap:wrap;gap:8px}
+      .wd-finish__undo{margin-left:0;width:100%;text-align:center;height:36px;font-size:.82rem}
+
+      /* Abschließen-Button volle Breite */
+      .wd-btn-finish{width:100%;justify-content:center;height:44px;font-size:.9rem}
+
+      /* Aktions-Buttons volle Breite */
+      .wd-actions{flex-direction:column;margin-top:14px}
+      .wd-actions .btn, .wd-actions button{width:100%;text-align:center;justify-content:center;box-sizing:border-box;min-height:44px}
+
+      /* Allgemeine Angaben */
+      .wd-shared{margin-top:12px;padding-top:12px}
+    }
+
+    @media(max-width:400px){
+      /* Sehr kleine Geräte: Körper-SVGs übereinander */
+      .wd-map{grid-template-columns:1fr}
+      .wd-svg-col svg{max-height:140px}
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html"><img class="brand__dot" src="nursy-logo.png" alt="Nursy" /><span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span></a>
+    <nav class="nav"><a href="dashboard-care.html">Dashboard</a><a href="dokumentation.html">Zurück</a></nav>
+  </div>
+</header>
+
+<main class="container wd-page">
+  <div class="wd-head">
+    <div>
+      <h1>Wunddokumentation</h1>
+      <p>Wunden markieren und detailliert dokumentieren</p>
+    </div>
+  </div>
+
+  <div class="wd-layout">
+
+    <!-- LEFT: Body maps -->
+    <div class="wd-card">
+      <div class="wd-section-title">Lokalisation</div>
+      <div class="wd-map-wrap" id="wdMapWrap">
+        <div class="wd-map">
+          <div class="wd-svg-col">
+            <div class="wd-side-label">Vorderseite</div>
+            <svg viewBox="0 0 120 285" xmlns="http://www.w3.org/2000/svg">
+              <ellipse class="wd-zone" data-id="kopf-v"            data-label="Kopf (vorne)"               cx="60" cy="21" rx="18" ry="19"/>
+              <rect   class="wd-zone" data-id="brust-v"            data-label="Brust"                      x="35"  y="44"  width="50" height="36" rx="7"/>
+              <rect   class="wd-zone" data-id="bauch-v"            data-label="Bauch"                      x="35"  y="82"  width="50" height="28" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-l-o-v"          data-label="Arm links oben"             x="12"  y="44"  width="20" height="36" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-l-u-v"          data-label="Arm links unten"            x="12"  y="82"  width="20" height="30" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-r-o-v"          data-label="Arm rechts oben"            x="88"  y="44"  width="20" height="36" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-r-u-v"          data-label="Arm rechts unten"           x="88"  y="82"  width="20" height="30" rx="7"/>
+              <rect   class="wd-zone" data-id="hueft-v"            data-label="Hüfte/Becken"              x="35"  y="113" width="50" height="22" rx="7"/>
+              <rect   class="wd-zone" data-id="schenkel-l-v"       data-label="Oberschenkel links"         x="35"  y="138" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="schenkel-r-v"       data-label="Oberschenkel rechts"        x="62"  y="138" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="unterschenkel-l-v"  data-label="Unterschenkel links"        x="35"  y="193" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="unterschenkel-r-v"  data-label="Unterschenkel rechts"       x="62"  y="193" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="fuss-l-v"           data-label="Fuß links"                 x="33"  y="248" width="23" height="16" rx="5"/>
+              <rect   class="wd-zone" data-id="fuss-r-v"           data-label="Fuß rechts"                x="62"  y="248" width="23" height="16" rx="5"/>
+            </svg>
+          </div>
+          <div class="wd-svg-col">
+            <div class="wd-side-label">Rückseite</div>
+            <svg viewBox="0 0 120 285" xmlns="http://www.w3.org/2000/svg">
+              <ellipse class="wd-zone" data-id="kopf-r"      data-label="Hinterkopf"                    cx="60" cy="21" rx="18" ry="19"/>
+              <rect   class="wd-zone" data-id="ruecken-o"    data-label="Rücken oben"                   x="35"  y="44"  width="50" height="36" rx="7"/>
+              <rect   class="wd-zone" data-id="ruecken-u"    data-label="Rücken unten"                  x="35"  y="82"  width="50" height="28" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-l-o-r"    data-label="Arm links oben (hinten)"       x="12"  y="44"  width="20" height="36" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-l-u-r"    data-label="Arm links unten (hinten)"      x="12"  y="82"  width="20" height="30" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-r-o-r"    data-label="Arm rechts oben (hinten)"      x="88"  y="44"  width="20" height="36" rx="7"/>
+              <rect   class="wd-zone" data-id="arm-r-u-r"    data-label="Arm rechts unten (hinten)"     x="88"  y="82"  width="20" height="30" rx="7"/>
+              <rect   class="wd-zone" data-id="gesaess"       data-label="Gesäß"                        x="35"  y="113" width="50" height="22" rx="7"/>
+              <rect   class="wd-zone" data-id="schenkel-l-r"  data-label="Oberschenkel links (hinten)"   x="35"  y="138" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="schenkel-r-r"  data-label="Oberschenkel rechts (hinten)"  x="62"  y="138" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="wade-l"        data-label="Wade links"                    x="35"  y="193" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="wade-r"        data-label="Wade rechts"                   x="62"  y="193" width="23" height="52" rx="7"/>
+              <rect   class="wd-zone" data-id="ferse-l"       data-label="Ferse links"                   x="33"  y="248" width="23" height="16" rx="5"/>
+              <rect   class="wd-zone" data-id="ferse-r"       data-label="Ferse rechts"                  x="62"  y="248" width="23" height="16" rx="5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="wd-legend">
+          <span><i class="li-unsel"></i>nicht markiert</span>
+          <span><i class="li-sel"></i>markiert</span>
+        </div>
+        <div class="wd-summary" id="wdSummary">Keine Lokalisation markiert – Körperzone antippen zum Hinzufügen</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Per-wound cards + shared fields -->
+    <div>
+      <div class="wd-card">
+        <div class="wd-section-title">Wunden</div>
+        <div class="wd-wounds" id="wdWounds">
+          <div class="wd-no-wound" id="wdNoWound">Bitte eine oder mehrere Körperzonen links anklicken.</div>
+        </div>
+
+        <!-- Shared fields -->
+        <div class="wd-shared">
+          <div class="wd-section-title">Allgemeine Angaben</div>
+          <div class="wd-field">
+            <label class="wd-label" for="wdEval">Nächste Evaluierung</label>
+            <input class="wd-input" id="wdEval" type="text" placeholder="z. B. 05.05.2026" />
+          </div>
+          <div class="wd-field">
+            <label class="wd-label" for="wdDate">Dokumentiert am</label>
+            <input class="wd-input" id="wdDate" type="text" readonly />
+          </div>
+        </div>
+
+        <div class="wd-actions">
+          <button class="control btn primary" id="wdSave" type="button">Speichern</button>
+          <a class="control btn" href="dokumentation.html">Zur Dokumentation</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  const wrap     = document.getElementById('wdMapWrap');
+  const woundsEl = document.getElementById('wdWounds');
+  const noWound  = document.getElementById('wdNoWound');
+  const summary  = document.getElementById('wdSummary');
+
+  const selectedOrder  = [];
+  const selectedLabels = {};
+  /* per-wound finish state: { fotoName, abgeschlossenAt } */
+  const finishState = {};
+
+  /* ── Foto-Tracking: woundId → letztes gewähltes File ── */
+  const wdFotoFiles = {};
+  function wdFotoChosen(key, inp) {
+    if (inp.files && inp.files[0]) {
+      wdFotoFiles[key] = inp.files[0];
+      const nameEl = document.getElementById('wdFotoName_' + key);
+      if (nameEl) nameEl.textContent = '📎 ' + inp.files[0].name;
+    }
+  }
+  function wdGetFotoName(key) {
+    return wdFotoFiles[key] ? wdFotoFiles[key].name : '';
+  }
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function renderWoundCards(){
+    Array.from(woundsEl.querySelectorAll('.wd-wound-card')).forEach(c => c.remove());
+
+    if(selectedOrder.length === 0){
+      noWound.hidden = false;
+      return;
+    }
+    noWound.hidden = true;
+
+    selectedOrder.forEach(function(id, idx){
+      const num    = idx + 1;
+      const label  = selectedLabels[id];
+      const isDone = !!(finishState[id] && finishState[id].abgeschlossenAt);
+
+      const card = document.createElement('div');
+      card.className = 'wd-wound-card' + (isDone ? ' done' : '');
+      card.dataset.woundId = id;
+
+      /* ── HEAD (clickable toggle) ── */
+      const head = document.createElement('div');
+      head.className = 'wd-wound-card__head';
+      head.innerHTML =
+        '<span class="wd-wound-num">' + num + '</span>' +
+        '<span class="wd-wound-loc">Wunde ' + num + ' – ' + label + '</span>' +
+        (isDone ? '<span class="wd-wound-done-badge">✓ Abgeschlossen</span>' : '') +
+        '<span class="wd-wound-toggle">▼</span>';
+
+      head.addEventListener('click', function(){
+        card.classList.toggle('collapsed');
+      });
+
+      /* ── BODY (collapsible) ── */
+      const body = document.createElement('div');
+      body.className = 'wd-wound-card__body';
+
+      /* --- form fields --- */
+      body.innerHTML =
+        '<div class="wd-g2">' +
+          '<div class="wd-field">' +
+            '<label class="wd-label" for="wdArt_' + id + '">Art der Wunde</label>' +
+            '<select class="wd-input" id="wdArt_' + id + '">' +
+              '<option value="">— bitte wählen —</option>' +
+              '<option value="op-wunde">OP-Wunde</option>' +
+              '<option value="laesion">Läsion</option>' +
+              '<option value="dekubitus">Dekubitus</option>' +
+              '<option value="sonstiges">Sonstiges</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="wd-field">' +
+            '<label class="wd-label" for="wdSeitWann_' + id + '">Seit wann</label>' +
+            '<input class="wd-input" id="wdSeitWann_' + id + '" type="text" placeholder="z. B. 20.04.2026" />' +
+          '</div>' +
+        '</div>' +
+        '<div class="wd-g2">' +
+          '<div class="wd-field">' +
+            '<label class="wd-label" for="wdWechsel_' + id + '">Verbandswechsel</label>' +
+            '<select class="wd-input" id="wdWechsel_' + id + '">' +
+              '<option value="">— bitte wählen —</option>' +
+              '<option value="taeglich">Täglich</option>' +
+              '<option value="2tag">Jeden 2. Tag</option>' +
+              '<option value="3tag">Jeden 3. Tag</option>' +
+              '<option value="1woche">1x pro Woche</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="wd-field">' +
+            '<label class="wd-label" for="wdVersorgt_' + id + '">Versorgt mit</label>' +
+            '<input class="wd-input" id="wdVersorgt_' + id + '" type="text" placeholder="z. B. Hydrokolloide" />' +
+          '</div>' +
+        '</div>' +
+        '<div class="wd-field">' +
+          '<label class="wd-label" for="wdBeschr_' + id + '">Beschreibung</label>' +
+          '<textarea class="wd-input" id="wdBeschr_' + id + '" rows="3" placeholder="Zustand, Größe, Farbe, Exsudat …"></textarea>' +
+        '</div>' +
+        '<div class="wd-field">' +
+          '<label class="wd-label">Entzündungszeichen</label>' +
+          '<div class="wd-chips" id="wdEntz_' + id + '">' +
+            ['Rötung','Schwellung','Überwärmung','Schmerz','Funktionseinschränkung',
+             'Exsudat (serös)','Exsudat (eitrig)','Mazerierung','Nekrose','Hypergranulation','Keine Zeichen'].map(function(s){
+              return '<label class="wd-chip"><input type="checkbox" value="' + s + '"> ' + s + '</label>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="wd-field">' +
+          '<label class="wd-label">Foto-Dokumentation</label>' +
+          '<div class="wd-foto-btns">' +
+            '<button type="button" class="wd-foto-btn" onclick="document.getElementById(\'wdFotoCam_' + id + '\').click()">📷 Kamera</button>' +
+            '<button type="button" class="wd-foto-btn wd-foto-btn--sec" onclick="document.getElementById(\'wdFotoGal_' + id + '\').click()">🖼 Galerie / Datei</button>' +
+          '</div>' +
+          '<input id="wdFotoCam_' + id + '" type="file" accept="image/*" capture="environment" style="display:none" onchange="wdFotoChosen(\'' + id + '\',this)">' +
+          '<input id="wdFotoGal_' + id + '" type="file" accept="image/*,.pdf" style="display:none" onchange="wdFotoChosen(\'' + id + '\',this)">' +
+          '<div id="wdFotoName_' + id + '" class="wd-foto-name"></div>' +
+        '</div>';
+
+      /* --- finish section --- */
+      const finishDiv = document.createElement('div');
+      finishDiv.className = 'wd-finish';
+
+      if(isDone){
+        const fs = finishState[id];
+        finishDiv.innerHTML =
+          '<div class="wd-finish__title">Wundversorgung abgeschlossen</div>' +
+          '<div class="wd-finish__done">' +
+            '<span>✓</span>' +
+            '<div>' +
+              '<div>Wundversorgung abgeschlossen</div>' +
+              '<div class="wd-finish__done-meta">' +
+                (fs.abgeschlossenAt || '') +
+                (fs.fotoName ? ' &nbsp;·&nbsp; Foto: ' + fs.fotoName : '') +
+              '</div>' +
+            '</div>' +
+            '<button class="wd-finish__undo" data-undo-finish="' + id + '">Rückgängig</button>' +
+          '</div>';
+      } else {
+        finishDiv.innerHTML =
+          '<div class="wd-finish__title">Wundversorgung abschließen</div>' +
+          '<div class="wd-field">' +
+            '<label class="wd-label">Abschlussfoto</label>' +
+            '<div class="wd-foto-btns">' +
+              '<button type="button" class="wd-foto-btn" onclick="document.getElementById(\'wdAbschlCam_' + id + '\').click()">📷 Kamera</button>' +
+              '<button type="button" class="wd-foto-btn wd-foto-btn--sec" onclick="document.getElementById(\'wdAbschlGal_' + id + '\').click()">🖼 Galerie / Datei</button>' +
+            '</div>' +
+            '<input id="wdAbschlCam_' + id + '" type="file" accept="image/*" capture="environment" style="display:none" onchange="wdFotoChosen(\'abschl_' + id + '\',this)">' +
+            '<input id="wdAbschlGal_' + id + '" type="file" accept="image/*,.pdf" style="display:none" onchange="wdFotoChosen(\'abschl_' + id + '\',this)">' +
+            '<div id="wdFotoName_abschl_' + id + '" class="wd-foto-name"></div>' +
+          '</div>' +
+          '<button class="wd-btn-finish" data-finish="' + id + '">✓ Wundversorgung abschließen</button>';
+      }
+
+      body.appendChild(finishDiv);
+      card.appendChild(head);
+      card.appendChild(body);
+      woundsEl.appendChild(card);
+    });
+
+    /* delegate finish / undo events */
+    woundsEl.querySelectorAll('[data-finish]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        const id = btn.dataset.finish;
+        const fotoName = wdGetFotoName('abschl_' + id);
+        const now = new Date();
+        finishState[id] = {
+          fotoName,
+          abgeschlossenAt: pad(now.getDate()) + '.' + pad(now.getMonth()+1) + '.' + now.getFullYear() + ', ' + pad(now.getHours()) + ':' + pad(now.getMinutes())
+        };
+        renderWoundCards();
+      });
+    });
+
+    woundsEl.querySelectorAll('[data-undo-finish]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        const id = btn.dataset.undoFinish;
+        delete finishState[id];
+        renderWoundCards();
+      });
+    });
+  }
+
+  if(wrap){
+    wrap.querySelectorAll('.wd-zone').forEach(function(zone){
+      zone.addEventListener('click', function(){
+        const id    = zone.dataset.id;
+        const label = zone.dataset.label;
+        const idx   = selectedOrder.indexOf(id);
+        if(idx !== -1){
+          selectedOrder.splice(idx, 1);
+          delete selectedLabels[id];
+          delete finishState[id];
+          zone.classList.remove('sel');
+        } else {
+          selectedOrder.push(id);
+          selectedLabels[id] = label;
+          zone.classList.add('sel');
+        }
+        summary.textContent = selectedOrder.length
+          ? selectedOrder.map(function(i){ return selectedLabels[i]; }).join(' · ')
+          : 'Keine Lokalisation markiert – Körperzone antippen zum Hinzufügen';
+        renderWoundCards();
+      });
+    });
+  }
+
+  document.getElementById('wdSave').addEventListener('click', function(){
+    const wounds = selectedOrder.map(function(id, idx){
+      const fs = finishState[id] || {};
+      const entzEl = document.getElementById('wdEntz_' + id) || document.createElement('div');
+      return {
+        nr:                   idx + 1,
+        id:                   id,
+        localisation:         selectedLabels[id],
+        art:                  (document.getElementById('wdArt_' + id)     || {}).value || '',
+        seitWann:             (document.getElementById('wdSeitWann_' + id)|| {}).value || '',
+        verbandswechsel:      (document.getElementById('wdWechsel_' + id) || {}).value || '',
+        versorgtMit:          (document.getElementById('wdVersorgt_' + id)|| {}).value || '',
+        beschreibung:         (document.getElementById('wdBeschr_' + id)  || {}).value || '',
+        entzuendungszeichen:  Array.from(entzEl.querySelectorAll('input:checked')).map(function(cb){ return cb.value; }),
+        fotoName:             wdGetFotoName(id),
+        abgeschlossen:        !!(fs.abgeschlossenAt),
+        abgeschlossenAt:      fs.abgeschlossenAt || '',
+        abschlFotoName:       fs.fotoName || '',
+      };
+    });
+    const data = {
+      savedAt:      new Date().toISOString(),
+      wounds:       wounds,
+      naechsteEval: document.getElementById('wdEval').value,
+      date:         document.getElementById('wdDate').value,
+    };
+    try{ localStorage.setItem('nursy_wunddoku_v1', JSON.stringify(data)); } catch(e){}
+    /* Wunddokumentation auch serverseitig speichern */
+    var _wdPatId = '';
+    try{ _wdPatId = localStorage.getItem('nursy_current_patient_id') || 'default'; }catch(e){}
+    fetch('/api/care/wunddoku/' + encodeURIComponent(_wdPatId), {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    }).catch(function(){});
+    window.location.href = 'dokumentation.html';
+  });
+
+  /* pre-fill Dokumentiert am */
+  const now = new Date();
+  document.getElementById('wdDate').value =
+    pad(now.getDate()) + '.' + pad(now.getMonth()+1) + '.' + now.getFullYear() +
+    ', ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+}());
+</script>
+</body>
+</html>

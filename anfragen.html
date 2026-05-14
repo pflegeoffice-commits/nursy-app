@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Anfragen</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Anfragen-spezifisch ── */
+    .anf-context {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #f0f5ff;
+      border: 1px solid rgba(63,111,232,.15);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .anf-context__avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#3f6fe8,#6a9dff);
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .anf-context__info { flex: 1; min-width: 0; }
+    .anf-context__name { font-weight: 700; font-size: 15px; color: #1d2b4f; margin: 0 0 4px; }
+    .anf-context__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .anf-context__tag {
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: #fff;
+      border: 1px solid rgba(63,111,232,.2);
+      color: #3f6fe8;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .anf-context__hint { font-size: 12px; color: #7a8faa; margin: 0; white-space: nowrap; }
+
+    /* ── Match-Karten ── */
+    .match-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid rgba(63,111,232,.12);
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: box-shadow .2s, opacity .3s;
+    }
+    .match-card:hover { box-shadow: 0 4px 20px rgba(63,111,232,.10); }
+    .match-card.is-accepted { border-color: #22c55e; background: #f0fdf4; }
+    .match-card.is-declined { opacity: 0; pointer-events: none; height: 0; padding: 0; margin: 0; overflow: hidden; border: none; }
+
+    .match-card__top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .match-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#e8eef8,#c5d5f5);
+      color: #3f6fe8;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .match-card.is-accepted .match-avatar {
+      background: linear-gradient(135deg,#bbf7d0,#86efac);
+      color: #166534;
+    }
+    .match-avatar--f {
+      background: linear-gradient(135deg,#f9a8d4,#fce7f3) !important;
+      color: #831843 !important;
+      border: 2px solid rgba(236,72,153,.35) !important;
+    }
+    .match-avatar--m {
+      background: linear-gradient(135deg,#93c5fd,#dbeafe) !important;
+      color: #1e3a8a !important;
+      border: 2px solid rgba(59,130,246,.35) !important;
+    }
+    .anf-context__avatar--f {
+      background: linear-gradient(135deg,#f9a8d4,#fce7f3) !important;
+      color: #831843 !important;
+      border: 2px solid rgba(236,72,153,.35) !important;
+    }
+    .anf-context__avatar--m {
+      background: linear-gradient(135deg,#93c5fd,#dbeafe) !important;
+      color: #1e3a8a !important;
+      border: 2px solid rgba(59,130,246,.35) !important;
+    }
+
+    .match-card__info { flex: 1; min-width: 0; }
+    .match-card__name {
+      font-size: 17px; font-weight: 700; color: #1d2b4f;
+      margin: 0 0 3px;
+    }
+    .match-card__sub {
+      font-size: 13px; color: #7a8faa;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .match-card__dist {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: #3f6fe8; font-weight: 600;
+    }
+
+    .match-score {
+      display: flex; flex-direction: column; align-items: center;
+      flex-shrink: 0;
+    }
+    .match-score__ring {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px;
+      border: 3px solid;
+    }
+    .match-score__ring--high  { border-color: #22c55e; color: #15803d; background: #f0fdf4; }
+    .match-score__ring--mid   { border-color: #3f6fe8; color: #1d4ed8; background: #eff6ff; }
+    .match-score__ring--low   { border-color: #f59e0b; color: #b45309; background: #fffbeb; }
+    .match-score__label { font-size: 10px; color: #7a8faa; margin-top: 3px; }
+
+    /* Tags */
+    .match-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .match-tag {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .match-tag--ok   { background: #dcfce7; color: #166534; }
+    .match-tag--warn { background: #fef9c3; color: #854d0e; }
+    .match-tag--time { background: #e0f2fe; color: #075985; }
+
+    /* Patient wishes */
+    .match-wish {
+      font-size: 13px; color: #4b5e7a;
+      background: #f8faff;
+      border-left: 3px solid rgba(63,111,232,.25);
+      border-radius: 0 8px 8px 0;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+    .match-wish strong { font-style: normal; font-size: 11px; color: #7a8faa; display: block; margin-bottom: 2px; }
+
+    /* Pflegestufe + Zeit */
+    .match-meta {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pflegestufe {
+      font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+      background: #ede9fe; color: #5b21b6;
+    }
+    .zeit-chip {
+      font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+      background: #e0f2fe; color: #0369a1;
+    }
+
+    /* Buttons */
+    .match-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn-accept {
+      height: 40px; padding: 0 20px; border-radius: 12px;
+      border: none; cursor: pointer;
+      background: #22c55e; color: #fff; font-weight: 700; font-size: 14px;
+      transition: background .15s;
+    }
+    .btn-accept:hover { background: #16a34a; }
+    .btn-decline {
+      height: 40px; padding: 0 18px; border-radius: 12px;
+      border: 1px solid rgba(63,111,232,.18); cursor: pointer;
+      background: #fff; color: #7a8faa; font-weight: 700; font-size: 14px;
+      transition: background .15s;
+    }
+    .btn-decline:hover { background: #f1f5f9; color: #1d2b4f; }
+    .accepted-badge {
+      display: none;
+      align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 700; color: #16a34a;
+    }
+    .match-card.is-accepted .accepted-badge { display: flex; }
+    .match-card.is-accepted .match-actions .btn-accept,
+    .match-card.is-accepted .match-actions .btn-decline { display: none; }
+
+    .btn-undo {
+      height: 32px; padding: 0 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      border: 1px solid rgba(220,38,38,.25); background: #fff5f5; color: #b91c1c;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-undo:hover { background: #fee2e2; }
+
+    .empty-state {
+      text-align: center; padding: 48px 16px; color: #7a8faa;
+    }
+    .empty-state__icon { font-size: 40px; margin-bottom: 12px; }
+
+    @media (max-width: 640px) {
+      .anf-context { padding: 14px; gap: 10px; flex-direction: column; align-items: flex-start; }
+      .anf-context__hint { display: none; }
+      .anf-context__info { font-size: 14px; }
+      .match-card__top { gap: 10px; }
+      .match-card__name { font-size: 15px; }
+      .match-tags { gap: 4px; }
+      .match-tag { font-size: 10px; padding: 2px 8px; }
+      .match-actions { flex-direction: column; gap: 8px; }
+      .btn-accept, .btn-decline {
+        width: 100%; height: 44px; font-size: 14px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .btn-undo { width: 100%; height: 44px; font-size: 13px; }
+      .match-wish { font-size: 12px; }
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="dashboard-care.html">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+  </div>
+</header>
+
+<main class="container">
+  <section class="section">
+    <div class="section__head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+      <div>
+        <h2>Aktuelle Anfragen</h2>
+        <p class="muted">Geplante Einsätze ab morgen – auf dein Profil abgestimmt.</p>
+      </div>
+      <div class="mob-col" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="resetAnfragenBtn"
+          style="height:36px;padding:0 14px;border-radius:10px;border:1px solid rgba(11,27,58,.15);background:#f5f7fa;color:#7a8faa;font-size:13px;font-weight:600;cursor:pointer;"
+          title="Anfragen zurücksetzen">↺ Zurücksetzen</button>
+        <button type="button" id="manualAddBtn"
+          style="height:36px;padding:0 16px;border-radius:10px;border:none;background:#1d2b4f;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+          + Patient aufnehmen
+        </button>
+        <a class="control btn" href="dashboard-care.html">Zurück</a>
+      </div>
+    </div>
+
+    <!-- Pflegekraft-Kontext -->
+    <div class="anf-context" id="ctxBar">
+      <div class="anf-context__avatar" id="ctxAvatar">AM</div>
+      <div class="anf-context__info">
+        <p class="anf-context__name" id="ctxName">Anna Müller</p>
+        <div class="anf-context__tags" id="ctxTags">
+          <span class="anf-context__tag" id="ctxQual">PFA</span>
+          <span class="anf-context__tag" id="ctxBezirk">Linz</span>
+          <span class="anf-context__tag" id="ctxTime">Heute 08:00–16:00</span>
+        </div>
+      </div>
+      <p class="anf-context__hint">Anfragen basieren auf deinem Profil</p>
+    </div>
+
+    <!-- Anfragen-Liste -->
+    <div id="anfragenList"></div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-state__icon">📋</div>
+      <p class="muted">Keine offenen Anfragen vorhanden.</p>
+    </div>
+
+  </section>
+</main>
+
+<!-- ════════ EMAIL-VORSCHAU-DIALOG ════════ -->
+<div class="modal" id="emailPreviewModal" hidden style="align-items:center;justify-content:center;">
+  <div class="modal__backdrop" id="emailPreviewBackdrop"></div>
+  <div style="position:relative;z-index:2;width:min(520px,calc(100% - 32px));background:#fff;border-radius:20px;box-shadow:0 30px 90px rgba(11,27,58,.25);overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#1d2b4f,#2d4a8a);padding:24px 24px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Zugangsdaten versandt</div>
+        <h3 style="margin:0;color:#fff;font-size:20px;font-weight:800;">E-Mail-Vorschau</h3>
+        <p style="margin:4px 0 0;color:rgba(255,255,255,.7);font-size:13px;">Diese E-Mail wurde an den Patienten geschickt.</p>
+      </div>
+      <button type="button" id="emailPreviewClose" aria-label="Schließen"
+        style="flex-shrink:0;width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+
+    <div style="padding:20px 24px;">
+      <div style="background:#f5f7fa;border-radius:12px;padding:16px;font-size:13px;color:#4b5a72;margin-bottom:16px;">
+        <div style="display:flex;gap:8px;margin-bottom:6px;"><span style="font-weight:700;min-width:48px;flex-shrink:0;">An:</span><span id="ep-to" style="word-break:break-all;overflow-wrap:anywhere;min-width:0;"></span></div>
+        <div style="display:flex;gap:8px;margin-bottom:6px;"><span style="font-weight:700;min-width:48px;">Von:</span><span>noreply@nursy.at</span></div>
+        <div style="display:flex;gap:8px;"><span style="font-weight:700;min-width:48px;">Betreff:</span><span>Ihre Zugangsdaten für Nursy</span></div>
+      </div>
+
+      <div style="border:1.5px solid #e8eef6;border-radius:12px;padding:20px;font-size:14px;color:#1d2b4f;line-height:1.6;">
+        <p style="margin:0 0 12px;">Guten Tag <strong id="ep-name"></strong>,</p>
+        <p style="margin:0 0 12px;">Ihr Konto auf <strong>Nursy</strong> wurde erfolgreich angelegt. Hier sind Ihre Zugangsdaten:</p>
+        <div style="background:#f0f4fb;border-radius:10px;padding:14px 16px;margin:12px 0;font-family:monospace;">
+          <div style="margin-bottom:6px;"><span style="color:#7a8faa;font-size:12px;font-weight:700;">E-MAIL</span><br><span id="ep-email" style="font-size:15px;font-weight:700;word-break:break-all;overflow-wrap:anywhere;"></span></div>
+          <div><span style="color:#7a8faa;font-size:12px;font-weight:700;">PASSWORT (temporär)</span><br><span id="ep-pw" style="font-size:15px;font-weight:700;color:#1d7a4f;letter-spacing:2px;"></span></div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;color:#7a8faa;">Bitte ändern Sie Ihr Passwort beim ersten Einloggen. Dieses temporäre Passwort ist 7 Tage gültig.</p>
+      </div>
+    </div>
+
+    <!-- Erfolgs-Badge: Patient hinzugefügt -->
+    <div id="epAddedBadge" style="display:none;margin:0 24px 12px;background:#f0fdf4;border:1.5px solid #22c55e44;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:16px;">✓</span>
+      <span style="font-size:13px;font-weight:700;color:#166534;">Patient wurde zu deinen Klienten hinzugefügt</span>
+    </div>
+
+    <div style="padding:0 24px 24px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="button" id="emailPreviewCopy"
+        style="flex:1;min-width:140px;height:44px;border-radius:12px;border:1.5px solid rgba(11,27,58,.15);background:#f5f7fa;color:#1d2b4f;font-weight:700;font-size:14px;cursor:pointer;">
+        Zugangsdaten kopieren
+      </button>
+      <button type="button" id="emailPreviewClose2"
+        style="flex:1;min-width:140px;height:44px;border-radius:12px;border:none;background:#1d2b4f;color:#fff;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        Meine Klienten ansehen →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MANUAL-PATIENT-MODAL ════════ -->
+<div class="modal" id="manualModal" hidden
+     style="align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4vh 16px 6vh;">
+  <div class="modal__backdrop" id="manualBackdrop"></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="manualModalTitle"
+       style="padding:0;width:100%;margin:0;max-height:none;overflow:visible;">
+    <div class="modal__head" style="border-bottom:1px solid #f0f4fb;margin-bottom:0;">
+      <h3 id="manualModalTitle">Patient aufnehmen</h3>
+      <button class="iconbtn" type="button" id="manualClose" aria-label="Schließen">✕</button>
+    </div>
+
+    <div style="padding:18px 20px 10px;display:flex;flex-direction:column;gap:18px;">
+
+      <!-- Sektion-Helper CSS inline -->
+      <style>
+        .mp-section-title{font-size:11px;font-weight:800;color:#7a8faa;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px;padding-bottom:6px;border-bottom:1px solid #e8eef6;}
+        .mp-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+        .mp-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+        .mp-field{display:flex;flex-direction:column;gap:4px;}
+        .mp-label{font-size:11px;font-weight:700;color:#7a8faa;letter-spacing:.3px;}
+        .mp-box{border:1.5px solid rgba(11,27,58,.18);border-radius:10px;background:#fff;height:44px;display:flex;align-items:center;padding:0 12px;}
+        .mp-input{border:none;outline:none;width:100%;min-width:0;font-size:14px;color:#1d2b4f;background:transparent;}
+        .mp-select{border:none;outline:none;width:100%;min-width:0;font-size:14px;color:#1d2b4f;background:transparent;-webkit-appearance:none;}
+      </style>
+
+      <!-- ① Persönliche Daten -->
+      <div>
+        <p class="mp-section-title">Persönliche Daten</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="mp-grid-2">
+            <div class="mp-field">
+              <span class="mp-label">NACHNAME *</span>
+              <div class="mp-box"><input id="mp-lastname" class="mp-input" type="text" placeholder="Mustermann" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">VORNAME *</span>
+              <div class="mp-box"><input id="mp-firstname" class="mp-input" type="text" placeholder="Maria" /></div>
+            </div>
+          </div>
+          <div class="mp-grid-3">
+            <div class="mp-field">
+              <span class="mp-label">GESCHLECHT</span>
+              <div class="mp-box">
+                <select id="mp-gender" class="mp-select">
+                  <option value="">— wählen —</option>
+                  <option value="f">Weiblich</option>
+                  <option value="m">Männlich</option>
+                  <option value="d">Divers</option>
+                </select>
+              </div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">GEBURTSDATUM</span>
+              <div class="mp-box"><input id="mp-birthdate" class="mp-input" type="date" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">SV-NUMMER</span>
+              <div class="mp-box"><input id="mp-svnr" class="mp-input" type="text" placeholder="1234 DDMMJJ" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② Versicherung -->
+      <div>
+        <p class="mp-section-title">Versicherung</p>
+        <div class="mp-grid-2">
+          <div class="mp-field">
+            <span class="mp-label">VERSICHERUNG</span>
+            <div class="mp-box">
+              <select id="mp-versicherung" class="mp-select">
+                <option value="">— bitte wählen —</option>
+                <option>ÖGK (Österreichische Gesundheitskasse)</option>
+                <option>BVAEB</option>
+                <option>SVS (Sozialversicherung d. Selbständigen)</option>
+                <option>KFA</option>
+                <option>Sonstige</option>
+              </select>
+            </div>
+          </div>
+          <div class="mp-field">
+            <span class="mp-label">ZUSATZVERSICHERUNG</span>
+            <div class="mp-box"><input id="mp-zusatz" class="mp-input" type="text" placeholder="z.B. Uniqa, Generali …" /></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ Adresse -->
+      <div>
+        <p class="mp-section-title">Adresse</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="mp-field">
+            <span class="mp-label">STRASSE &amp; HAUSNUMMER *</span>
+            <div class="mp-box"><input id="mp-street" class="mp-input" type="text" placeholder="Hauptstraße 12" /></div>
+          </div>
+          <div class="mp-grid-3">
+            <div class="mp-field">
+              <span class="mp-label">PLZ</span>
+              <div class="mp-box"><input id="mp-plz" class="mp-input" type="text" placeholder="4020" maxlength="6" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">WOHNORT</span>
+              <div class="mp-box"><input id="mp-city" class="mp-input" type="text" placeholder="Linz" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">BEZIRK</span>
+              <div class="mp-box"><input id="mp-bezirk" class="mp-input" type="text" placeholder="Linz-Land" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ Kontakt -->
+      <div>
+        <p class="mp-section-title">Kontakt</p>
+        <div class="mp-grid-2">
+          <div class="mp-field">
+            <span class="mp-label">TELEFON</span>
+            <div class="mp-box"><input id="mp-phone" class="mp-input" type="tel" placeholder="+43 660 …" /></div>
+          </div>
+          <div class="mp-field">
+            <span class="mp-label">E-MAIL</span>
+            <div class="mp-box"><input id="mp-email" class="mp-input" type="email" placeholder="name@email.at" style="transition:opacity .2s" /></div>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:12px;margin-top:8px;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(11,27,58,.12);background:#f5f7fa;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+          <input type="checkbox" id="mp-kein-email" style="width:22px;height:22px;min-width:22px;cursor:pointer;accent-color:#1d2b4f;"
+            onchange="(function(){
+              var em=document.getElementById('mp-email');
+              var on=document.getElementById('mp-kein-email').checked;
+              em.disabled=on; em.style.opacity=on?'0.3':'1';
+              if(on) em.value='';
+            })()">
+          <span style="font-size:14px;font-weight:600;color:#1d2b4f;line-height:1.3;">Kein E-Mail vorhanden<br><span style="font-size:12px;font-weight:500;color:#7a8faa;">Zugangsdaten nach dem Anlegen anzeigen</span></span>
+        </label>
+      </div>
+
+      <!-- ⑤ Pflegedaten -->
+      <div>
+        <p class="mp-section-title">Pflegedaten</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="mp-grid-2">
+            <div class="mp-field">
+              <span class="mp-label">PFLEGESTUFE</span>
+              <div class="mp-box">
+                <select id="mp-stufe" class="mp-select">
+                  <option value="">—</option>
+                  <option>0</option><option>1</option><option>2</option><option>3</option>
+                  <option>4</option><option>5</option><option>6</option><option>7</option>
+                </select>
+              </div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">HAUPTGRUND</span>
+              <div class="mp-box"><input id="mp-hauptgrund" class="mp-input" type="text" placeholder="z.B. Körperpflege" /></div>
+            </div>
+          </div>
+          <div class="mp-field">
+            <span class="mp-label">PFLEGEBEDARF / BEMERKUNGEN</span>
+            <div class="mp-box"><input id="mp-needs" class="mp-input" type="text" placeholder="Kurzbeschreibung (optional)" /></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ Angehöriger -->
+      <div>
+        <p class="mp-section-title">Angehöriger</p>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;background:#f5f7fa;border:1.5px solid rgba(11,27,58,.10);">
+          <span style="font-size:14px;font-weight:600;color:#1d2b4f;flex:1;">Angehöriger vorhanden?</span>
+          <button type="button" id="mp-ang-toggle"
+            style="padding:6px 18px;border-radius:8px;border:1.5px solid rgba(11,27,58,.18);background:#fff;font-size:13px;font-weight:700;color:#7a8faa;cursor:pointer;">
+            Nein
+          </button>
+        </div>
+        <div id="mp-ang-section" style="display:none;margin-top:12px;display:none;flex-direction:column;gap:10px;">
+          <div class="mp-grid-2">
+            <div class="mp-field">
+              <span class="mp-label">VORNAME ANGEHÖRIGER</span>
+              <div class="mp-box"><input id="mp-ang-firstname" class="mp-input" type="text" placeholder="Vorname" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">NACHNAME ANGEHÖRIGER</span>
+              <div class="mp-box"><input id="mp-ang-lastname" class="mp-input" type="text" placeholder="Nachname" /></div>
+            </div>
+          </div>
+          <div class="mp-field">
+            <span class="mp-label">ADRESSE ANGEHÖRIGER</span>
+            <div class="mp-box"><input id="mp-ang-address" class="mp-input" type="text" placeholder="Straße, PLZ Ort" /></div>
+          </div>
+          <div class="mp-grid-2">
+            <div class="mp-field">
+              <span class="mp-label">TELEFON</span>
+              <div class="mp-box"><input id="mp-ang-phone" class="mp-input" type="tel" placeholder="+43 …" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">E-MAIL</span>
+              <div class="mp-box"><input id="mp-ang-email" class="mp-input" type="email" placeholder="name@email.at" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑦ Erster Einsatz -->
+      <div>
+        <p class="mp-section-title">Erster Einsatz *</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="mp-field">
+            <span class="mp-label">DATUM *</span>
+            <div class="mp-box"><input id="mp-date" class="mp-input" type="date" /></div>
+          </div>
+          <div class="mp-grid-2">
+            <div class="mp-field">
+              <span class="mp-label">VON</span>
+              <div class="mp-box"><input id="mp-from" class="mp-input" type="time" /></div>
+            </div>
+            <div class="mp-field">
+              <span class="mp-label">BIS</span>
+              <div class="mp-box"><input id="mp-to" class="mp-input" type="time" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p id="mp-error" style="margin:0;font-size:13px;color:#b91c1c;min-height:16px;"></p>
+    </div>
+
+    <!-- Buttons -->
+    <div style="padding:10px 20px 24px;display:flex;gap:10px;border-top:1px solid #f0f4fb;">
+      <button type="button" id="manualCloseBtn"
+        style="flex:1;height:46px;border-radius:12px;border:1px solid rgba(11,27,58,.15);background:#f5f7fa;color:#1d2b4f;font-weight:700;font-size:15px;cursor:pointer;">
+        Abbrechen
+      </button>
+      <button type="button" id="manualSaveBtn"
+        style="flex:2;height:46px;border-radius:12px;border:none;background:#1d2b4f;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">
+        Speichern
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── Profil aus localStorage lesen ── */
+  var PROFILE_KEY = 'nursy_profile_care_v1';
+  var TIMES_KEY   = 'nursy_avail_v1';
+  var STATE_KEY   = 'nursy_anfragen_state_v1';
+
+  function loadProfile() {
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch(e) { return null; }
+  }
+  function loadTimes() {
+    try { return JSON.parse(localStorage.getItem(TIMES_KEY) || 'null'); } catch(e) { return null; }
+  }
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch(e) { return {}; }
+  }
+  function saveState(s) {
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(s)); } catch(e) {}
+  }
+
+  var prof  = loadProfile();
+  var times = loadTimes();
+
+  /* Profil-Kontext-Bar befüllen */
+  var firstName = prof && prof.firstName ? prof.firstName : 'Anna';
+  var lastName  = prof && prof.lastName  ? prof.lastName  : 'Müller';
+  var qualMain  = prof && prof.qualMain  ? prof.qualMain  : 'PFA';
+  var bezirk    = prof && prof.district  ? prof.district  : 'Linz';
+  var initials  = firstName.charAt(0) + lastName.charAt(0);
+
+  /* Heutige Verfügbarkeit */
+  var DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var todayKey = DAYS[new Date().getDay()];
+  var todayStart = '', todayEnd = '';
+  if (times && times[todayKey]) {
+    todayStart = times[todayKey].start || '';
+    todayEnd   = times[todayKey].end   || '';
+  }
+  var todayTimeStr = (todayStart && todayEnd)
+    ? 'Heute ' + todayStart + '–' + todayEnd
+    : 'Heute 08:00–16:00';
+
+  var ctxAv = document.getElementById('ctxAvatar');
+  ctxAv.textContent = initials;
+  var cgGender = prof && prof.gender ? prof.gender : '';
+  if(cgGender === 'f') ctxAv.classList.add('anf-context__avatar--f');
+  else if(cgGender === 'm') ctxAv.classList.add('anf-context__avatar--m');
+  document.getElementById('ctxName').textContent   = firstName + ' ' + lastName;
+  document.getElementById('ctxQual').textContent   = qualMain;
+  document.getElementById('ctxBezirk').textContent = bezirk;
+  document.getElementById('ctxTime').textContent   = todayTimeStr;
+
+  /* ── Anfragen-Daten: werden ausschließlich von der API geladen ── */
+  var ANFRAGEN = [];
+
+  /* User-spezifischer Schlüssel — wird nach API-Antwort aktualisiert */
+  var ACCEPTED_KEY = window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1';
+
+  function parseZeitLabel(label) {
+    var daysOffset = 1;
+    var m;
+    if (/^Morgen/.test(label)) daysOffset = 1;
+    else if (/^Übermorgen/.test(label)) daysOffset = 2;
+    else if ((m = label.match(/^In (\d+) Tagen/))) daysOffset = parseInt(m[1]);
+    var d = new Date(Date.now() + daysOffset * 86400000);
+    var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var timePart = label.replace(/^(Morgen|Übermorgen|In \d+ Tagen)\s+/, '');
+    var times = timePart.split(/[–-]/);
+    return { date: dateStr, from: (times[0]||'09:00').trim(), to: (times[1]||'10:00').trim() };
+  }
+
+  function removeAcceptedPatient(id) {
+    fetch('/api/care/meine-patienten/' + encodeURIComponent(id), {
+      method: 'DELETE', credentials: 'include'
+    }).catch(function(){});
+    try {
+      var existing = JSON.parse(localStorage.getItem(ACCEPTED_KEY) || '[]');
+      existing = existing.filter(function(p) { return p.id !== id; });
+      localStorage.setItem(ACCEPTED_KEY, JSON.stringify(existing));
+    } catch(e) {}
+  }
+
+  function saveAcceptedPatient(anf) {
+    var existing = [];
+    try { existing = JSON.parse(localStorage.getItem(ACCEPTED_KEY) || '[]'); } catch(e) {}
+    if (existing.find(function(p) { return p.id === anf.id; })) return;
+    var visit = parseZeitLabel(anf.zeitLabel);
+    var patObj = {
+      id: anf.id,
+      name: anf.patName,
+      age: anf.patAge,
+      pflegestufe: anf.patPflegestufe,
+      address: anf.address,
+      needs: anf.needs,
+      wunsch: anf.wunsch,
+      distLabel: anf.distLabel,
+      visitDate: visit.date,
+      visitFrom: visit.from,
+      visitTo: visit.to,
+      acceptedAt: new Date().toISOString()
+    };
+    existing.push(patObj);
+    try { localStorage.setItem(ACCEPTED_KEY, JSON.stringify(existing)); } catch(e) {}
+    fetch('/api/care/meine-patienten', {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(patObj)
+    }).catch(function(){});
+  }
+
+  /* Patienten-Liste beim Start vom Server synchronisieren + UID setzen */
+  fetch('/api/care/meine-patienten', {credentials:'include'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.ok) return;
+      /* UID aus Server-Antwort → Schlüssel pro Pfleger isolieren */
+      if(d.caregiver_id && window.setCareUid) window.setCareUid(d.caregiver_id);
+      ACCEPTED_KEY = window.getCarePatKey ? window.getCarePatKey() : ACCEPTED_KEY;
+      if(Array.isArray(d.patients))
+        try{ localStorage.setItem(ACCEPTED_KEY, JSON.stringify(d.patients)); }catch(e){}
+    }).catch(function(){});
+
+  var state = loadState();
+
+  function initials2(name) {
+    var parts = name.trim().split(' ');
+    return (parts[0].charAt(0) + (parts[1] ? parts[1].charAt(0) : '')).toUpperCase();
+  }
+
+  function renderCard(anf) {
+    var s = state[anf.id] || 'open';
+    var tagsHtml = anf.matchTags.map(function(t) {
+      var icons = { ok: '✓', warn: '!', time: '⏱' };
+      return '<span class="match-tag match-tag--' + t.type + '">' + icons[t.type] + ' ' + t.label + '</span>';
+    }).join('');
+
+    var card = document.createElement('div');
+    card.className = 'match-card' + (s === 'accepted' ? ' is-accepted' : '') + (s === 'declined' ? ' is-declined' : '');
+    card.dataset.id = anf.id;
+    card.innerHTML = [
+      '<div class="match-card__top">',
+        '<div class="match-avatar' + (anf.patGender === 'f' ? ' match-avatar--f' : anf.patGender === 'm' ? ' match-avatar--m' : '') + '">' + initials2(anf.patName) + '</div>',
+        '<div class="match-card__info">',
+          '<p class="match-card__name">' + anf.patName + '</p>',
+          '<div class="match-card__sub">',
+            '<span>' + anf.patAge + ' Jahre</span>',
+            '<span class="match-card__dist">' + anf.distLabel + '</span>',
+          '</div>',
+        '</div>',
+        '<div class="match-score">',
+          '<div class="match-score__ring match-score__ring--' + anf.matchGrade + '">' + anf.matchScore + '%</div>',
+          '<span class="match-score__label">Match</span>',
+        '</div>',
+      '</div>',
+      '<div class="match-meta">',
+        '<span class="pflegestufe">' + anf.patPflegestufe + '</span>',
+        '<span class="zeit-chip">' + anf.zeitLabel + '</span>',
+      '</div>',
+      '<div class="match-tags">' + tagsHtml + '</div>',
+      '<div class="match-wish"><strong>Wünsche der Familie</strong>' + anf.wunsch + '</div>',
+      '<div class="match-actions">',
+        '<button class="btn-accept" data-action="accept" data-id="' + anf.id + '">Pat annehmen</button>',
+        '<button class="btn-decline" data-action="decline" data-id="' + anf.id + '">Ablehnen</button>',
+        '<span class="accepted-badge">✓ Angenommen – <a href="patients.html" style="color:#16a34a;text-decoration:underline;">Zu Meine Patienten</a>&nbsp;&nbsp;<button class="btn-undo" data-action="undo" data-id="' + anf.id + '">Rückgängig</button></span>',
+      '</div>',
+    ].join('');
+    return card;
+  }
+
+  var _apiLoaded = false;
+
+  function render() {
+    var list = document.getElementById('anfragenList');
+    list.innerHTML = '';
+    var allDone = true;
+    ANFRAGEN.forEach(function(anf) {
+      var s = state[anf.id] || 'open';
+      if (s !== 'declined') allDone = false;
+      list.appendChild(renderCard(anf));
+    });
+    var noApiOpen = _apiLoaded && API_ANFRAGEN.every(function(a){ return (state[a.id]||'open')==='declined'; });
+    document.getElementById('emptyState').style.display = (allDone && noApiOpen) ? '' : 'none';
+  }
+
+  render();
+
+  /* ── Echte API-Anfragen laden ─────────────────────────────────────── */
+  var API_ANFRAGEN = [];
+
+  function freqToZeit(code) {
+    var map = {
+      '1x-tgl': 'Morgen 09:00–11:00',
+      '2x-tgl': 'Morgen 07:00–09:00',
+      '3x-tgl': 'Morgen 07:00–09:00',
+      'woechentlich': 'In 3 Tagen 10:00–12:00',
+      'nach-bedarf': 'Morgen 09:00–11:00'
+    };
+    return map[code] || 'Morgen 09:00–11:00';
+  }
+
+  function calcAge(birthStr) {
+    if(!birthStr) return '';
+    var d = new Date(birthStr);
+    if(isNaN(d)) return '';
+    var diff = Date.now() - d.getTime();
+    return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+  }
+
+  function apiReqToAnfrage(r) {
+    var an = r.anamnese || {};
+    var matchTags = [];
+    if(an.mobilisation && an.mobilisation !== 'selbst')
+      matchTags.push({ label: 'Mobilisation', type: 'ok' });
+    if(an.koerperpflege && an.koerperpflege !== 'selbst')
+      matchTags.push({ label: 'Körperpflege', type: 'ok' });
+    if(an.sturzrisiko === 'hoch' || an.sturzrisiko === 'mittel')
+      matchTags.push({ label: 'Sturzrisiko ' + an.sturzrisiko, type: 'warn' });
+    var vorerArr = Array.isArray(an.vorerkrankungen) ? an.vorerkrankungen : [];
+    if(vorerArr.includes('demenz'))
+      matchTags.push({ label: 'Demenzbegleitung', type: 'warn' });
+    if(vorerArr.includes('diabetes'))
+      matchTags.push({ label: 'Diabetes', type: 'warn' });
+    if(matchTags.length === 0)
+      matchTags.push({ label: 'Bezirk passend', type: 'ok' });
+
+    var needsParts = [];
+    if(an.koerperpflege && an.koerperpflege !== 'selbst') needsParts.push('Körperpflege');
+    if(an.mobilisation && an.mobilisation !== 'selbst') needsParts.push('Mobilisation');
+    var inkArr = Array.isArray(an.inkontinenz) ? an.inkontinenz : [];
+    if(inkArr.some(function(i){ return i !== 'kontinent'; })) needsParts.push('Inkontinenzversorgung');
+    if(needsParts.length === 0) needsParts.push('Grundpflege');
+
+    var stufe = r.pflegestufe ? 'Pflegestufe ' + r.pflegestufe : 'Einstufung ausstehend';
+    var score = r.pflegestufe <= 3 ? 88 : r.pflegestufe <= 5 ? 78 : 65;
+    var grade = score >= 85 ? 'high' : score >= 72 ? 'mid' : 'low';
+    var age = calcAge(r.patient_birth);
+    var addrDisplay = [r.patient_address, r.patient_ort].filter(Boolean).join(', ');
+    var wunsch = (an.sonstigeInfo && an.sonstigeInfo.trim())
+      ? an.sonstigeInfo.trim()
+      : 'Pflege benötigt: ' + needsParts.join(', ') + '. Pflegestufe ' + (r.pflegestufe || 'ausstehend') + '.';
+
+    return {
+      id: r.id,
+      patName: r.patient_name,
+      patGender: r.patient_gender,
+      patAge: age || '–',
+      patPflegestufe: stufe,
+      address: addrDisplay || 'Adresse nicht angegeben',
+      distLabel: 'Neue Anfrage',
+      zeitLabel: freqToZeit(r.frequenz),
+      matchScore: score,
+      matchGrade: grade,
+      matchTags: matchTags,
+      wunsch: wunsch,
+      needs: needsParts.join(', '),
+      _isApi: true,
+      _apiId: r.id,
+      _patientId: r.patient_id,
+      _anamnese: r.anamnese
+    };
+  }
+
+  function renderApiCard(anf) {
+    var s = state[anf.id] || 'open';
+    var tagsHtml = anf.matchTags.map(function(t) {
+      var icons = { ok: '✓', warn: '!', time: '⏱' };
+      return '<span class="match-tag match-tag--' + t.type + '">' + icons[t.type] + ' ' + t.label + '</span>';
+    }).join('');
+
+    var card = document.createElement('div');
+    card.className = 'match-card' + (s === 'accepted' ? ' is-accepted' : '') + (s === 'declined' ? ' is-declined' : '');
+    card.dataset.id = anf.id;
+    card.dataset.api = '1';
+    card.innerHTML = [
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">',
+        '<span style="font-size:11px;font-weight:700;background:#fef9c3;color:#854d0e;border-radius:20px;padding:2px 10px;">NEU • Online-Anfrage</span>',
+      '</div>',
+      '<div class="match-card__top">',
+        '<div class="match-avatar' + (anf.patGender === 'f' ? ' match-avatar--f' : anf.patGender === 'm' ? ' match-avatar--m' : '') + '">' + initials2(anf.patName) + '</div>',
+        '<div class="match-card__info">',
+          '<p class="match-card__name">' + anf.patName + '</p>',
+          '<div class="match-card__sub">',
+            (anf.patAge && anf.patAge !== '–' ? '<span>' + anf.patAge + ' Jahre</span>' : ''),
+            '<span class="match-card__dist" style="color:#3f6fe8;">' + anf.distLabel + '</span>',
+          '</div>',
+        '</div>',
+        '<div class="match-score">',
+          '<div class="match-score__ring match-score__ring--' + anf.matchGrade + '">' + anf.matchScore + '%</div>',
+          '<span class="match-score__label">Match</span>',
+        '</div>',
+      '</div>',
+      '<div class="match-meta">',
+        '<span class="pflegestufe">' + anf.patPflegestufe + '</span>',
+        '<span class="zeit-chip">' + anf.zeitLabel + '</span>',
+      '</div>',
+      '<div class="match-tags">' + tagsHtml + '</div>',
+      '<div class="match-wish"><strong>Pflegebedarf</strong>' + anf.wunsch + '</div>',
+      '<div class="match-actions">',
+        '<button class="btn-accept" data-action="accept" data-id="' + anf.id + '" data-api="1">Pat annehmen</button>',
+        '<button class="btn-decline" data-action="decline" data-id="' + anf.id + '" data-api="1">Ablehnen</button>',
+        '<span class="accepted-badge">✓ Angenommen – <a href="patients.html" style="color:#16a34a;text-decoration:underline;">Zu Meine Patienten</a>&nbsp;&nbsp;<button class="btn-undo" data-action="undo-api" data-id="' + anf.id + '" data-api="1">Rükgängig</button></span>',
+      '</div>',
+    ].join('');
+    return card;
+  }
+
+  async function loadApiRequests() {
+    try {
+      var resp = await fetch('/api/requests/pending');
+      var json = await resp.json();
+      _apiLoaded = true;
+      if(!json.ok || !Array.isArray(json.requests) || json.requests.length === 0) { render(); return; }
+      var list = document.getElementById('anfragenList');
+      json.requests.forEach(function(r) {
+        var anf = apiReqToAnfrage(r);
+        API_ANFRAGEN.push(anf);
+        if((state[anf.id] || 'open') !== 'declined') {
+          list.insertBefore(renderApiCard(anf), list.firstChild);
+        }
+      });
+      render();
+    } catch(e) { _apiLoaded = true; render(); }
+  }
+
+  loadApiRequests();
+
+  document.getElementById('anfragenList').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var id     = btn.dataset.id;
+    var action = btn.dataset.action;
+
+    /* Undo for API card */
+    if (action === 'undo-api') {
+      delete state[id];
+      saveState(state);
+      var apiAnf = API_ANFRAGEN.find(function(a) { return a.id === id; });
+      if(apiAnf) {
+        fetch('/api/requests/' + id + '/decline', {method:'POST'}).catch(function(){});
+      }
+      location.reload();
+      return;
+    }
+
+    if (action === 'undo') {
+      removeAcceptedPatient(id);
+      delete state[id];
+      saveState(state);
+      render();
+      return;
+    }
+
+    /* API card – call server */
+    var isApiCard = btn.dataset.api === '1';
+    if (isApiCard) {
+      var apiAnf = API_ANFRAGEN.find(function(a) { return a.id === id; });
+      if (action === 'accept' && apiAnf) {
+        fetch('/api/requests/' + id + '/accept', {method:'POST'}).catch(function(){});
+        saveAcceptedPatient({
+          id: apiAnf._patientId || apiAnf.id,
+          name: apiAnf.patName,
+          age: apiAnf.patAge,
+          pflegestufe: apiAnf.patPflegestufe,
+          address: apiAnf.address,
+          needs: apiAnf.needs,
+          wunsch: apiAnf.wunsch,
+          distLabel: apiAnf.distLabel,
+          visitDate: (function(){
+            var d = new Date(Date.now() + 86400000);
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+          })(),
+          visitFrom: '09:00', visitTo: '11:00',
+          acceptedAt: new Date().toISOString()
+        });
+        if(apiAnf._patientId) {
+          try{ localStorage.setItem('nursy_current_patient_id', apiAnf._patientId); }catch(e){}
+        }
+      } else if (action === 'decline') {
+        fetch('/api/requests/' + id + '/decline', {method:'POST'}).catch(function(){});
+      }
+      state[id] = action === 'accept' ? 'accepted' : 'declined';
+      saveState(state);
+      var card = document.querySelector('.match-card[data-id="' + id + '"]');
+      if (action === 'accept') {
+        card.classList.add('is-accepted');
+      } else {
+        card.classList.add('is-declined');
+        setTimeout(function() { card.remove(); }, 350);
+      }
+      return;
+    }
+
+    state[id] = action === 'accept' ? 'accepted' : 'declined';
+    saveState(state);
+
+    var card = document.querySelector('.match-card[data-id="' + id + '"]');
+    if (action === 'accept') {
+      var anf = ANFRAGEN.find(function(a) { return a.id === id; });
+      if (anf) saveAcceptedPatient(anf);
+      card.classList.add('is-accepted');
+    } else {
+      card.classList.add('is-declined');
+      setTimeout(function() { render(); }, 350);
+    }
+
+    setTimeout(render, 400);
+  });
+
+  /* Demo zurücksetzen */
+  var resetBtn = document.getElementById('resetAnfragenBtn');
+  if(resetBtn){
+    resetBtn.addEventListener('click', function(){
+      if(!confirm('Anfragen und angenommene Patienten zurücksetzen?')) return;
+      fetch('/api/care/meine-patienten/reset', {method:'POST', credentials:'include'}).catch(function(){});
+      try{ localStorage.removeItem('nursy_anfragen_state_v1'); }catch(e){}
+      try{ localStorage.removeItem(ACCEPTED_KEY); }catch(e){}
+      location.reload();
+    });
+  }
+
+  /* ── Manuelles Aufnehmen ── */
+  var manualModal   = document.getElementById('manualModal');
+  var manualAddBtn  = document.getElementById('manualAddBtn');
+  var manualClose   = document.getElementById('manualClose');
+  var manualCloseBtn= document.getElementById('manualCloseBtn');
+  var manualBackdrop= document.getElementById('manualBackdrop');
+  var manualSaveBtn = document.getElementById('manualSaveBtn');
+
+  var angOpen = false;
+
+  function resetManualForm(){
+    var d=new Date();
+    var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    var ids=['mp-lastname','mp-firstname','mp-gender','mp-svnr','mp-versicherung','mp-zusatz',
+             'mp-street','mp-plz','mp-city','mp-bezirk','mp-phone','mp-email',
+             'mp-stufe','mp-hauptgrund','mp-needs','mp-from','mp-to',
+             'mp-ang-firstname','mp-ang-lastname','mp-ang-address','mp-ang-phone','mp-ang-email'];
+    ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('mp-birthdate').value='';
+    document.getElementById('mp-date').value=iso;
+    document.getElementById('mp-error').textContent='';
+    /* Kein-E-Mail Checkbox zurücksetzen */
+    var keinEmailCb=document.getElementById('mp-kein-email');
+    var emailInput=document.getElementById('mp-email');
+    if(keinEmailCb){ keinEmailCb.checked=false; }
+    if(emailInput){ emailInput.disabled=false; emailInput.style.opacity='1'; }
+    angOpen=false;
+    var sec=document.getElementById('mp-ang-section');
+    var tog=document.getElementById('mp-ang-toggle');
+    if(sec) sec.style.display='none';
+    if(tog){ tog.textContent='Nein'; tog.style.background='#fff'; tog.style.color='#7a8faa'; }
+  }
+
+  function openManualModal(){
+    resetManualForm();
+    manualModal.hidden=false;
+  }
+  function closeManualModal(){ manualModal.hidden=true; }
+
+  if(manualAddBtn)   manualAddBtn.addEventListener('click', openManualModal);
+  if(manualClose)    manualClose.addEventListener('click', closeManualModal);
+  if(manualCloseBtn) manualCloseBtn.addEventListener('click', closeManualModal);
+  if(manualBackdrop) manualBackdrop.addEventListener('click', closeManualModal);
+
+  /* Auto-open modal wenn ?add=1 in der URL */
+  if(new URLSearchParams(window.location.search).get('add') === '1'){
+    openManualModal();
+  }
+
+  /* Angehöriger Toggle */
+  var angToggle = document.getElementById('mp-ang-toggle');
+  if(angToggle){
+    angToggle.addEventListener('click', function(){
+      angOpen=!angOpen;
+      var sec=document.getElementById('mp-ang-section');
+      if(sec) sec.style.display=angOpen?'flex':'none';
+      angToggle.textContent=angOpen?'Ja':'Nein';
+      angToggle.style.background=angOpen?'#1d2b4f':'#fff';
+      angToggle.style.color=angOpen?'#fff':'#7a8faa';
+      angToggle.style.borderColor=angOpen?'#1d2b4f':'rgba(11,27,58,.18)';
+    });
+  }
+
+  if(manualSaveBtn){
+    manualSaveBtn.addEventListener('click', function(){
+      var lastname  = (document.getElementById('mp-lastname').value  || '').trim();
+      var firstname = (document.getElementById('mp-firstname').value || '').trim();
+      var street    = (document.getElementById('mp-street').value    || '').trim();
+      var plz       = (document.getElementById('mp-plz').value       || '').trim();
+      var city      = (document.getElementById('mp-city').value      || '').trim();
+      var date      = document.getElementById('mp-date').value;
+      var errEl     = document.getElementById('mp-error');
+
+      if(!lastname)  { errEl.textContent='Bitte Nachname eingeben.'; return; }
+      if(!firstname) { errEl.textContent='Bitte Vorname eingeben.'; return; }
+      if(!street)    { errEl.textContent='Bitte Adresse eingeben.'; return; }
+      if(!date)      { errEl.textContent='Bitte Datum wählen.'; return; }
+      errEl.textContent='';
+
+      var fullName    = firstname+' '+lastname;
+      var fullAddress = street+(plz?' '+plz:'')+(city?' '+city:'');
+
+      var angehoeriger = null;
+      if(angOpen){
+        angehoeriger={
+          firstname: (document.getElementById('mp-ang-firstname').value||'').trim(),
+          lastname:  (document.getElementById('mp-ang-lastname').value ||'').trim(),
+          address:   (document.getElementById('mp-ang-address').value  ||'').trim(),
+          phone:     (document.getElementById('mp-ang-phone').value    ||'').trim(),
+          email:     (document.getElementById('mp-ang-email').value    ||'').trim()
+        };
+      }
+
+      /* Alter aus Geburtsdatum berechnen */
+      var birthdate = document.getElementById('mp-birthdate').value;
+      var age = null;
+      if(birthdate){
+        var bd=new Date(birthdate), today=new Date();
+        age=today.getFullYear()-bd.getFullYear();
+        if(today.getMonth()<bd.getMonth()||(today.getMonth()===bd.getMonth()&&today.getDate()<bd.getDate())) age--;
+      }
+
+      var genderRaw = document.getElementById('mp-gender').value || '';
+      var gender = (genderRaw === 'f' || genderRaw === 'm') ? genderRaw : (genderRaw === 'd' ? 'd' : '');
+
+      var newPat={
+        id:'man-'+Date.now(),
+        name:fullName,
+        firstname:firstname, lastname:lastname,
+        gender:gender,
+        birthdate:birthdate, age:age,
+        svnr:(document.getElementById('mp-svnr').value||'').trim(),
+        versicherung:document.getElementById('mp-versicherung').value||'',
+        zusatzversicherung:(document.getElementById('mp-zusatz').value||'').trim(),
+        address:fullAddress, street:street, plz:plz, city:city,
+        bezirk:(document.getElementById('mp-bezirk').value||'').trim(),
+        phone:(document.getElementById('mp-phone').value||'').trim(),
+        email:(document.getElementById('mp-email').value||'').trim(),
+        pflegestufe:document.getElementById('mp-stufe').value||null,
+        hauptgrund:(document.getElementById('mp-hauptgrund').value||'').trim(),
+        needs:(document.getElementById('mp-needs').value||'').trim(),
+        angehoeriger:angehoeriger,
+        wunsch:'',
+        visitDate:date,
+        visitFrom:document.getElementById('mp-from').value||'',
+        visitTo:document.getElementById('mp-to').value||'',
+        acceptedAt:new Date().toISOString()
+      };
+
+      /* Temporäres Passwort generieren */
+      var chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+      var tmpPw='';
+      for(var i=0;i<10;i++) tmpPw+=chars.charAt(Math.floor(Math.random()*chars.length));
+
+      var keinEmail = !!(document.getElementById('mp-kein-email')||{}).checked;
+      newPat.tmpPassword   = tmpPw;
+      newPat.mustChangePw  = true;
+      newPat.active        = true;
+      newPat.noEmail       = keinEmail;
+      newPat.loginEmail    = keinEmail ? '' : (newPat.email || (firstname.toLowerCase()+'.'+lastname.toLowerCase()+'@patient.nursy.at'));
+
+      fetch('/api/care/meine-patienten', {
+        method:'POST', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(newPat)
+      }).catch(function(){});
+      var existing=[];
+      try{ existing=JSON.parse(localStorage.getItem(ACCEPTED_KEY)||'[]'); }catch(e){}
+      existing.push(newPat);
+      try{ localStorage.setItem(ACCEPTED_KEY, JSON.stringify(existing)); }catch(e){}
+
+      closeManualModal();
+      showEmailPreview(newPat, true);
+    });
+  }
+
+  /* ── E-Mail-Vorschau ── */
+  var epModal    = document.getElementById('emailPreviewModal');
+  var epClose1   = document.getElementById('emailPreviewClose');
+  var epClose2   = document.getElementById('emailPreviewClose2');
+  var epCopyBtn  = document.getElementById('emailPreviewCopy');
+  var epBackdrop = document.getElementById('emailPreviewBackdrop');
+  var epBadge    = document.getElementById('epAddedBadge');
+  var _epData    = {};
+  var _epFromManual = false;
+
+  function showEmailPreview(pat, fromManual){
+    _epData = pat;
+    _epFromManual = !!fromManual;
+
+    var noEmail = !!pat.noEmail;
+
+    /* Kopfbereich: Titel + Untertitel dynamisch anpassen */
+    var headerLabel = epModal.querySelector('[style*="letter-spacing:.8px"]');
+    var headerH3    = epModal.querySelector('h3');
+    var headerP     = epModal.querySelector('h3 + p, h3 ~ p');
+    if(headerLabel) headerLabel.textContent = noEmail ? 'Zugangsdaten' : 'Zugangsdaten versandt';
+    if(headerH3)    headerH3.textContent    = noEmail ? 'Bitte jetzt notieren' : 'E-Mail-Vorschau';
+    if(headerP)     headerP.textContent     = noEmail
+      ? 'Kein E-Mail vorhanden – Daten bitte abschreiben.'
+      : 'Diese E-Mail wurde an den Patienten geschickt.';
+
+    /* "An:"-Zeile ausblenden wenn kein E-Mail */
+    var toRow = document.getElementById('ep-to');
+    if(toRow){
+      var toParent = toRow.closest('div[style*="display:flex"]');
+      if(toParent) toParent.style.display = noEmail ? 'none' : '';
+      toRow.textContent = pat.loginEmail;
+    }
+
+    /* Label "E-MAIL" → "BENUTZER-ID" bei kein E-Mail */
+    var epEmailLabel = document.querySelector('#ep-email')
+      ? document.querySelector('#ep-email').previousElementSibling : null;
+    if(epEmailLabel && epEmailLabel.tagName === 'SPAN'){
+      epEmailLabel.textContent = noEmail ? 'BENUTZER-ID' : 'E-MAIL';
+    }
+
+    document.getElementById('ep-name').textContent  = pat.firstname+' '+pat.lastname;
+    document.getElementById('ep-email').textContent = noEmail ? pat.id : pat.loginEmail;
+    document.getElementById('ep-pw').textContent    = pat.tmpPassword;
+
+    /* Badge nur beim manuellen Aufnehmen zeigen */
+    if(epBadge) epBadge.style.display = fromManual ? 'flex' : 'none';
+    epModal.hidden = false;
+  }
+  function closeEmailPreview(){
+    epModal.hidden = true;
+    if(_epFromManual){ location.href = 'patients.html'; }
+  }
+
+  if(epClose1)   epClose1.addEventListener('click', closeEmailPreview);
+  if(epClose2)   epClose2.addEventListener('click', closeEmailPreview);
+  if(epBackdrop) epBackdrop.addEventListener('click', closeEmailPreview);
+
+  if(epCopyBtn){
+    epCopyBtn.addEventListener('click', function(){
+      var text = _epData.noEmail
+        ? 'Benutzer-ID: '+_epData.id+'\nPasswort: '+_epData.tmpPassword
+        : 'E-Mail: '+_epData.loginEmail+'\nPasswort: '+_epData.tmpPassword;
+      navigator.clipboard.writeText(text).then(function(){
+        epCopyBtn.textContent='✓ Kopiert!';
+        setTimeout(function(){ epCopyBtn.textContent='Zugangsdaten kopieren'; },2000);
+      }).catch(function(){
+        epCopyBtn.textContent='Kopieren fehlgeschlagen';
+        setTimeout(function(){ epCopyBtn.textContent='Zugangsdaten kopieren'; },2000);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>

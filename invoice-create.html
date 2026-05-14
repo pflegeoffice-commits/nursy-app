@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Neue Rechnung erstellen</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Safari/iPad overflow fix ── */
+    *,*::before,*::after{ box-sizing:border-box; }
+    input,select,textarea{ width:100%; max-width:100%; min-width:0; box-sizing:border-box; }
+    input[type="date"],input[type="time"]{ -webkit-appearance:none; appearance:none; display:block; width:100%; max-width:100%; min-width:0; text-align:center; }
+    input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date-and-time-value{ text-align:center; margin:0; }
+    .create-card,.invoice-preview{ overflow:hidden; }
+    .invoice-meta-stack,.create-stack,.create-grid1,.field{ min-width:0; }
+    .create-layout{ min-width:0; overflow:hidden; }
+    /* ── end fix ── */
+    body[data-page="invoice-create"] .create-wrap{ padding:24px 0 40px; }
+    .create-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:16px;
+    }
+    .create-head h1{ margin:0 0 6px; font-size:32px; }
+    .create-head p{ margin:0; color:var(--muted); }
+    .create-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    .create-layout{
+      display:grid;
+      grid-template-columns:minmax(360px,430px) minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+    .create-card{
+      background:linear-gradient(180deg,#ffffff,#f4f8ff);
+      border:1px solid rgba(63,111,232,.16);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .create-sidebar{ position:sticky; top:88px; }
+    .create-section{ border-top:1px solid rgba(63,111,232,.14); padding-top:16px; margin-top:16px; }
+    .create-section:first-of-type{ border-top:0; padding-top:0; margin-top:0; }
+    .create-section h3{ margin:0 0 10px; font-size:18px; }
+    .create-grid1{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+    .invoice-meta-stack{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    .create-stack{ display:grid; gap:10px; }
+    .create-note{ font-size:13px; color:var(--muted); }
+    .create-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      background:rgba(63,111,232,.10);
+      color:#1d4ed8;
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+    }
+    .table-wrap{
+      overflow:auto;
+      border:1px solid rgba(15,26,51,.10);
+      border-radius:14px;
+      background:#fff;
+    }
+    table.create-table{
+      width:100%;
+      min-width:940px;
+      border-collapse:collapse;
+    }
+    .create-table th,.create-table td{
+      padding:12px;
+      border-bottom:1px solid rgba(15,26,51,.08);
+      text-align:left;
+      vertical-align:top;
+      font-size:14px;
+    }
+    .create-table th{
+      background:rgba(63,111,232,.06);
+      font-size:13px;
+      color:rgba(15,26,51,.76);
+    }
+    .create-table tr:last-child td{ border-bottom:none; }
+    .mini-input,.mini-select,.mini-textarea{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(15,26,51,.14);
+      background:#fff;
+      font:inherit;
+    }
+    .mini-input,.mini-select{ height:40px; padding:0 10px; }
+    .mini-textarea{ min-height:74px; padding:10px; resize:vertical; }
+    .invoice-preview{
+      width:min(100%, 920px);
+      margin:0 auto;
+      background:#fff;
+      border:1px solid rgba(15,26,51,.12);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 24px 80px rgba(15,26,51,.12);
+    }
+    .invoice-preview__topbar{ height:8px; background:#3f6fe8; }
+    .invoice-preview__inner{ padding:30px 30px 24px; }
+    .create-brand{display:grid;grid-template-columns:1fr;justify-items:start;margin-bottom:20px;min-height:90px;}
+    .create-brand.is-center{justify-items:center;text-align:center;}
+    .create-brand.is-right{justify-items:end;text-align:right;}
+    .invoice-logo{width:112px;height:112px;border-radius:18px;border:1px dashed rgba(15,26,51,.18);display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#f8fbff,#f2f6ff);overflow:hidden;font-weight:800;color:rgba(15,26,51,.55);}
+    .invoice-logo img{width:100%;height:100%;object-fit:contain;}
+    .invoice-company{margin-top:10px;}
+    .invoice-company h2{margin:0;font-size:28px;color:#3f6fe8;}
+    .invoice-company p{margin:6px 0 0;color:var(--muted);}
+    .invoice-letter-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+      align-items:start;
+      margin:10px 0 24px;
+    }
+    .invoice-window{
+      border:1px solid rgba(15,26,51,.14);
+      border-radius:14px;
+      min-height:136px;
+      padding:14px;
+      background:linear-gradient(180deg,#fff,#f8fbff);
+    }
+    .invoice-window__label{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      color:var(--muted);
+      margin-bottom:10px;
+      font-weight:800;
+    }
+    .invoice-meta{display:grid;grid-template-columns:1fr;gap:8px;justify-items:start;text-align:left;font-size:14px;}
+    .invoice-title-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:16px;
+      margin-bottom:14px;
+      padding-bottom:14px;
+      border-bottom:2px solid rgba(63,111,232,.10);
+    }
+    .invoice-title-row h3{ margin:0 0 6px; font-size:26px; color:#0f1a33; }
+    .invoice-title-row p{ margin:0; color:var(--muted); }
+    .invoice-lines table{ width:100%; border-collapse:collapse; }
+    .invoice-lines th,.invoice-lines td{
+      padding:12px 10px;
+      border-bottom:1px solid rgba(15,26,51,.08);
+      text-align:left;
+      font-size:14px;
+    }
+    .invoice-lines th{ background:rgba(63,111,232,.06); color:rgba(15,26,51,.76); }
+    .invoice-lines td.num,.invoice-lines th.num{ text-align:right; }
+    .invoice-summary{
+      width:min(380px,100%);
+      margin-left:auto;
+      margin-top:18px;
+      border:1px solid rgba(15,26,51,.10);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .invoice-summary__row{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(15,26,51,.08);
+      background:#fff;
+    }
+    .invoice-summary__row:last-child{ border-bottom:none; }
+    .invoice-summary__row.total{
+      background:rgba(63,111,232,.10);
+      font-size:18px;
+      font-weight:900;
+      color:#0f1a33;
+    }
+    .invoice-footer{
+      margin-top:22px;
+      padding-top:16px;
+      border-top:1px solid rgba(15,26,51,.10);
+      display:grid;
+      gap:10px;
+      color:rgba(15,26,51,.72);
+      font-size:14px;
+    }
+    .empty-state{
+      border:1px dashed rgba(15,26,51,.18);
+      border-radius:14px;
+      padding:16px;
+      text-align:center;
+      color:var(--muted);
+      background:linear-gradient(180deg,#fff,#f9fbff);
+    }
+    @media (max-width:1060px){
+      .create-layout{ grid-template-columns:1fr; }
+      .create-sidebar{ position:static; }
+    }
+    @media (max-width:760px){
+      .create-grid1,.invoice-letter-grid{ grid-template-columns:1fr; }
+      .invoice-meta{ justify-items:start; text-align:left; }
+      .invoice-preview__inner{ padding:20px 16px; }
+      .invoice-title-row{ flex-direction:column; align-items:flex-start; }
+    }
+    @media (max-width:900px){
+      /* Header stapeln ab Tablet-Portrait */
+      .create-head{
+        flex-direction:column;
+        align-items:stretch;
+        gap:10px;
+      }
+      .create-head h1{ font-size:26px; }
+      .create-actions{
+        flex-direction:row !important;
+        flex-wrap:wrap !important;
+        gap:8px !important;
+        width:100%;
+      }
+      .create-actions > *{ flex:1 1 auto; justify-content:center; text-align:center; }
+    }
+    @media (max-width:640px){
+      /* Header stapeln */
+      .create-head{
+        flex-direction:column;
+        align-items:stretch;
+        gap:10px;
+      }
+      .create-head h1{ font-size:24px; }
+      /* Aktionsbuttons: volle Breite, gestapelt */
+      .create-actions{
+        flex-direction:column !important;
+        align-items:stretch !important;
+        gap:8px !important;
+        width:100%;
+      }
+      .create-actions .control{
+        width:100%;
+        min-height:44px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-sizing:border-box;
+      }
+      /* Tabellen-Scroll-Hinweis */
+      .table-wrap::after{
+        content:'◀  seitwärts scrollen  ▶';
+        display:block;
+        padding:7px 12px;
+        font-size:11px;
+        color:var(--muted);
+        text-align:center;
+        background:rgba(63,111,232,.05);
+        border-top:1px solid rgba(15,26,51,.06);
+        border-radius:0 0 14px 14px;
+      }
+      /* Leistungszeilen-Buttons (Hinzufügen etc.) */
+      #addRowBtn, [id*="addRow"], [id*="AddRow"]{
+        width:100%;
+        min-height:44px;
+      }
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body data-page="invoice-create">
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Nursy Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="dashboard-care.html">Dashboard</a>
+        <a href="invoices.html">Meine Rechnungen</a>
+        <a href="price-list-designer.html">Preisliste</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container create-wrap">
+    <div class="tablet-only-notice">
+      <span class="tablet-only-notice__icon">💻</span>
+      <p class="tablet-only-notice__title">Nur auf Tablet oder Desktop verfügbar</p>
+      <p class="tablet-only-notice__sub">Das Erstellen von Rechnungen erfordert mehr Platz.<br>Bitte öffne diese Seite auf einem Tablet oder Computer.</p>
+      <a class="control btn" href="invoices.html">Zur Rechnungsübersicht</a>
+    </div>
+    <div class="create-head">
+      <div>
+        <h1>Neue Rechnung erstellen</h1>
+        <p>Leistungen aus dem Durchführungsnachweis übernehmen oder Positionen manuell hinzufügen – Preise kommen direkt aus der Preisliste.</p>
+      </div>
+      <div class="create-actions">
+        <a class="control btn" href="invoices.html">Zurück zu Rechnungen</a>
+        <a class="control btn" href="price-list-designer.html">Preisliste</a>
+        <button class="control btn primary" type="button" id="saveNewInvoiceTop">Rechnung speichern</button>
+      </div>
+    </div>
+
+    <div class="create-layout">
+      <aside class="create-card create-sidebar">
+        <div class="create-section">
+          <h3>Rechnungsdaten</h3>
+          <div class="create-stack">
+            <div class="invoice-meta-stack">
+              <div class="field">
+                <label class="field__label" for="newInvoiceNumber">Rechnungsnummer</label>
+                <input class="control" id="newInvoiceNumber" type="text" />
+              </div>
+              <div class="field">
+                <label class="field__label" for="newInvoiceDate">Rechnungsdatum</label>
+                <input class="control" id="newInvoiceDate" type="date" />
+              </div>
+            </div>
+            <div class="invoice-meta-stack">
+              <div class="field">
+                <label class="field__label" for="newInvoiceDueDate">Fällig am</label>
+                <input class="control" id="newInvoiceDueDate" type="date" />
+              </div>
+              <div class="field">
+                <label class="field__label" for="newInvoiceStatus">Status</label>
+                <select class="control" id="newInvoiceStatus">
+                  <option value="open">Offen</option>
+                  <option value="paid">Bezahlt</option>
+                  <option value="overdue">Überfällig</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="create-section">
+          <h3>Patient & Adresse</h3>
+          <div class="create-stack">
+            <div class="field">
+              <label class="field__label" for="newInvoicePatient">Patient auswählen</label>
+              <select class="control" id="newInvoicePatient"></select>
+            </div>
+            <div class="create-actions">
+              <button class="control btn" type="button" id="usePatientAddress">Adresse vom Patienten übernehmen</button>
+              <button class="control btn" type="button" id="clearAddress">Adresse leeren</button>
+            </div>
+            <div class="field">
+              <label class="field__label" for="newInvoiceAddress">Rechnungsadresse</label>
+              <textarea class="mini-textarea" id="newInvoiceAddress" placeholder="Patient / Einrichtung&#10;Straße&#10;PLZ Ort"></textarea>
+            </div>
+            <div class="create-note">Du kannst die Adresse direkt aus den Patientendaten übernehmen oder hier frei selbst eingeben.</div>
+          </div>
+        </div>
+
+        <div class="create-section">
+          <h3>Leistungen & Positionen</h3>
+          <div class="create-actions" style="margin-bottom:10px;">
+            <button class="control btn primary" type="button" id="importFromRecords">Leistungen aus Durchführung übernehmen</button>
+            <button class="control btn" type="button" id="addManualLine">Position hinzufügen</button>
+          </div>
+          <div class="create-note" id="recordHint">Beim Import werden passende Leistungen zum ausgewählten Patienten übernommen. Manuelle Positionen greifen auf die Preisliste zurück.</div>
+        </div>
+      </aside>
+
+      <section class="create-card">
+        <div class="create-section" style="margin-top:0; padding-top:0; border-top:0;">
+          <h3>Positionen der Rechnung</h3>
+          <div class="table-wrap">
+            <table class="create-table">
+              <thead>
+                <tr>
+                  <th>Leistung</th>
+                  <th>Einheit</th>
+                  <th>Menge</th>
+                  <th>Einzelpreis</th>
+                  <th>Steuer %</th>
+                  <th>Notiz</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="newInvoiceLinesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="create-section">
+          <h3>Live-Vorschau</h3>
+          <div class="invoice-preview">
+            <div class="invoice-preview__topbar"></div>
+            <div class="invoice-preview__inner">
+              <div class="create-brand is-left" id="previewCreateBrand">
+                <div class="invoice-logo" id="previewCreateLogo">Logo</div>
+                <div class="invoice-company">
+                  <h2 id="previewCreateProviderName">Nursy Mobile Pflege</h2>
+                  <p id="previewCreateProviderSubline">Pflege · Physio · Betreuung zuhause</p>
+                  <p id="previewCreateCompanyBlock">Musterstraße 1<br>4020 Linz<br>+43 000 000000 · office@nursy.at</p>
+                  <div id="previewCreateLegalBlock" style="margin-top:10px;font-size:13px;color:rgba(15,26,51,.72);display:none;"></div>
+                </div>
+              </div>
+              <div class="invoice-letter-grid">
+                <div class="invoice-window">
+                  <div class="invoice-window__label">Rechnungsadresse / Briefpapierfenster</div>
+                  <div id="previewNewInvoiceAddress">Bitte Patient auswählen oder Adresse eingeben.</div>
+                </div>
+                <div class="invoice-meta">
+                  <div><strong>Datum:</strong> <span id="previewNewInvoiceDate"></span></div>
+                  <div><strong>Fällig:</strong> <span id="previewNewInvoiceDue"></span></div>
+                  <div><strong>Status:</strong> <span class="create-pill" id="previewNewInvoiceStatus">Offen</span></div>
+                </div>
+              </div>
+              <div class="invoice-title-row">
+                <div>
+                  <h3>Rechnung</h3>
+                  <p style="font-weight:800;margin:6px 0 8px;">Rechnungsnummer: <span id="previewNewInvoiceNumberInline"></span></p>
+                  <p id="previewCreateIntro">Die Positionen wurden aus dem Durchführungsnachweis übernommen oder manuell ergänzt.</p>
+                </div>
+              </div>
+              <div class="invoice-lines">
+                <table>
+                  <thead><tr><th>Leistung</th><th>Menge</th><th>Einheit</th><th class="num">Einzelpreis</th><th class="num">Gesamt</th></tr></thead>
+                  <tbody id="previewNewInvoiceLines"></tbody>
+                </table>
+              </div>
+              <div class="invoice-summary">
+                <div class="invoice-summary__row"><span>Zwischensumme</span><strong id="previewNewInvoiceSubtotal">€ 0,00</strong></div>
+                <div class="invoice-summary__row"><span>Umsatzsteuer</span><strong id="previewNewInvoiceTax">€ 0,00</strong></div>
+                <div class="invoice-summary__row total"><span>Gesamtbetrag</span><strong id="previewNewInvoiceTotal">€ 0,00</strong></div>
+              </div>
+              <div class="invoice-footer" id="previewCreateFooter">
+                <div id="previewCreatePaymentHint">Bitte überweisen Sie den offenen Betrag innerhalb des Zahlungsziels.</div>
+                <div id="previewCreateBankBlock">IBAN · BIC · Kontoinhaber</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="muted">© Nursy – Fürsorge mit Herz</span>
+      <div class="footer__links">
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="invoice-create.js?v=template-sync-final"></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Admin-Login</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .form-error{ display:none; }
+    .form-error.show{ display:block; }
+    .logout-banner{
+      display:none;
+      background:#e8f5e9;
+      color:#2e7d32;
+      border:1px solid #a5d6a7;
+      border-radius:8px;
+      padding:12px 16px;
+      font-size:.9rem;
+      margin-bottom:16px;
+      font-weight:500;
+    }
+    .logout-banner.show{ display:block; }
+    .checking-overlay{
+      position:fixed; inset:0;
+      background:#fff;
+      display:flex; align-items:center; justify-content:center;
+      z-index:999;
+      font-size:1rem; color:#888;
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+  <div class="checking-overlay" id="checkingOverlay" style="display:none;">Einen Moment...</div>
+
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Adminbereich</span>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <main class="auth">
+    <div class="auth__wrap">
+      <div class="auth__head">
+        <h1>Admin-Login</h1>
+        <p class="note">Nur für autorisierte Administratoren.</p>
+      </div>
+
+      <div class="card">
+        <div class="logout-banner" id="logoutBanner">Sie wurden erfolgreich abgemeldet.</div>
+        <div class="form-error" id="err" role="alert"></div>
+
+        <form class="form" id="loginForm" onsubmit="event.preventDefault(); doLogin();" autocomplete="on">
+          <div class="field">
+            <label class="field__label" for="pw">Passwort</label>
+            <input class="control" id="pw" type="password"
+                   name="password"
+                   placeholder="Admin-Passwort eingeben"
+                   autocomplete="current-password" />
+          </div>
+
+          <button class="control btn primary" id="loginBtn" type="submit">Anmelden</button>
+        </form>
+
+        <p class="note" style="margin-top:16px;">
+          Pflegekräfte melden sich über <a href="login-care.html">login-care.html</a> an.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script src="nursy-auth.js"></script>
+  <script>
+  (function(){
+    const pw      = document.getElementById('pw');
+    const btn     = document.getElementById('loginBtn');
+    const err     = document.getElementById('err');
+    const overlay = document.getElementById('checkingOverlay');
+    const banner  = document.getElementById('logoutBanner');
+
+    const params     = new URLSearchParams(window.location.search);
+    const fromLogout = params.get('logout') === '1';
+
+    if(fromLogout){
+      try{ NursyAuth.clear('admin'); }catch(e){}
+      banner.classList.add('show');
+      pw.focus();
+    } else {
+      var token = null;
+      try{ token = NursyAuth.get('admin'); }catch(e){}
+      if(token){
+        // Show overlay only while checking existing token (max 3 s)
+        overlay.style.display = 'flex';
+        var guard = setTimeout(function(){
+          try{ NursyAuth.clear('admin'); }catch(e){}
+          overlay.style.display = 'none';
+          pw.focus();
+        }, 3000);
+        fetch('/api/admin/me', { credentials: 'same-origin' })
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            clearTimeout(guard);
+            if(d.ok){
+              window.location.replace('admin.html');
+            } else {
+              try{ NursyAuth.clear('admin'); }catch(e){}
+              overlay.style.display = 'none';
+              pw.focus();
+            }
+          })
+          .catch(function(){
+            clearTimeout(guard);
+            try{ NursyAuth.clear('admin'); }catch(e){}
+            overlay.style.display = 'none';
+            pw.focus();
+          });
+      } else {
+        pw.focus();
+      }
+    }
+
+    function doLogin(){
+      err.classList.remove('show');
+      btn.disabled = true;
+      fetch('/api/admin/login',{
+        method:'POST',
+        credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: pw.value })
+      })
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.ok){
+          if(d.token) NursyAuth.save('admin', d.token);
+          window.location.replace('admin.html');
+        } else {
+          err.textContent = d.error || 'Falsches Passwort';
+          err.classList.add('show');
+          pw.value = '';
+          pw.focus();
+          btn.disabled = false;
+        }
+      })
+      .catch(()=>{
+        err.textContent = 'Verbindungsfehler – bitte erneut versuchen.';
+        err.classList.add('show');
+        btn.disabled = false;
+      });
+    }
+
+    btn.addEventListener('click', doLogin);
+  })();
+  </script>
+</body>
+</html>

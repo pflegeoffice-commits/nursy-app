@@ -1,0 +1,1868 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Nursy – Auftragslage</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f2744;--navy2:#1a3a5c;--blue:#2563eb;--blue-l:#3b82f6;
+  --red:#dc2626;--red-l:#ef4444;--green:#16a34a;--green-l:#22c55e;
+  --amber:#d97706;--bg:#f0f4fb;--card:#fff;
+  --text:#0f1a33;--muted:#64748b;--border:rgba(15,26,51,.12);--r:14px;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;
+}
+
+/* ── HEADER ── */
+.al-hdr{
+  background:var(--navy);color:#fff;
+  padding:12px 14px 10px;flex-shrink:0;
+}
+.al-hdr__top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.al-hdr__title{font-size:1.1rem;font-weight:900;letter-spacing:-.01em;}
+.al-hdr__sub{font-size:.72rem;opacity:.6;}
+.al-hdr__info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.al-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 10px;border-radius:999px;
+  font-size:.68rem;font-weight:700;
+  background:rgba(255,255,255,.15);
+}
+.al-chip--fz{background:rgba(59,130,246,.35);}
+
+/* ── On-Duty Card ── */
+.al-duty{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;padding:6px 10px;
+  margin-top:4px;overflow:hidden;
+}
+.al-duty__fz{
+  font-size:.75rem;font-weight:900;letter-spacing:-.01em;
+  background:rgba(59,130,246,.4);border-radius:7px;
+  padding:3px 8px;white-space:nowrap;flex-shrink:0;
+}
+.al-duty__sep{width:1px;height:28px;background:rgba(255,255,255,.2);flex-shrink:0;}
+.al-duty__person{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+.al-duty__name{font-size:.8rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.al-duty__meta{display:flex;gap:4px;flex-wrap:wrap;}
+.al-duty__badge{
+  font-size:.62rem;font-weight:700;
+  background:rgba(255,255,255,.15);border-radius:6px;padding:1px 6px;
+  white-space:nowrap;
+}
+.al-duty__badge--dnr{background:rgba(99,102,241,.4);}
+.al-duty__badge--time{background:rgba(34,197,94,.25);}
+.al-hdr__logout{
+  background:rgba(255,255,255,.12);border:none;border-radius:8px;
+  color:rgba(255,255,255,.75);font-size:.7rem;font-weight:700;
+  padding:5px 9px;cursor:pointer;flex-shrink:0;white-space:nowrap;
+}
+.al-hdr__logout:active{background:rgba(255,255,255,.25);}
+
+/* ── FILTER BAR ── */
+.al-filter{
+  background:var(--navy2);padding:8px 14px;
+  display:flex;gap:6px;flex-shrink:0;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.al-filter::-webkit-scrollbar{display:none;}
+.al-fpill{
+  flex-shrink:0;border:none;border-radius:999px;
+  padding:5px 16px;font-size:.74rem;font-weight:700;cursor:pointer;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);
+  transition:all .15s;
+}
+.al-fpill.active{background:#fff;color:var(--navy);}
+.al-badge-count{
+  display:inline-block;background:var(--red);color:#fff;
+  font-size:.6rem;font-weight:800;border-radius:999px;
+  padding:1px 6px;margin-left:4px;vertical-align:middle;
+}
+
+/* ── QUICK ACCESS STRIP ── */
+.al-qa-strip{
+  background:#fff;border-bottom:1px solid rgba(15,26,51,.09);
+  padding:8px 12px;display:flex;gap:8px;flex-shrink:0;
+}
+.al-qa-btn{
+  display:flex;align-items:center;gap:6px;
+  flex:1;border-radius:10px;padding:8px 12px;
+  background:#f0f4fb;border:1.5px solid rgba(15,26,51,.1);
+  color:var(--navy);font-size:.78rem;font-weight:800;
+  text-decoration:none;cursor:pointer;
+  transition:background .15s,transform .1s;
+  white-space:nowrap;justify-content:center;
+}
+.al-qa-btn:active{background:#e2e8f4;transform:scale(.97);}
+.al-qa-btn__ico{font-size:1.1rem;}
+.al-qa-btn--soon{color:var(--muted);border-style:dashed;}
+
+/* ── LIST ── */
+.al-list{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 12px 90px;
+}
+.al-refresh-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;font-size:.72rem;color:var(--muted);
+}
+.al-refresh-btn{
+  border:none;background:none;cursor:pointer;color:var(--blue);
+  font-size:.72rem;font-weight:700;padding:2px 0;
+}
+
+/* ── AUFTRAG CARD ── */
+.al-card{
+  background:var(--card);border-radius:var(--r);margin-bottom:10px;
+  box-shadow:0 1px 6px rgba(0,0,0,.09);overflow:hidden;
+  border-left:5px solid #e2e8f0;
+  transition:box-shadow .15s;
+}
+.al-card:active{box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.al-card--dringend{border-left-color:var(--red);}
+.al-card--sofort{border-left-color:#7c3aed;}
+.al-card--firstresponder{border-left-color:#dc2626;border-left-width:6px;box-shadow:0 0 0 2px rgba(220,38,38,.15);}
+.al-card--geplant{border-left-color:var(--blue-l);}
+.al-card--beendet{border-left-color:var(--green);opacity:.75;}
+.al-card--geaendert{border-left-color:#f59e0b;border-left-width:5px;}
+
+/* pulsing dot for top-priority */
+@keyframes al-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);}}
+.al-prio-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--red);margin-right:5px;vertical-align:middle;
+  animation:al-pulse 1.2s ease-in-out infinite;flex-shrink:0;
+}
+.al-prio-dot--fr{background:#dc2626;}
+.al-prio-dot--sofort{background:#7c3aed;}
+
+/* priority label strip */
+.al-prio-strip{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 13px 4px;font-size:.68rem;font-weight:800;
+  letter-spacing:.04em;text-transform:uppercase;
+}
+.al-prio-strip--fr{background:#fef2f2;color:#dc2626;border-bottom:1px solid #fecaca;}
+.al-prio-strip--sofort{background:#faf5ff;color:#7c3aed;border-bottom:1px solid #e9d5ff;}
+
+/* Leitstelle-Änderungs-Goldmarkierung */
+.al-geaendert-strip{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 13px;
+  background:linear-gradient(90deg,#fffbeb,#fef3c7);
+  border-bottom:2px solid #f59e0b;
+  font-size:.77rem;font-weight:800;color:#78350f;
+}
+.al-geaendert-strip__icon{font-size:1rem;flex-shrink:0;}
+.al-geaendert-strip__text{flex:1;line-height:1.3;}
+.al-geaendert-strip__time{font-size:.7rem;font-weight:600;opacity:.75;margin-left:2px;}
+.al-geaendert-btn{
+  flex-shrink:0;padding:5px 11px;border-radius:7px;border:none;
+  background:#f59e0b;color:#fff;font-size:.73rem;font-weight:800;
+  cursor:pointer;font-family:inherit;white-space:nowrap;
+  transition:background .12s;
+}
+.al-geaendert-btn:hover{background:#d97706;}
+.al-geaendert-btn:active{background:#b45309;}
+
+.al-card__top{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 13px 8px;
+}
+.al-card__nr{font-size:.62rem;color:var(--muted);font-weight:700;flex-shrink:0;padding-top:1px;}
+.al-card__center{flex:1;min-width:0;}
+.al-card__patient{font-size:.96rem;font-weight:800;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.al-card__art{font-size:.78rem;color:var(--blue);font-weight:700;margin-bottom:3px;}
+.al-card__addr{font-size:.74rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.al-card__right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;max-width:30%;}
+.al-card__time{font-size:.88rem;font-weight:800;color:var(--text);white-space:nowrap;}
+.al-status{
+  display:inline-block;font-size:.6rem;font-weight:800;
+  padding:2px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em;
+  white-space:nowrap;
+}
+.al-status--alarmiert{background:#fff7ed;color:#c2410c;}
+.al-status--unterwegs{background:#fef3c7;color:#92400e;}
+.al-status--eingetroffen{background:#dbeafe;color:#1d4ed8;}
+.al-status--beendet{background:#dcfce7;color:#15803d;}
+.al-status--storniert{background:#f1f5f9;color:var(--muted);}
+
+.al-card__problem{
+  padding:0 13px 8px;font-size:.75rem;color:var(--muted);
+  border-bottom:1px solid var(--border);line-height:1.4;
+}
+.al-planung-row{
+  padding:6px 13px 8px;font-size:.7rem;color:var(--text);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+
+/* action row */
+.al-card__actions{
+  display:flex;flex-direction:column;gap:6px;
+  padding:8px 12px;
+}
+.al-card__actions-status{
+  display:flex;align-items:center;gap:5px;
+}
+.al-card__actions-nav{
+  display:flex;align-items:center;gap:5px;
+}
+.al-next-btn{
+  flex:1;border:none;border-radius:10px;
+  padding:13px 10px;font-size:.84rem;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .15s;white-space:nowrap;min-width:0;
+}
+.al-next-btn:active{opacity:.85;transform:scale(.97);}
+.al-next-btn--ang{background:#7c3aed;color:#fff;}
+.al-next-btn--weg{background:#f59e0b;color:#fff;}
+.al-next-btn--ein{background:#3f6fe8;color:#fff;}
+.al-next-btn--end{background:#16a34a;color:#fff;}
+.al-undo-btn{
+  width:44px;height:44px;flex-shrink:0;
+  border:1.5px solid #e2e8f0;border-radius:10px;
+  background:#f8faff;color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:800;transition:all .15s;
+}
+.al-undo-btn:active{opacity:.8;transform:scale(.97);}
+.al-open-btn{
+  flex:1;border:none;border-radius:8px;
+  padding:8px 8px;font-size:.75rem;font-weight:800;
+  background:var(--navy);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  text-decoration:none;white-space:nowrap;
+}
+.al-open-btn:active{opacity:.85;transform:scale(.97);}
+.al-open-btn--patient{background:#e8f0fe;color:#3f6fe8;border:1.5px solid rgba(63,111,232,.25);}
+
+/* ── EMPTY STATE ── */
+.al-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:60px 20px;gap:12px;color:var(--muted);
+}
+.al-empty__ico{font-size:3rem;}
+.al-empty__title{font-size:.96rem;font-weight:700;color:var(--text);}
+.al-empty__sub{font-size:.78rem;line-height:1.5;}
+
+/* ── STATUS TIMELINE ── */
+.al-timeline{
+  display:flex;align-items:center;gap:0;
+  padding:7px 13px 8px;border-top:1px solid var(--border);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.al-timeline::-webkit-scrollbar{display:none;}
+.al-tl-step{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  flex-shrink:0;min-width:64px;position:relative;
+}
+.al-tl-step + .al-tl-step::before{
+  content:'';position:absolute;left:-14px;top:9px;
+  width:28px;height:2px;background:#e2e8f0;
+}
+.al-tl-step.done + .al-tl-step::before{background:#94a3b8;}
+.al-tl-step.active + .al-tl-step::before{background:#94a3b8;}
+.al-tl-dot{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid #e2e8f0;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;font-weight:900;color:#94a3b8;
+  transition:all .2s;
+}
+.al-tl-step.done .al-tl-dot{background:#16a34a;border-color:#16a34a;color:#fff;}
+.al-tl-step.active .al-tl-dot{background:#2563eb;border-color:#2563eb;color:#fff;
+  box-shadow:0 0 0 3px rgba(37,99,235,.2);}
+.al-tl-label{font-size:.56rem;font-weight:700;color:#94a3b8;text-align:center;line-height:1.3;}
+.al-tl-step.done .al-tl-label{color:#16a34a;}
+.al-tl-step.active .al-tl-label{color:#2563eb;}
+.al-tl-time{font-size:.58rem;font-weight:800;color:#64748b;text-align:center;}
+.al-tl-step.active .al-tl-time{color:#1d4ed8;}
+.al-elapsed{
+  display:inline-block;font-size:.62rem;font-weight:800;
+  background:#eff6ff;color:#2563eb;border-radius:6px;
+  padding:1px 5px;margin-left:4px;white-space:nowrap;
+}
+.al-elapsed--warn{background:#fff7ed;color:#c2410c;}
+
+/* ── Bestätigungs-Dialog ── */
+#alConfirmOverlay{
+  display:none;position:fixed;inset:0;z-index:10001;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  align-items:flex-end;justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+#alConfirmOverlay.show{display:flex;}
+.al-confirm-card{
+  background:#fff;border-radius:20px 20px 0 0;
+  width:100%;max-width:480px;padding:22px 20px 28px;
+  box-shadow:0 -4px 32px rgba(0,0,0,.18);
+}
+.al-confirm-card h3{font-size:1.05rem;font-weight:900;color:#0f1a33;margin-bottom:4px;}
+.al-confirm-card p{font-size:.82rem;color:#64748b;line-height:1.5;margin-bottom:18px;}
+.al-confirm-row{display:flex;gap:10px;}
+.al-confirm-cancel{flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;
+  background:#f8faff;color:#64748b;font-size:.85rem;font-weight:700;cursor:pointer;}
+.al-confirm-ok{flex:1;padding:12px;border:none;border-radius:10px;
+  background:#16a34a;color:#fff;font-size:.85rem;font-weight:800;cursor:pointer;}
+
+/* ── TOAST ── */
+.al-toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#0f1a33;color:#fff;border-radius:10px;padding:9px 18px;
+  font-size:.82rem;font-weight:700;opacity:0;pointer-events:none;
+  transition:all .25s;z-index:999;white-space:nowrap;
+}
+.al-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ── Alarm Overlay ── */
+#alAlarmOverlay {
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(10,0,0,.82);backdrop-filter:blur(4px);
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+#alAlarmOverlay.show { display:flex; }
+.al-alarm__card {
+  background:#dc2626;border-radius:24px;padding:32px 24px 28px;
+  width:100%;max-width:420px;text-align:center;color:#fff;
+  box-shadow:0 0 0 4px rgba(239,68,68,.4),0 20px 60px rgba(0,0,0,.5);
+  animation:al-alarm-in .35s cubic-bezier(.22,.68,0,1.2);
+}
+@keyframes al-alarm-in {
+  from{transform:scale(.82) translateY(30px);opacity:0;}
+  to{transform:scale(1) translateY(0);opacity:1;}
+}
+.al-alarm__pulse {
+  width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;margin:0 auto 18px;
+  animation:al-alarm-pulse 1s ease-in-out infinite;
+}
+@keyframes al-alarm-pulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.4);}
+  50%{box-shadow:0 0 0 16px rgba(255,255,255,0);}
+}
+.al-alarm__title {
+  font-size:1.35rem;font-weight:900;letter-spacing:-.01em;margin-bottom:6px;
+}
+.al-alarm__arts {
+  font-size:1rem;font-weight:700;opacity:.9;margin-bottom:20px;
+  line-height:1.4;
+}
+.al-alarm__detail {
+  background:rgba(0,0,0,.18);border-radius:12px;padding:12px 14px;
+  margin-bottom:22px;text-align:left;font-size:.82rem;line-height:1.6;
+}
+.al-alarm__detail strong { font-weight:800;opacity:.7;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em; }
+.al-alarm__btn {
+  width:100%;padding:15px;border-radius:999px;border:none;
+  background:#fff;color:#dc2626;font-size:1rem;font-weight:900;
+  cursor:pointer;letter-spacing:.01em;
+}
+.al-alarm__btn:active{opacity:.85;transform:scale(.98);}
+
+/* ── Ton-Einstellungen Button ── */
+.al-ton-btn{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:8px;color:#fff;font-size:.72rem;font-weight:700;
+  padding:5px 9px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:3px;
+  transition:background .15s;
+}
+.al-ton-btn:hover{background:rgba(255,255,255,.2);}
+.al-ton-btn--muted{opacity:.45;}
+
+/* ── Ton-Einstellungen Overlay ── */
+#alGpsOverlay,#alTonOverlay{
+  display:none;position:fixed;inset:0;z-index:10000;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);
+}
+#alGpsOverlay.show,#alTonOverlay.show{display:flex;}
+.al-ton-card{
+  background:#fff;border-radius:20px 20px 0 0;
+  width:100%;max-width:480px;padding:24px 22px 32px;
+  box-shadow:0 -4px 32px rgba(0,0,0,.2);
+}
+.al-ton-card h3{font-size:1rem;font-weight:900;margin-bottom:4px;color:#0f1a33;}
+.al-ton-card .al-ton-sub{font-size:.76rem;color:#64748b;margin-bottom:20px;}
+.al-ton-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 0;border-bottom:1px solid #f0f4fb;gap:12px;
+}
+.al-ton-row:last-of-type{border-bottom:none;}
+.al-ton-label{font-size:.85rem;font-weight:700;color:#0f1a33;}
+.al-ton-desc{font-size:.7rem;color:#64748b;margin-top:1px;}
+/* toggle switch */
+.al-toggle{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.al-toggle input{opacity:0;width:0;height:0;}
+.al-slider{
+  position:absolute;inset:0;border-radius:26px;
+  background:#d1d5db;cursor:pointer;transition:.2s;
+}
+.al-slider:before{
+  content:'';position:absolute;width:20px;height:20px;
+  border-radius:50%;background:#fff;left:3px;bottom:3px;
+  box-shadow:0 1px 4px rgba(0,0,0,.3);transition:.2s;
+}
+.al-toggle input:checked + .al-slider{background:#16a34a;}
+.al-toggle input:checked + .al-slider:before{transform:translateX(20px);}
+/* volume slider */
+.al-vol-slider{width:100%;accent-color:#2563eb;}
+/* action buttons */
+.al-ton-actions{display:flex;gap:10px;margin-top:22px;}
+.al-ton-test-btn{
+  flex:1;padding:11px;border:1.5px solid #2563eb;border-radius:10px;
+  background:#eff6ff;color:#2563eb;font-size:.82rem;font-weight:800;cursor:pointer;
+}
+.al-ton-save-btn{
+  flex:1;padding:11px;border:none;border-radius:10px;
+  background:#0f2744;color:#fff;font-size:.82rem;font-weight:800;cursor:pointer;
+}
+.al-ton-close{
+  width:100%;margin-top:10px;padding:10px;border:none;border-radius:10px;
+  background:#f1f5f9;color:#64748b;font-size:.8rem;font-weight:700;cursor:pointer;
+}
+/* password gate */
+.al-ton-pw-gate{margin-bottom:16px;}
+.al-ton-pw-gate input{
+  width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:.92rem;font-family:inherit;outline:none;
+  transition:border-color .15s;
+}
+.al-ton-pw-gate input:focus{border-color:#2563eb;}
+.al-ton-pw-err{color:#dc2626;font-size:.75rem;margin-top:6px;display:none;}
+.al-ton-unlock-btn{
+  width:100%;margin-top:10px;padding:11px;border:none;border-radius:10px;
+  background:#0f2744;color:#fff;font-size:.85rem;font-weight:800;cursor:pointer;
+}
+
+/* ── Extra-schmale Geräte (< 360px) ── */
+@media (max-width:359px){
+  .al-hdr{padding:10px 10px 8px;}
+  .al-hdr__title{font-size:.95rem;}
+  .al-duty{padding:6px 8px;gap:7px;}
+  .al-duty__fz{font-size:.85rem;padding:3px 7px;}
+  .al-card__top{padding:9px 10px 7px;}
+  .al-card__patient{font-size:.88rem;}
+  .al-card__actions{padding:7px 10px;}
+  .al-next-btn{font-size:.78rem;padding:11px 8px;}
+  .al-open-btn{font-size:.68rem;padding:7px 6px;}
+  .al-filter{padding:6px 10px;}
+  .al-fpill{padding:4px 12px;font-size:.68rem;}
+}
+
+/* ── Nachrichten / Chat ── */
+.al-msg-btn{
+  position:relative;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:8px;color:#fff;font-size:.72rem;font-weight:700;
+  padding:5px 9px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:3px;
+  transition:background .15s;
+}
+.al-msg-btn:active{background:rgba(255,255,255,.25);}
+.al-msg-badge{
+  position:absolute;top:-6px;right:-6px;
+  background:var(--red);color:#fff;font-size:.6rem;font-weight:800;
+  border-radius:999px;padding:1px 5px;min-width:16px;text-align:center;
+  display:none;border:1.5px solid var(--navy);
+}
+.al-msg-badge.show{display:block;}
+#alChatOverlay{
+  display:none;position:fixed;inset:0;z-index:10000;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  align-items:flex-end;justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+#alChatOverlay.show{display:flex;}
+.al-chat-panel{
+  background:#fff;border-radius:20px 20px 0 0;
+  width:100%;max-width:520px;max-height:80vh;
+  display:flex;flex-direction:column;
+  box-shadow:0 -4px 32px rgba(0,0,0,.22);
+}
+.al-chat-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 12px;border-bottom:1px solid #f0f4fb;flex-shrink:0;
+}
+.al-chat-head h3{margin:0;font-size:.98rem;font-weight:900;color:#0f1a33;}
+.al-chat-head p{margin:2px 0 0;font-size:.72rem;color:#64748b;}
+.al-chat-close{
+  background:#f1f5f9;border:none;border-radius:8px;
+  width:32px;height:32px;font-size:1.1rem;cursor:pointer;color:#64748b;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.al-chat-msgs{
+  flex:1;overflow-y:auto;padding:14px 16px;
+  display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
+}
+.al-chat-msg{
+  max-width:78%;padding:9px 13px;border-radius:14px;
+  font-size:.83rem;line-height:1.45;
+}
+.al-chat-msg--ls{
+  background:#eff6ff;color:#1d4ed8;
+  border-radius:4px 14px 14px 14px;align-self:flex-start;
+}
+.al-chat-msg--fz{
+  background:var(--navy);color:#fff;
+  border-radius:14px 14px 4px 14px;align-self:flex-end;
+}
+.al-chat-msg__who{font-size:.65rem;font-weight:800;opacity:.55;margin-bottom:3px;display:block;}
+.al-chat-msg__time{font-size:.65rem;opacity:.6;margin-top:4px;display:block;}
+.al-chat-empty{text-align:center;color:#94a3b8;font-size:.82rem;padding:24px 0;}
+.al-chat-no-einsatz{
+  text-align:center;color:#94a3b8;font-size:.82rem;
+  padding:32px 16px;line-height:1.6;
+}
+.al-chat-foot{
+  display:flex;gap:8px;padding:12px 16px 14px;
+  border-top:1px solid #f0f4fb;flex-shrink:0;
+}
+.al-chat-input{
+  flex:1;border:1.5px solid #e2e8f0;border-radius:12px;
+  padding:10px 13px;font-size:.88rem;font-family:inherit;
+  outline:none;resize:none;max-height:80px;transition:border-color .15s;
+}
+.al-chat-input:focus{border-color:var(--blue);}
+.al-chat-send{
+  background:var(--navy);color:#fff;border:none;border-radius:12px;
+  width:44px;height:44px;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.al-chat-send:active{opacity:.8;}
+
+/* ── Keine Hover-Styles auf Touch ── */
+@media (hover:none){
+  .al-act-btn:hover,.al-open-btn:hover,.al-hdr__logout:hover{ background:unset;border-color:unset;color:unset; }
+  .al-act-btn--ang:hover{background:#f5f3ff;border-color:#a78bfa;color:#7c3aed;}
+  .al-act-btn--weg:hover{background:#fffbeb;border-color:#fbbf24;color:var(--amber);}
+  .al-act-btn--ein:hover{background:#eff6ff;border-color:#93c5fd;color:var(--blue);}
+  .al-act-btn--end:hover{background:#f0fdf4;border-color:#86efac;color:var(--green);}
+}
+/* ── GPS-Status-Badge ── */
+.al-gps{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap;}
+.al-gps--aktiv{background:rgba(22,163,74,.35);color:#86efac;}
+.al-gps--suche{background:rgba(217,119,6,.35);color:#fde68a;}
+.al-gps--fehler{background:rgba(220,38,38,.35);color:#fca5a5;}
+</style>
+    <link rel="manifest" href="/manifest-auftragslage.json">
+    <link rel="apple-touch-icon" href="/icon-auftragslage-192.png">
+    <meta name="theme-color" content="#0f2744">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/auftragslage/sw.js', {scope: '/auftragslage/'})
+          .catch(function(){});
+      }
+    </script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="al-hdr">
+  <div class="al-hdr__top">
+    <div>
+      <div class="al-hdr__title">📋 Auftragslage</div>
+      <div class="al-hdr__sub" id="hdrSub">Lade…</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="al-msg-btn" id="alChatBtn" onclick="alOpenChat()" title="Leitstellen-Chat">
+        💬
+        <span class="al-msg-badge" id="alMsgBadge"></span>
+      </button>
+      <button class="al-ton-btn" id="alGpsBtn" onclick="alOpenGpsSettings()" title="GPS-Einstellungen">
+        📍
+      </button>
+      <button class="al-ton-btn al-ton-btn--muted" id="alTonBtn" onclick="alOpenTonSettings()" title="Alarm-Einstellungen">
+        🔔
+      </button>
+      <button class="al-hdr__logout" onclick="alBackup()" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);" title="Datensicherung herunterladen">💾</button>
+      <button class="al-hdr__logout" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+  <div class="al-duty" id="dutyCard">
+    <div class="al-duty__fz" id="dutyFz">🚗 –</div>
+    <div class="al-duty__sep"></div>
+    <div class="al-duty__person">
+      <div class="al-duty__name" id="dutyName">–</div>
+      <div class="al-duty__meta">
+        <span class="al-duty__badge al-duty__badge--dnr" id="dutyDnr" style="display:none;"></span>
+        <span class="al-duty__badge al-duty__badge--time" id="dutySince" style="display:none;"></span>
+        <span class="al-duty__badge al-gps" id="alGpsBadge" style="display:none;"></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── FILTER ── -->
+<div class="al-filter">
+  <button class="al-fpill active" data-filter="aktiv" onclick="setFilter('aktiv',this)">
+    Aktiv <span class="al-badge-count" id="cntAktiv" style="display:none;">0</span>
+  </button>
+  <button class="al-fpill" data-filter="alle" onclick="setFilter('alle',this)">Alle</button>
+  <button class="al-fpill" data-filter="beendet" onclick="setFilter('beendet',this)">Erledigt</button>
+</div>
+
+<!-- ── QUICK ACCESS ── -->
+<div class="al-qa-strip">
+  <button class="al-qa-btn" onclick="openFahrtenbuch()">
+    <span class="al-qa-btn__ico">📖</span>
+    <span>Fahrtenbuch</span>
+  </button>
+  <a class="al-qa-btn al-qa-btn--soon" href="/fahrzeug-checkliste.html">
+    <span class="al-qa-btn__ico">✅</span>
+    <span>Kfz-Checkliste</span>
+  </a>
+</div>
+
+<!-- ── LIST ── -->
+<div class="al-list" id="alList">
+  <div class="al-empty">
+    <div class="al-empty__ico">🔄</div>
+    <div class="al-empty__title">Lade Aufträge…</div>
+  </div>
+</div>
+
+<!-- ── ALARM OVERLAY ── -->
+<div id="alAlarmOverlay">
+  <div class="al-alarm__card">
+    <div class="al-alarm__pulse" id="alAlarmPulse">🚨</div>
+    <div class="al-alarm__title" id="alAlarmTitle">Neuer Auftrag!</div>
+    <div class="al-alarm__arts" id="alAlarmArts"></div>
+    <div class="al-alarm__detail" id="alAlarmDetail"></div>
+    <button class="al-alarm__btn" id="alAlarmBtn" onclick="alDismissAlarm()">Verstanden – Auftrag ansehen</button>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="al-toast" id="alToast"></div>
+
+<!-- ── BESTÄTIGUNG: EINSATZ BEENDEN ── -->
+<div id="alConfirmOverlay">
+  <div class="al-confirm-card">
+    <h3 id="alConfirmTitle">Einsatz abschließen?</h3>
+    <p id="alConfirmText">Bitte bestätigen, dass der Einsatz wirklich beendet ist.</p>
+    <div class="al-confirm-row">
+      <button class="al-confirm-cancel" onclick="alConfirmCancel()">Abbrechen</button>
+      <button class="al-confirm-ok" id="alConfirmOkBtn" onclick="alConfirmOk()">✅ Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LEITSTELLEN-CHAT ── -->
+<div id="alChatOverlay">
+  <div class="al-chat-panel">
+    <div class="al-chat-head">
+      <div>
+        <h3>💬 Leitstellen-Chat</h3>
+        <p id="alChatEinsatzLabel">Kein aktiver Einsatz</p>
+      </div>
+      <button class="al-chat-close" onclick="alCloseChat()">✕</button>
+    </div>
+    <div class="al-chat-msgs" id="alChatMsgs">
+      <div class="al-chat-empty">Keine Nachrichten</div>
+    </div>
+    <div class="al-chat-foot" id="alChatFoot" style="display:none;">
+      <textarea class="al-chat-input" id="alChatInput" placeholder="Nachricht an Leitstelle…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();alSendMsg();}"></textarea>
+      <button class="al-chat-send" onclick="alSendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ALARM-TON EINSTELLUNGEN ── -->
+<div id="alGpsOverlay">
+  <div class="al-ton-card">
+    <div id="alGpsPwSection">
+      <h3>🔒 GPS-Einstellungen</h3>
+      <p class="al-ton-sub">Der Live-Standort ist mit dem Disponenten-Passwort gesichert.</p>
+      <div class="al-ton-pw-gate">
+        <input type="password" id="alGpsPwInput" placeholder="Leitstellen-Passwort eingeben"
+               onkeydown="if(event.key==='Enter')alGpsUnlock()">
+        <div class="al-ton-pw-err" id="alGpsPwErr">Falsches Passwort</div>
+      </div>
+      <button class="al-ton-unlock-btn" onclick="alGpsUnlock()">🔓 Freischalten</button>
+      <button class="al-ton-close" onclick="alCloseGpsSettings()">Abbrechen</button>
+    </div>
+    <div id="alGpsSettingsSection" style="display:none;">
+      <h3>📍 GPS-Einstellungen</h3>
+      <p class="al-ton-sub">GPS-Standort wird live an die Leitstelle übertragen. Nur durch Disponent deaktivierbar.</p>
+      <div class="al-ton-row">
+        <div>
+          <div class="al-ton-label">Live-Standort aktiviert</div>
+          <div class="al-ton-desc">Position wird alle 20 Sek. an die Leitstelle gesendet</div>
+        </div>
+        <label class="al-toggle">
+          <input type="checkbox" id="alGpsEnabled">
+          <span class="al-slider"></span>
+        </label>
+      </div>
+      <div class="al-ton-actions">
+        <button class="al-ton-save-btn" style="flex:1;" onclick="alGpsSave()">Speichern</button>
+      </div>
+      <button class="al-ton-close" onclick="alCloseGpsSettings()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<div id="alTonOverlay">
+  <div class="al-ton-card">
+    <!-- Passwort-Sperre (sichtbar solange gesperrt) -->
+    <div id="alTonPwSection">
+      <h3>🔒 Alarm-Einstellungen</h3>
+      <p class="al-ton-sub">Diese Einstellungen sind mit dem Disponenten-Passwort gesichert.</p>
+      <div class="al-ton-pw-gate">
+        <input type="password" id="alTonPwInput" placeholder="Leitstellen-Passwort eingeben"
+               onkeydown="if(event.key==='Enter')alTonUnlock()">
+        <div class="al-ton-pw-err" id="alTonPwErr">Falsches Passwort</div>
+      </div>
+      <button class="al-ton-unlock-btn" onclick="alTonUnlock()">🔓 Freischalten</button>
+      <button class="al-ton-close" onclick="alCloseTonSettings()">Abbrechen</button>
+    </div>
+    <!-- Einstellungen (sichtbar nach Freischaltung) -->
+    <div id="alTonSettingsSection" style="display:none;">
+      <h3>🔔 Alarm-Einstellungen</h3>
+      <p class="al-ton-sub">Konfiguriert durch Disponenten/Admin. Gespeichert auf diesem Gerät.</p>
+      <div class="al-ton-row">
+        <div>
+          <div class="al-ton-label">Alarm-Ton aktiviert</div>
+          <div class="al-ton-desc">Ton bei neuen und dringenden Aufträgen</div>
+        </div>
+        <label class="al-toggle">
+          <input type="checkbox" id="alTonEnabled">
+          <span class="al-slider"></span>
+        </label>
+      </div>
+      <div class="al-ton-row">
+        <div>
+          <div class="al-ton-label">Dringlichkeitsalarm</div>
+          <div class="al-ton-desc">Lauter Pulsalarm bei Sofort/Dringend</div>
+        </div>
+        <label class="al-toggle">
+          <input type="checkbox" id="alTonDringEnabled">
+          <span class="al-slider"></span>
+        </label>
+      </div>
+      <div class="al-ton-row">
+        <div style="flex:1;">
+          <div class="al-ton-label">Lautstärke</div>
+          <div class="al-ton-desc">Maximale Lautstärke empfohlen</div>
+        </div>
+        <input type="range" id="alTonVolume" class="al-vol-slider"
+               min="10" max="100" value="80" style="width:110px;">
+      </div>
+      <div class="al-ton-actions">
+        <button class="al-ton-test-btn" onclick="alTonTest()">▶ Alarm testen</button>
+        <button class="al-ton-save-btn" onclick="alTonSave()">Speichern</button>
+      </div>
+      <button class="al-ton-close" onclick="alCloseTonSettings()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+var currentFilter = 'aktiv';
+var allAuftraege  = [];
+var fahrzeug      = '';
+var _knownState   = null; // null = first load, Map<id, {dring, art}> after first load
+
+var AKTIV_STATUS  = ['alarmiert','angenommen','unterwegs','eingetroffen'];
+var DONE_STATUS   = ['beendet','storniert'];
+
+/* ── Auth helper: always send session cookie + token ── */
+function authFetch(url, opts) {
+  opts = opts || {};
+  opts.credentials = 'include';
+  var tok = '';
+  try { tok = localStorage.getItem('nursy_token') || ''; } catch(e) {}
+  if (tok) {
+    opts.headers = Object.assign({}, opts.headers || {}, {'X-Nursy-Token': tok});
+  }
+  return fetch(url, opts);
+}
+
+/* ── Helpers ── */
+function toast(msg){
+  var t = document.getElementById('alToast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+function openFahrtenbuch() {
+  // Aktivsten Einsatz suchen: unterwegs > eingetroffen > angenommen > alarmiert
+  var PRIO = ['unterwegs','eingetroffen','angenommen','alarmiert'];
+  var best = null;
+  for (var i = 0; i < PRIO.length; i++) {
+    for (var j = 0; j < allAuftraege.length; j++) {
+      if (allAuftraege[j].status === PRIO[i]) { best = allAuftraege[j]; break; }
+    }
+    if (best) break;
+  }
+  var url = '/fahrtenbuch.html';
+  if (best) {
+    var p = new URLSearchParams();
+    if (best.patient_adresse) p.set('nach',    best.patient_adresse);
+    if (best.art)             p.set('zweck',   best.art);
+    if (best.nummer)          p.set('einsatz', best.nummer);
+    if (p.toString())         url += '?' + p.toString();
+  }
+  window.location.href = url;
+}
+function esc(s){
+  var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML;
+}
+function statusLabel(st){
+  var m = {alarmiert:'Ausstehend',angenommen:'Angenommen',unterwegs:'Unterwegs',eingetroffen:'Eingetroffen',beendet:'Erledigt',storniert:'Storniert'};
+  return m[st] || st;
+}
+// Map all Leitstelle/API dringlichkeit values → canonical levels
+var DRING_LEVEL = {
+  // Leitstelle values
+  akut:'sofort', hoch:'dringend', mittel:'geplant', niedrig:'geplant',
+  // direct values
+  sofort:'sofort', dringend:'dringend', geplant:'geplant', normal:'geplant'
+};
+function dringKan(d){ return DRING_LEVEL[d]||'geplant'; }
+
+function isFirstResponder(a){
+  var art=(a.art||'').toLowerCase();
+  return art.indexOf('first responder')>-1||art.indexOf('first-responder')>-1||art==='fr';
+}
+function prioPunkt(a){
+  if(isFirstResponder(a)) return 0;
+  var k=dringKan(a.dringlichkeit);
+  if(k==='sofort')   return 1;
+  if(k==='dringend') return 2;
+  return 3;
+}
+function sortByPrio(arr){
+  return arr.slice().sort(function(a,b){
+    var pa=prioPunkt(a), pb=prioPunkt(b);
+    if(pa!==pb) return pa-pb;
+    // sofort/FR: no time = first; geplant/dringend: no time = last
+    var noTimeVal = (pa<=1) ? '00:00' : '99:99';
+    var ta = a.zeit||noTimeVal, tb = b.zeit||noTimeVal;
+    return ta.localeCompare(tb);
+  });
+}
+function dringLabel(d){
+  var k=dringKan(d);
+  return {sofort:'Sofort',dringend:'Dringend',geplant:'Geplant'}[k]||d;
+}
+function dringClass(d){
+  return {sofort:'sofort',dringend:'dringend',geplant:'geplant'}[dringKan(d)]||'geplant';
+}
+
+/* ── Load ── */
+function loadAuftraege(silent){
+  if(!silent){
+    document.getElementById('alList').innerHTML =
+      '<div class="al-empty"><div class="al-empty__ico">🔄</div><div class="al-empty__title">Lade Aufträge…</div></div>';
+  }
+  authFetch('/api/auftraege')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error && d.error==='Nicht angemeldet'){
+        window.location.href = '/auftragslage/login';
+        return;
+      }
+      var incoming = (d.auftraege||[]);
+      fahrzeug     = d.fahrzeug || '';
+      _syncGpsBtn();   // GPS starten oder stoppen je nach Einstellung
+
+      // ── Detect new missions & changes (skip on very first load) ──
+      if (_knownState !== null) {
+        // Echte neue Aufträge (noch nie gesehen) mit Status 'alarmiert' → Vollalarm
+        // Neue Aufträge die bereits fortgeschrittenen Status haben (Umzuweisung) → nur Toast
+        var genuineNew = incoming.filter(function(a){
+          return !_knownState.has(a.id) && a.status === 'alarmiert';
+        });
+        var reassigned = incoming.filter(function(a){
+          return !_knownState.has(a.id) && a.status !== 'alarmiert'
+                 && AKTIV_STATUS.indexOf(a.status) > -1;
+        });
+
+        if (genuineNew.length > 0) {
+          alNewEinsatzAlert(genuineNew);
+        }
+        if (reassigned.length > 0) {
+          // Fahrzeug-Umzuweisung: Auftrag war bereits in Bearbeitung → kein Fehlalarm
+          alBeepShort();
+          reassigned.forEach(function(a){
+            toast('📋 Auftrag ' + (a.nummer||a.id) + ' (' + (a.art||'Einsatz') + ') wurde diesem Fahrzeug zugewiesen.');
+          });
+        }
+
+        // Änderungen bei bestehenden Aufträgen (Dringlichkeit / Art / Leitstelle-Edit)
+        // Läuft IMMER – unabhängig davon ob auch neue Aufträge reinkamen
+        incoming.forEach(function(a){
+          if (!_knownState.has(a.id)) return;
+          var prev = _knownState.get(a.id);
+          var dringChanged = a.dringlichkeit && prev.dring && (a.dringlichkeit !== prev.dring);
+          var artChanged   = a.art           && prev.art   && (a.art           !== prev.art);
+          var editChanged  = a.ls_geaendert  && (a.ls_geaendert !== prev.ls_geaendert);
+          var newKan = dringKan(a.dringlichkeit);
+          if (dringChanged && (newKan === 'sofort' || newKan === 'dringend')) {
+            alUpdateAlert(a, 'dring');
+          } else if (dringChanged) {
+            var label = dringLabel(a.dringlichkeit);
+            alBeepShort();
+            toast('⚠️ Auftrag ' + (a.nummer||a.id) + ': Dringlichkeit → ' + label);
+          } else if (artChanged) {
+            alBeepShort();
+            toast('ℹ️ Auftrag ' + (a.nummer||a.id) + ': Art geändert zu ' + (a.art||'?'));
+          } else if (editChanged) {
+            alBeepShort();
+            toast('✏️ Auftrag ' + (a.nummer||a.id) + ': Leitstelle hat Details aktualisiert.');
+          }
+        });
+      }
+      _knownState = new Map(incoming.map(function(a){
+        return [a.id, {dring: a.dringlichkeit || '', art: a.art || '', ls_geaendert: a.ls_geaendert || ''}];
+      }));
+
+      allAuftraege = incoming;
+      renderHeader();
+      renderList();
+      updateCounts();
+      document.getElementById('hdrSub').textContent =
+        'Zuletzt: ' + new Date().toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+    })
+    .catch(function(){
+      if(!silent)
+        document.getElementById('alList').innerHTML =
+          '<div class="al-empty"><div class="al-empty__ico">⚠️</div><div class="al-empty__title">Verbindungsfehler</div><div class="al-empty__sub">Bitte Verbindung prüfen.</div></div>';
+    });
+}
+
+/* ── Header info ── */
+function renderHeader(){
+  authFetch('/api/me')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var u = d.user || d;
+      var fzName = u.fahrzeug || fahrzeug || '–';
+      var fullName = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || u.name || u.caregiver_name || '–';
+
+      document.getElementById('dutyFz').textContent = '🚒 ' + fzName;
+      document.getElementById('dutyName').textContent = '👤 ' + fullName;
+
+      if(u.dienstnummer){
+        var dnr = document.getElementById('dutyDnr');
+        dnr.textContent = '🪪 ' + u.dienstnummer;
+        dnr.style.display = '';
+      }
+      if(u.eingeloggt_seit){
+        var raw = u.eingeloggt_seit;
+        var dienstSeit = '';
+        try {
+          var d2 = new Date(raw);
+          if(!isNaN(d2)) dienstSeit = 'Dienst seit ' + d2.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+        } catch(e){}
+        if(!dienstSeit && raw.length >= 5) dienstSeit = 'Dienst seit ' + raw.slice(11,16);
+        if(dienstSeit){
+          var s = document.getElementById('dutySince');
+          s.textContent = '🕐 ' + dienstSeit;
+          s.style.display = '';
+        }
+      }
+    })
+    .catch(function(){
+      document.getElementById('dutyFz').textContent = '🚒 ' + fahrzeug;
+    });
+}
+
+/* ── Counts ── */
+function updateCounts(){
+  var n = allAuftraege.filter(function(a){ return AKTIV_STATUS.indexOf(a.status)>-1; }).length;
+  var el = document.getElementById('cntAktiv');
+  if(n){ el.textContent=n; el.style.display=''; }
+  else { el.style.display='none'; }
+}
+
+/* ── Filter ── */
+function setFilter(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.al-fpill').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderList();
+}
+
+/* ── Render ── */
+function renderList(){
+  var list = document.getElementById('alList');
+  var items = sortByPrio(allAuftraege.filter(function(a){
+    if(currentFilter==='aktiv')   return AKTIV_STATUS.indexOf(a.status)>-1;
+    if(currentFilter==='beendet') return DONE_STATUS.indexOf(a.status)>-1;
+    return true;
+  }));
+  if(!items.length){
+    var msgs = {
+      aktiv:   ['✅','Keine aktiven Aufträge','Alle Aufträge erledigt oder noch keine zugewiesen.'],
+      beendet: ['📁','Keine erledigten Aufträge','Noch keine abgeschlossenen Aufträge.'],
+      alle:    ['📋','Keine Aufträge','Für dieses Fahrzeug sind noch keine Aufträge angelegt.']
+    };
+    var m = msgs[currentFilter]||msgs.alle;
+    list.innerHTML = '<div class="al-empty"><div class="al-empty__ico">'+m[0]+'</div><div class="al-empty__title">'+m[1]+'</div><div class="al-empty__sub">'+m[2]+'</div></div>';
+    return;
+  }
+  var html='<div class="al-refresh-row"><span>'+items.length+' Auftr&auml;ge</span><button class="al-refresh-btn" onclick="loadAuftraege(false)">↺ Aktualisieren</button></div>';
+  items.forEach(function(a){
+    var isDone  = DONE_STATUS.indexOf(a.status)>-1;
+    var isFR    = isFirstResponder(a);
+    var dc      = isFR ? 'firstresponder' : dringClass(a.dringlichkeit);
+    var problem = (a.problem||'').slice(0,80)+(a.problem&&a.problem.length>80?'…':'');
+    var curRank = statusRank(a.status);
+
+    // Zeitstempel aus lokaler Map oder API-Daten
+    var ts = _getTS(a.id);
+    var tsAng     = ts.zeit_angenommen  || a.zeit_angenommen  || '';
+    var tsUntWeg  = ts.zeit_unterwegs   || a.zeit_unterwegs   || '';
+    var tsEin     = ts.zeit_eingetroffen|| a.zeit_eingetroffen|| '';
+    var tsEnd     = ts.zeit_beendet     || a.zeit_beendet     || '';
+
+    // priority strip shown for FR and Sofort
+    var kd = dringKan(a.dringlichkeit);
+    var prioStrip = '';
+    if(!isDone){
+      if(isFR)
+        prioStrip = '<div class="al-prio-strip al-prio-strip--fr"><span class="al-prio-dot al-prio-dot--fr"></span>🚨 FIRST RESPONDER – Sofortiger Einsatz</div>';
+      else if(kd==='sofort')
+        prioStrip = '<div class="al-prio-strip al-prio-strip--sofort"><span class="al-prio-dot al-prio-dot--sofort"></span>⚡ SOFORT-EINSATZ</div>';
+    }
+
+    // Goldmarkierung: Leitstelle hat Inhalt geändert
+    var geaendertStrip = '';
+    if(a.ls_geaendert){
+      geaendertStrip =
+        '<div class="al-geaendert-strip" id="geaendert_'+a.id+'">'+
+          '<span class="al-geaendert-strip__icon">✏️</span>'+
+          '<span class="al-geaendert-strip__text">Leitstelle hat Änderungen vorgenommen'+
+            '<span class="al-geaendert-strip__time"> · '+esc(a.ls_geaendert)+' Uhr</span>'+
+          '</span>'+
+          '<button class="al-geaendert-btn" onclick="quittierGeaendert(\''+a.id+'\',this)">✓ Zur Kenntnis</button>'+
+        '</div>';
+    }
+
+    // urgency badge inside art line
+    var dringBadge='';
+    if(!isFR && kd!=='geplant')
+      dringBadge = ' &nbsp;<span style="font-size:.62rem;background:'+(kd==='sofort'?'#dc2626':'#d97706')+';color:#fff;border-radius:4px;padding:1px 5px;">'+esc(dringLabel(a.dringlichkeit))+'</span>';
+
+    // ── Status Timeline ──
+    var tlSteps = [
+      {key:'alarmiert',   label:'Alarmiert',  icon:'🔔', ts: a.zeit||''},
+      {key:'angenommen',  label:'Angenommen', icon:'✔️', ts: tsAng},
+      {key:'unterwegs',   label:'Unterwegs',  icon:'🚗', ts: tsUntWeg},
+      {key:'eingetroffen',label:'Eintreffen', icon:'🏠', ts: tsEin},
+      {key:'beendet',     label:'Beendet',    icon:'✅', ts: tsEnd}
+    ];
+    var timeline = '<div class="al-timeline">';
+    tlSteps.forEach(function(step){
+      var stepRank = statusRank(step.key);
+      var cls = stepRank < curRank ? 'done' : (stepRank === curRank ? 'active' : '');
+      var elapsed = '';
+      if(cls==='active' && step.ts && step.key !== 'alarmiert'){
+        var el = _elapsedLabel(step.ts);
+        if(el){
+          var isLong = (_elapsedMin(step.ts)||0) > 20;
+          elapsed = '<span class="al-elapsed'+(isLong?' al-elapsed--warn':'')+'" title="seit '+step.ts+'">'+el+'</span>';
+        }
+      }
+      var timeStr = step.ts ? step.ts+' Uhr' : '–';
+      timeline += '<div class="al-tl-step '+cls+'">'+
+        '<div class="al-tl-dot">'+step.icon+'</div>'+
+        '<div class="al-tl-label">'+step.label+'</div>'+
+        '<div class="al-tl-time">'+(step.ts ? step.ts : (cls?'–':'–'))+(cls==='active'?elapsed:'')+'</div>'+
+        '</div>';
+    });
+    timeline += '</div>';
+
+    // ── Aktions-Buttons: deaktivieren wenn Schritt nicht erreichbar ──
+    /* Nächster Schritt & Rückgängig */
+    var nextMap = {
+      alarmiert:   {next:'angenommen',   icon:'✔️', label:'Angenommen',  cls:'ang'},
+      angenommen:  {next:'unterwegs',    icon:'🚗', label:'Unterwegs',   cls:'weg'},
+      unterwegs:   {next:'eingetroffen', icon:'🏠', label:'Eingetroffen', cls:'ein'},
+      eingetroffen:{next:'beendet',      icon:'✅', label:'Erledigt',     cls:'end'}
+    };
+    var prevMap = {angenommen:'alarmiert', unterwegs:'angenommen', eingetroffen:'unterwegs', beendet:'eingetroffen'};
+    var nextInfo   = nextMap[a.status];
+    var prevStatus = prevMap[a.status];
+
+    var btnNext = nextInfo
+      ? '<button class="al-next-btn al-next-btn--'+nextInfo.cls+'" onclick="quickStatus(\''+a.id+'\',\''+nextInfo.next+'\')">'+nextInfo.icon+' '+nextInfo.label+'</button>'
+      : '<div style="flex:1;"></div>';
+    var btnUndo = prevStatus
+      ? '<button class="al-undo-btn" onclick="undoStatus(\''+a.id+'\',\''+prevStatus+'\')" title="Rückgängig: zurück zu \''+prevStatus+'\'">↩</button>'
+      : '';
+
+    html +=
+      '<div class="al-card al-card--'+dc+(isDone?' al-card--beendet':'')+
+        (a.ls_geaendert?' al-card--geaendert':'')+'" id="card_'+a.id+'">'+
+        prioStrip+
+        geaendertStrip+
+        '<div class="al-card__top">'+
+          '<div class="al-card__nr">'+esc(a.nummer||a.id.slice(0,8).toUpperCase())+'</div>'+
+          '<div class="al-card__center">'+
+            '<div class="al-card__patient">'+esc(a.patient_name||'Unbekannt')+'</div>'+
+            '<div class="al-card__art">'+esc(a.art||'Einsatz')+dringBadge+'</div>'+
+            '<div class="al-card__addr">📍 '+esc(a.patient_adresse||'–')+'</div>'+
+          '</div>'+
+          '<div class="al-card__right">'+
+            '<div class="al-card__time" style="'+(isFR&&!isDone?'color:var(--red);font-size:1rem;':(kd==='sofort'&&!a.zeit&&!isDone?'color:#7c3aed;font-weight:800;':''))+'">'+
+              (isFR&&!isDone?'🚨 ':'')+
+              esc(a.zeit||((!isDone&&(isFR||kd==='sofort'))?'Sofort':'–'))+'</div>'+
+            '<span class="al-status al-status--'+a.status+'">'+statusLabel(a.status)+'</span>'+
+          '</div>'+
+        '</div>'+
+        (problem?'<div class="al-card__problem">'+esc(problem)+'</div>':'')+
+        (function(){
+          var lb = (a.extra&&a.extra.lagebild)||{};
+          var items=[];
+          var LABEL_MAP={'Selbstständig':null,'Teilweise selbstständig':'teilweise','Komplette Übernahme':'komplett','Unterstützung nötig':'teilweise','Bettlägerig':'komplett'};
+          function pfBadge(label,val){
+            var cls=LABEL_MAP[val];
+            if(!cls)return '';
+            var color=cls==='komplett'?'#dc2626':'#d97706';
+            var bg=cls==='komplett'?'rgba(220,38,38,.1)':'rgba(217,119,6,.1)';
+            return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:5px;background:'+bg+';color:'+color+';">'+esc(label)+': '+(cls==='komplett'?'Kompl. Übernahme':'Teilw. selbstst.')+'</span>';
+          }
+          if(lb.mobilitaet)    items.push(pfBadge('Mobilität',lb.mobilitaet));
+          if(lb.koerperpflege) items.push(pfBadge('Körperpflege',lb.koerperpflege));
+          if(lb.anAuskleiden)  items.push(pfBadge('Ankleiden',lb.anAuskleiden));
+          if(lb.ernaehrung)    items.push(pfBadge('Ernährung',lb.ernaehrung));
+          items = items.filter(Boolean);
+          if(!items.length) return '';
+          return '<div class="al-planung-row">📋 <strong>Planung:</strong> '+items.join(' ')+'</div>';
+        })()+
+        timeline+
+        '<div class="al-card__actions">'+
+          '<div class="al-card__actions-status">'+
+            (isDone
+              ? '<span style="flex:1;font-size:.75rem;color:var(--green);font-weight:700;padding:4px 0;">✓ Beendet'+(tsEnd?' – '+tsEnd+' Uhr':'')+'</span>'+btnUndo
+              : btnNext+btnUndo)+
+          '</div>'+
+          '<div class="al-card__actions-nav">'+
+            '<a class="al-open-btn al-open-btn--patient" href="/patientenakte.html?'+(a.patient_id?'pid='+encodeURIComponent(a.patient_id)+'&':'')+
+            'eid='+encodeURIComponent(a.id)+'&from=auftrag">👤 Patientenakte</a>'+
+            '<button class="al-open-btn" onclick="openEinsatz(\''+a.id+'\')">📋 Einsatzakte</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATUS-LOGIK: Reihenfolge, Zeitstempel, Bestätigung
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Leitstelle-Änderung quittieren ── */
+function quittierGeaendert(eid, btn){
+  if(btn) btn.disabled = true;
+  authFetch('/api/einsaetze/' + encodeURIComponent(eid) + '/geaendert-quittieren', {
+    method: 'POST', headers: {'Content-Type':'application/json'}
+  }).then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){
+      // Goldstreifen verstecken
+      var strip = document.getElementById('geaendert_' + eid);
+      if(strip) strip.style.display = 'none';
+      // Goldborder der Karte entfernen
+      var card = document.getElementById('card_' + eid);
+      if(card) card.classList.remove('al-card--geaendert');
+      // Lokalen Zustand aktualisieren
+      var auftrag = allAuftraege.find(function(a){ return a.id === eid; });
+      if(auftrag) auftrag.ls_geaendert = '';
+      toast('✓ Änderung zur Kenntnis genommen');
+    } else {
+      if(btn) btn.disabled = false;
+    }
+  }).catch(function(){ if(btn) btn.disabled = false; });
+}
+
+/* Status-Reihenfolge (darf nur vorwärts wechseln) */
+var STATUS_ORDER = ['alarmiert','angenommen','unterwegs','eingetroffen','beendet','storniert'];
+function statusRank(s){ var i=STATUS_ORDER.indexOf(s); return i<0?99:i; }
+
+/* Zeitstempel lokal merken (Fallback wenn API-Antwort fehlt) */
+var _timestamps = {}; // { eid: {zeit_unterwegs, zeit_eingetroffen, zeit_beendet} }
+
+function _nowHM(){
+  var n=new Date();
+  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+
+function _mergeTimestamps(a, apiData){
+  if(!_timestamps[a.id]) _timestamps[a.id]={};
+  var t=_timestamps[a.id];
+  ['zeit_angenommen','zeit_unterwegs','zeit_eingetroffen','zeit_beendet'].forEach(function(k){
+    if(apiData&&apiData[k]) t[k]=apiData[k];
+    if(a[k]) t[k]=t[k]||a[k];
+  });
+}
+
+function _getTS(eid){ return _timestamps[eid]||{}; }
+
+/* Vergangene Minuten seit HH:MM */
+function _elapsedMin(hm){
+  if(!hm) return null;
+  var parts=hm.split(':');
+  if(parts.length<2) return null;
+  var now=new Date();
+  var then=new Date(); then.setHours(parseInt(parts[0],10),parseInt(parts[1],10),0,0);
+  var diff=Math.floor((now-then)/60000);
+  return diff<0?null:diff;
+}
+
+function _elapsedLabel(hm){
+  var m=_elapsedMin(hm);
+  if(m===null) return '';
+  if(m<1) return 'gerade eben';
+  if(m<60) return m+' Min';
+  var h=Math.floor(m/60), rm=m%60;
+  return h+'h'+(rm>0?' '+rm+'m':'');
+}
+
+/* ── Bestätigungs-Dialog ── */
+var _pendingConfirm = null;
+
+function alConfirmCancel(){
+  _pendingConfirm = null;
+  document.getElementById('alConfirmOverlay').classList.remove('show');
+}
+function alConfirmOk(){
+  document.getElementById('alConfirmOverlay').classList.remove('show');
+  if(_pendingConfirm){ _pendingConfirm(); _pendingConfirm=null; }
+}
+function _showConfirm(title, text, okLabel, callback){
+  document.getElementById('alConfirmTitle').textContent  = title;
+  document.getElementById('alConfirmText').textContent   = text;
+  document.getElementById('alConfirmOkBtn').textContent  = okLabel;
+  _pendingConfirm = callback;
+  document.getElementById('alConfirmOverlay').classList.add('show');
+}
+
+/* ── Quick status (nur vorwärts) ── */
+function quickStatus(eid, newStatus){
+  var a = allAuftraege.find(function(x){ return x.id===eid; });
+  if(!a) return;
+  if(a.status === newStatus){ toast('Status bereits: '+newStatus); return; }
+
+  /* Bestätigung bei "Beendet" */
+  if(newStatus==='beendet'){
+    _showConfirm(
+      '✅ Einsatz abschließen?',
+      'Patient: '+esc(a.patient_name||'Unbekannt')+'\nEinsatz '+esc(a.nummer||a.id.slice(0,8))+' wirklich als beendet markieren?',
+      '✅ Ja, abschließen',
+      function(){ _doStatusUpdate(eid, newStatus, a); }
+    );
+    return;
+  }
+  _doStatusUpdate(eid, newStatus, a);
+}
+
+/* ── Status rückgängig (einen Schritt zurück) ── */
+function undoStatus(eid, prevStatus){
+  var a = allAuftraege.find(function(x){ return x.id===eid; });
+  if(!a) return;
+  var statusLabels = {alarmiert:'Alarmiert',angenommen:'Angenommen',unterwegs:'Unterwegs',eingetroffen:'Eingetroffen',beendet:'Beendet'};
+  _showConfirm(
+    '↩ Status rückgängig?',
+    'Einsatz zurücksetzen auf: "'+( statusLabels[prevStatus]||prevStatus)+'"?',
+    '↩ Ja, zurücksetzen',
+    function(){ _doStatusUpdate(eid, prevStatus, a, true); }
+  );
+}
+
+function _doStatusUpdate(eid, newStatus, a, isUndo){
+  var nowHM = _nowHM();
+
+  /* Lokale Zeitstempel setzen / löschen */
+  if(!_timestamps[eid]) _timestamps[eid]={};
+  var ts = _timestamps[eid];
+  if(!isUndo){
+    if(newStatus==='angenommen')   ts.zeit_angenommen  = nowHM;
+    if(newStatus==='unterwegs')    ts.zeit_unterwegs   = nowHM;
+    if(newStatus==='eingetroffen') ts.zeit_eingetroffen= nowHM;
+    if(newStatus==='beendet')      ts.zeit_beendet     = nowHM;
+  } else {
+    /* Beim Rückgängig: Zeitstempel der übersprungenen Schritte löschen */
+    var rank = statusRank(newStatus);
+    if(rank < statusRank('angenommen'))   { ts.zeit_angenommen  =''; a.zeit_angenommen  =''; }
+    if(rank < statusRank('unterwegs'))    { ts.zeit_unterwegs   =''; a.zeit_unterwegs   =''; }
+    if(rank < statusRank('eingetroffen')) { ts.zeit_eingetroffen=''; a.zeit_eingetroffen=''; }
+    if(rank < statusRank('beendet'))      { ts.zeit_beendet     =''; a.zeit_beendet     =''; }
+  }
+
+  /* Sofort UI aktualisieren (optimistisch) */
+  a.status = newStatus;
+  Object.assign(a, ts);
+  renderList(); updateCounts();
+
+  var labels={
+    angenommen:'✔️ Angenommen – '+nowHM+' Uhr',
+    unterwegs:'🚗 Unterwegs – '+nowHM+' Uhr',
+    eingetroffen:'🏠 Eingetroffen – '+nowHM+' Uhr',
+    beendet:'✅ Einsatz beendet – '+nowHM+' Uhr',
+    alarmiert:'↩ Zurück auf Alarmiert'
+  };
+  toast(isUndo ? '↩ Zurückgesetzt auf: '+(labels[newStatus]||newStatus) : (labels[newStatus]||newStatus));
+
+  /* Server-Call */
+  fetch('/api/einsaetze/'+encodeURIComponent(eid)+'/status', {
+    method:'POST', credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status: newStatus, zeit: nowHM})
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok){
+        _mergeTimestamps(a, d);
+        Object.assign(a, _timestamps[eid]);
+        renderList();
+      } else { toast('Fehler: '+(d.error||'Unbekannt')); }
+    })
+    .catch(function(){ toast('⚠️ Verbindungsfehler – Status lokal gespeichert'); });
+}
+
+/* Live Elapsed-Timer: alle 30 Sek UI aktualisieren */
+setInterval(function(){ renderList(); }, 30000);
+
+/* ── Open Akte ── */
+function openEinsatz(eid){
+  window.location.href = '/einsatzakte.html?id=' + encodeURIComponent(eid);
+}
+
+/* ── Backup ── */
+function alBackup(){
+  window.location.href='/api/leitstelle/backup';
+}
+
+/* ── Logout ── */
+function doLogout(){
+  if(!confirm('Wirklich abmelden?')) return;
+  Promise.all([
+    fetch('/api/fahrzeuge/abmelden', {method:'POST', credentials:'include'}),
+    fetch('/api/logout', {method:'POST', credentials:'include'})
+  ]).finally(function(){
+    window.location.href = '/auftragslage/login';
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ALARM-TON SYSTEM
+   ══════════════════════════════════════════════════════════════ */
+var ALARM_SETTINGS_KEY = 'nursy_alarm_v1';
+var _audioCtx = null;
+
+/* Persistenter AudioContext — einmal erstellt, nie verworfen */
+function _getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  if (_audioCtx && _audioCtx.state === 'suspended') {
+    _audioCtx.resume().catch(function(){});
+  }
+  return _audioCtx;
+}
+/* Beim ersten Tippen/Klicken Audio-Kontext vorab öffnen */
+function _initAudio() {
+  _getAudioCtx();
+  document.removeEventListener('touchstart', _initAudio);
+  document.removeEventListener('click',      _initAudio);
+}
+document.addEventListener('touchstart', _initAudio, {passive:true});
+document.addEventListener('click',      _initAudio);
+
+/* Einstellungen lesen / speichern */
+function _alarmSettings() {
+  try { return JSON.parse(localStorage.getItem(ALARM_SETTINGS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function _alarmEnabled() { var s=_alarmSettings(); return s.enabled !== false; }
+function _dringAlarmEnabled() { var s=_alarmSettings(); return _alarmEnabled() && s.dringEnabled !== false; }
+function _alarmVolume() { var s=_alarmSettings(); return Math.max(0.05, Math.min(1, (s.volume||80)/100)); }
+
+/* Header-Button visuell synchronisieren */
+function _syncTonBtn() {
+  var btn = document.getElementById('alTonBtn');
+  if (!btn) return;
+  if (_alarmEnabled()) {
+    btn.textContent = '🔔';
+    btn.classList.remove('al-ton-btn--muted');
+    btn.title = 'Alarm-Einstellungen (Ton AN)';
+  } else {
+    btn.textContent = '🔕';
+    btn.classList.add('al-ton-btn--muted');
+    btn.title = 'Alarm-Einstellungen (Ton AUS)';
+  }
+}
+_syncTonBtn();
+
+/* ── VOLLALARM (Sofort / Dringend) ──
+   Vier Doppel-Pulse, Sägezahnwelle → schneidend, schwer ignorierbar */
+function alAlarmFull() {
+  if (!_dringAlarmEnabled()) { alBeepShort(); return; }
+  try {
+    var ctx = _getAudioCtx(); if (!ctx) return;
+    var vol = _alarmVolume();
+    var pulses = [[880,660],[880,660],[880,660],[880,660]];
+    pulses.forEach(function(pair, pi) {
+      var base = pi * 0.6;
+      pair.forEach(function(freq, fi) {
+        var t0 = base + fi * 0.28;
+        var osc = ctx.createOscillator();
+        var g   = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0,   ctx.currentTime + t0);
+        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + t0 + 0.025);
+        g.gain.setValueAtTime(vol,  ctx.currentTime + t0 + 0.17);
+        g.gain.linearRampToValueAtTime(0,   ctx.currentTime + t0 + 0.24);
+        osc.start(ctx.currentTime + t0);
+        osc.stop( ctx.currentTime + t0 + 0.25);
+      });
+    });
+    if (navigator.vibrate) navigator.vibrate([250,80,250,80,250,120,250,80,250]);
+  } catch(e) {}
+}
+
+/* ── KURZBEEP (neuer normaler Auftrag) ── */
+function alBeepShort() {
+  if (!_alarmEnabled()) return;
+  try {
+    var ctx = _getAudioCtx(); if (!ctx) return;
+    var vol = _alarmVolume() * 0.45;
+    [880, 1100].forEach(function(freq, i) {
+      var t0 = i * 0.16;
+      var osc = ctx.createOscillator();
+      var g   = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0,   ctx.currentTime + t0);
+      g.gain.linearRampToValueAtTime(vol, ctx.currentTime + t0 + 0.03);
+      g.gain.linearRampToValueAtTime(0,   ctx.currentTime + t0 + 0.14);
+      osc.start(ctx.currentTime + t0);
+      osc.stop( ctx.currentTime + t0 + 0.15);
+    });
+    if (navigator.vibrate) navigator.vibrate([80, 50, 80]);
+  } catch(e) {}
+}
+
+/* Kompatibilität: alBeep() → Vollalarm */
+function alBeep() { alAlarmFull(); }
+
+/* ══════════════════════════════════════════════════════════════
+   TON-EINSTELLUNGEN DIALOG
+   ══════════════════════════════════════════════════════════════ */
+/* Erlaubte Passwörter (geprüft client-seitig — nur UI-Schutz) */
+var _TON_PASSWORDS = [window._ADMIN_PW || ''];  /* Passwörter nicht im Frontend */
+
+function alOpenTonSettings() {
+  _getAudioCtx(); /* Audio vorab aktivieren */
+  var overlay = document.getElementById('alTonOverlay');
+  var pwSec   = document.getElementById('alTonPwSection');
+  var setsSec = document.getElementById('alTonSettingsSection');
+  var pwIn    = document.getElementById('alTonPwInput');
+  var pwErr   = document.getElementById('alTonPwErr');
+  pwIn.value = '';
+  pwErr.style.display = 'none';
+  pwSec.style.display = '';
+  setsSec.style.display = 'none';
+  overlay.classList.add('show');
+  setTimeout(function(){ pwIn.focus(); }, 200);
+}
+
+function alTonUnlock() {
+  var pw    = (document.getElementById('alTonPwInput').value || '').trim();
+  var pwErr = document.getElementById('alTonPwErr');
+  if (_TON_PASSWORDS.indexOf(pw) === -1) {
+    pwErr.style.display = '';
+    document.getElementById('alTonPwInput').focus();
+    return;
+  }
+  pwErr.style.display = 'none';
+  document.getElementById('alTonPwSection').style.display = 'none';
+  /* Aktuelle Einstellungen laden */
+  var s = _alarmSettings();
+  document.getElementById('alTonEnabled').checked     = s.enabled !== false;
+  document.getElementById('alTonDringEnabled').checked = s.dringEnabled !== false;
+  document.getElementById('alTonVolume').value         = s.volume || 80;
+  document.getElementById('alTonSettingsSection').style.display = '';
+}
+
+function alTonSave() {
+  var s = {
+    enabled:      document.getElementById('alTonEnabled').checked,
+    dringEnabled: document.getElementById('alTonDringEnabled').checked,
+    volume:       parseInt(document.getElementById('alTonVolume').value, 10)
+  };
+  localStorage.setItem(ALARM_SETTINGS_KEY, JSON.stringify(s));
+  _syncTonBtn();
+  alCloseTonSettings();
+  toast(s.enabled ? '🔔 Alarm-Ton gespeichert' : '🔕 Alarm-Ton deaktiviert');
+}
+
+function alTonTest() {
+  /* Temporär maximale Lautstärke zum Testen */
+  var saved = localStorage.getItem(ALARM_SETTINGS_KEY);
+  var vol = parseInt(document.getElementById('alTonVolume').value, 10);
+  var tmp = {enabled:true, dringEnabled:true, volume:vol};
+  localStorage.setItem(ALARM_SETTINGS_KEY, JSON.stringify(tmp));
+  alAlarmFull();
+  if (saved !== null) localStorage.setItem(ALARM_SETTINGS_KEY, saved);
+  else localStorage.removeItem(ALARM_SETTINGS_KEY);
+}
+
+function alCloseTonSettings() {
+  document.getElementById('alTonOverlay').classList.remove('show');
+  document.getElementById('alTonPwInput').value = '';
+}
+
+function alNewEinsatzAlert(newOnes) {
+  var hasDring = newOnes.some(function(a){
+    var k = dringKan(a.dringlichkeit); return k === 'sofort' || k === 'dringend';
+  });
+  if (hasDring) alAlarmFull(); else alBeepShort();
+  var n = newOnes.length;
+  document.getElementById('alAlarmPulse').textContent = '🚨';
+  document.getElementById('alAlarmTitle').textContent = 'Neuer Auftrag!';
+  document.getElementById('alAlarmBtn').textContent   = 'Verstanden – Auftrag ansehen';
+  var arts = newOnes.map(function(a){ return a.art||'Auftrag'; }).join(' · ');
+  document.getElementById('alAlarmArts').textContent = arts;
+  var a = newOnes[0];
+  var detail = '';
+  if (a.patient_name)    detail += '<div><strong>Patient</strong> ' + esc(a.patient_name) + '</div>';
+  if (a.patient_adresse) detail += '<div><strong>Adresse</strong> ' + esc(a.patient_adresse) + '</div>';
+  if (a.dringlichkeit)   detail += '<div><strong>Dringlichkeit</strong> ' + esc(dringLabel(a.dringlichkeit)) + '</div>';
+  if (a.datum || a.zeit) detail += '<div><strong>Zeit</strong> ' + esc((a.datum||'')+(a.zeit?' · '+a.zeit:'')) + '</div>';
+  if (n > 1)             detail += '<div style="margin-top:6px;opacity:.8;">+ ' + (n-1) + ' weitere</div>';
+  document.getElementById('alAlarmDetail').innerHTML = detail || '<div style="opacity:.7">Bitte Auftragslage prüfen.</div>';
+  document.getElementById('alAlarmOverlay').classList.add('show');
+  clearTimeout(window._alAlarmTid);
+  window._alAlarmTid = setTimeout(alDismissAlarm, 30000);
+}
+
+function alUpdateAlert(a, changeType) {
+  alAlarmFull();
+  var dringLbl = dringLabel(a.dringlichkeit);
+  document.getElementById('alAlarmPulse').textContent = '⚠️';
+  document.getElementById('alAlarmTitle').textContent =
+    changeType === 'dring' ? 'Auftrag geändert – ' + dringLbl.toUpperCase() : 'Auftrag aktualisiert';
+  document.getElementById('alAlarmArts').textContent =
+    'Auftrag ' + (a.nummer || a.id) + (a.art ? ' · ' + a.art : '');
+  var detail = '';
+  if (changeType === 'dring') {
+    detail += '<div style="font-size:1.1rem;font-weight:800;margin-bottom:8px;">⚠️ Dringlichkeit geändert zu: <span style="color:#ef4444;">' + esc(dringLbl.toUpperCase()) + '</span></div>';
+  } else {
+    detail += '<div>Einsatzart geändert zu: <strong>' + esc(a.art||'?') + '</strong></div>';
+  }
+  if (a.patient_name)    detail += '<div><strong>Patient</strong> ' + esc(a.patient_name) + '</div>';
+  if (a.patient_adresse) detail += '<div><strong>Adresse</strong> ' + esc(a.patient_adresse) + '</div>';
+  document.getElementById('alAlarmDetail').innerHTML = detail;
+  document.getElementById('alAlarmBtn').textContent = 'Verstanden – Auftrag prüfen';
+  document.getElementById('alAlarmOverlay').classList.add('show');
+  clearTimeout(window._alAlarmTid);
+  window._alAlarmTid = setTimeout(alDismissAlarm, 30000);
+}
+
+function alDismissAlarm() {
+  document.getElementById('alAlarmOverlay').classList.remove('show');
+  clearTimeout(window._alAlarmTid);
+  // Switch to aktiv filter
+  currentFilter = 'aktiv';
+  document.querySelectorAll('.al-fpill').forEach(function(b){
+    b.classList.toggle('active', b.dataset.filter === 'aktiv');
+  });
+  renderList();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LEITSTELLEN-CHAT
+   ══════════════════════════════════════════════════════════════ */
+var _chatEinsatzId  = null;
+var _chatMsgsCache  = [];
+var _chatKnownIds   = null;   // null = first load (no alert on init)
+var _chatOpen       = false;
+var _chatUnread     = 0;
+var _chatPollTimer  = null;
+
+function alOpenChat(){
+  _chatOpen   = true;
+  _chatUnread = 0;
+  _updateChatBadge();
+  document.getElementById('alChatOverlay').classList.add('show');
+  alPollChat();
+}
+
+function alCloseChat(){
+  _chatOpen = false;
+  document.getElementById('alChatOverlay').classList.remove('show');
+}
+
+function _updateChatBadge(){
+  var badge = document.getElementById('alMsgBadge');
+  if(!badge) return;
+  if(_chatUnread > 0){
+    badge.textContent = _chatUnread > 9 ? '9+' : String(_chatUnread);
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+function alPollChat(){
+  if(!fahrzeug) return;
+  authFetch('/api/fahrzeuge/' + encodeURIComponent(fahrzeug) + '/nachrichten')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      _chatEinsatzId = d.einsatz_id || null;
+      var msgs = d.nachrichten || [];
+
+      /* Detect new messages from Leitstelle */
+      if(_chatKnownIds !== null){
+        var newFromLs = msgs.filter(function(m){
+          return m.sender === 'leitstelle' && !_chatKnownIds.has(m.id);
+        });
+        if(newFromLs.length > 0 && !_chatOpen){
+          _chatUnread += newFromLs.length;
+          _updateChatBadge();
+          alBeepShort();
+          var preview = newFromLs[newFromLs.length - 1].text || '';
+          if(preview.length > 42) preview = preview.slice(0, 42) + '…';
+          toast('💬 Leitstelle: ' + preview);
+        }
+      }
+      /* Mark all current IDs as known */
+      _chatKnownIds = new Set(msgs.map(function(m){ return m.id; }));
+
+      _chatMsgsCache = msgs;
+      if(_chatOpen) _renderChat(msgs);
+    })
+    .catch(function(){});
+}
+
+function _renderChat(msgs){
+  var container = document.getElementById('alChatMsgs');
+  var label     = document.getElementById('alChatEinsatzLabel');
+  var foot      = document.getElementById('alChatFoot');
+  if(!container) return;
+
+  if(!_chatEinsatzId){
+    label.textContent  = 'Kein aktiver Einsatz';
+    foot.style.display = 'none';
+    container.innerHTML = '<div class="al-chat-no-einsatz">📋 Kein aktiver Einsatz.<br>Nachrichten sind nur bei laufenden Einsätzen verfügbar.</div>';
+    return;
+  }
+  foot.style.display = '';
+  label.textContent  = msgs.length ? msgs.length + ' Nachrichten' : 'Kein Inhalt';
+
+  if(!msgs.length){
+    container.innerHTML = '<div class="al-chat-empty">Noch keine Nachrichten von der Leitstelle</div>';
+    return;
+  }
+
+  var atBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 60;
+
+  container.innerHTML = msgs.map(function(m){
+    var isLs = (m.sender === 'leitstelle');
+    var cls  = isLs ? 'al-chat-msg--ls' : 'al-chat-msg--fz';
+    var who  = isLs ? '🎛 Leitstelle' : ('🚒 ' + esc(fahrzeug || 'Fahrzeug'));
+    var timeStr = '';
+    try{
+      var raw = m.created_at || '';
+      if(raw){
+        var dt = new Date(raw);
+        timeStr = isNaN(dt) ? raw.slice(11,16) : dt.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+      }
+    }catch(e){}
+    return '<div class="al-chat-msg ' + cls + '">' +
+      '<span class="al-chat-msg__who">' + who + '</span>' +
+      esc(m.text) +
+      (timeStr ? '<span class="al-chat-msg__time">' + timeStr + '</span>' : '') +
+      '</div>';
+  }).join('');
+
+  if(atBottom) alScrollChatToBottom();
+}
+
+function alScrollChatToBottom(){
+  var c = document.getElementById('alChatMsgs');
+  if(c) c.scrollTop = c.scrollHeight;
+}
+
+function alSendMsg(){
+  var input = document.getElementById('alChatInput');
+  var text  = (input ? input.value : '').trim();
+  if(!text || !_chatEinsatzId) return;
+  input.value = '';
+  input.style.height = '';
+
+  /* Optimistic: add message locally */
+  var tmpMsg = {id:'tmp_'+Date.now(), sender:'fahrzeug', text:text, created_at:new Date().toISOString()};
+  _chatMsgsCache.push(tmpMsg);
+  _renderChat(_chatMsgsCache);
+  alScrollChatToBottom();
+
+  authFetch('/api/einsaetze/' + encodeURIComponent(_chatEinsatzId) + '/nachrichten', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({text: text, sender: 'fahrzeug'})
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok) alPollChat();
+    })
+    .catch(function(){ toast('⚠️ Nachricht konnte nicht gesendet werden'); });
+}
+
+/* Auto-resize textarea */
+document.addEventListener('DOMContentLoaded', function(){
+  var inp = document.getElementById('alChatInput');
+  if(inp) inp.addEventListener('input', function(){
+    this.style.height = '';
+    this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+  });
+});
+
+/* ── GPS Live-Standort (sendet Position an Leitstelle) ── */
+var _alGpsWatchId  = null;
+var _alGpsLastSent = 0;
+var GPS_SETTINGS_KEY = 'nursy_al_gps_v1';
+
+function _gpsSettings() {
+  try { return JSON.parse(localStorage.getItem(GPS_SETTINGS_KEY)) || {}; } catch(e) { return {}; }
+}
+
+function _syncGpsBtn() {
+  var s   = _gpsSettings();
+  var btn = document.getElementById('alGpsBtn');
+  var on  = s.enabled !== false;          // Standard: AN
+  if (btn) btn.classList.toggle('al-ton-btn--muted', !on);
+  if (on) {
+    if (fahrzeug && _alGpsWatchId === null) alGpsStart();
+  } else {
+    alGpsStop();
+    alGpsSetStatus('aus');
+  }
+}
+
+function alGpsStart() {
+  if (!fahrzeug || !navigator.geolocation) return;
+  alGpsSetStatus('suche');
+  _alGpsWatchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      alGpsSetStatus('aktiv');
+      var now = Date.now();
+      if (now - _alGpsLastSent < 20000) return;
+      _alGpsLastSent = now;
+      authFetch('/api/fahrzeuge/position', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fahrzeug: fahrzeug, lat: pos.coords.latitude, lng: pos.coords.longitude })
+      }).catch(function(){});
+    },
+    function() { alGpsSetStatus('fehler'); },
+    { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
+  );
+}
+
+function alGpsStop() {
+  if (_alGpsWatchId !== null) {
+    navigator.geolocation.clearWatch(_alGpsWatchId);
+    _alGpsWatchId = null;
+  }
+}
+
+function alGpsSetStatus(s) {
+  var el = document.getElementById('alGpsBadge');
+  if (!el) return;
+  var states = {
+    aktiv:  { t: '📍 GPS aktiv',        c: 'aktiv'  },
+    suche:  { t: '🔍 GPS sucht…',       c: 'suche'  },
+    fehler: { t: '⚠️ GPS Fehler',       c: 'fehler' },
+    aus:    { t: '📵 GPS deaktiviert',   c: 'fehler' }
+  };
+  var v = states[s];
+  if (!v) { el.style.display = 'none'; return; }
+  el.textContent = v.t;
+  el.className   = 'al-duty__badge al-gps al-gps--' + v.c;
+  el.style.display = '';
+}
+
+/* ── GPS-Einstellungs-Overlay ── */
+function alOpenGpsSettings() {
+  var overlay = document.getElementById('alGpsOverlay');
+  var pwSec   = document.getElementById('alGpsPwSection');
+  var setsSec = document.getElementById('alGpsSettingsSection');
+  var pwIn    = document.getElementById('alGpsPwInput');
+  var pwErr   = document.getElementById('alGpsPwErr');
+  pwIn.value = '';
+  pwErr.style.display = 'none';
+  pwSec.style.display = '';
+  setsSec.style.display = 'none';
+  overlay.classList.add('show');
+  setTimeout(function(){ pwIn.focus(); }, 200);
+}
+
+function alGpsUnlock() {
+  var pw    = (document.getElementById('alGpsPwInput').value || '').trim();
+  var pwErr = document.getElementById('alGpsPwErr');
+  if (_TON_PASSWORDS.indexOf(pw) === -1) {
+    pwErr.style.display = '';
+    document.getElementById('alGpsPwInput').focus();
+    return;
+  }
+  pwErr.style.display = 'none';
+  document.getElementById('alGpsPwSection').style.display = 'none';
+  var s = _gpsSettings();
+  document.getElementById('alGpsEnabled').checked = s.enabled !== false;
+  document.getElementById('alGpsSettingsSection').style.display = '';
+}
+
+function alGpsSave() {
+  var on = document.getElementById('alGpsEnabled').checked;
+  localStorage.setItem(GPS_SETTINGS_KEY, JSON.stringify({ enabled: on }));
+  _syncGpsBtn();
+  alCloseGpsSettings();
+  toast(on ? '📍 Live-Standort aktiviert' : '📵 Live-Standort deaktiviert');
+}
+
+function alCloseGpsSettings() {
+  document.getElementById('alGpsOverlay').classList.remove('show');
+  document.getElementById('alGpsPwInput').value = '';
+}
+
+/* ── Init ── */
+loadAuftraege(false);
+renderHeader();
+
+/* Initial chat poll (delayed so fahrzeug is set first) */
+setTimeout(function(){ alPollChat(); }, 2000);
+
+// Adaptive polling: 10s when tab is focused, 30s when in background
+var _pollInterval = null;
+function startPoll(fast) {
+  clearInterval(_pollInterval);
+  clearInterval(_chatPollTimer);
+  var interval = fast ? 10000 : 30000;
+  _pollInterval  = setInterval(function(){ loadAuftraege(true); }, interval);
+  _chatPollTimer = setInterval(function(){ alPollChat(); }, interval);
+}
+startPoll(true);
+document.addEventListener('visibilitychange', function(){
+  startPoll(!document.hidden);
+});
+</script>
+</body>
+</html>

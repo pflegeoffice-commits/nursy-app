@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Profil & Qualifikation (Pflegekraft)</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .rp-section{background:#fff;border-radius:var(--radius,14px);box-shadow:0 2px 12px rgba(15,26,51,.07);padding:22px 24px;margin-bottom:16px}
+    .rp-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f3f4f6}
+    .rp-head__text h3{margin:0;font-size:.95rem;font-weight:700;color:#1e293b}
+    .rp-head__text p{margin:3px 0 0;font-size:.78rem;color:#9ca3af}
+    .rp-label{display:block;font-size:.72rem;font-weight:700;color:#374151;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+    .rp-input{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:9px;padding:11px 13px;font-size:.88rem;font-family:inherit;color:#1e293b;background:#fafafa;transition:border-color .15s,box-shadow .15s;outline:none}
+    .rp-input:focus{border-color:#3f6fe8;box-shadow:0 0 0 3px rgba(63,111,232,.13);background:#fff}
+    .rp-input::placeholder{color:#c0c8d8}
+    select.rp-input{cursor:pointer}
+    textarea.rp-input{resize:vertical;min-height:96px;line-height:1.55}
+    .rp-hint{font-size:.72rem;color:#9ca3af;margin-top:4px}
+    .rp-field{margin-bottom:14px}
+    .rp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .qual-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+    .qual-card{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 10px;border:2px solid #e5e7eb;border-radius:11px;cursor:pointer;text-align:center;user-select:none;transition:all .14s;background:#fafafa}
+    .qual-card input{display:none}
+    .qual-card__title{font-size:.85rem;font-weight:700;color:#374151;line-height:1.2}
+    .qual-card__sub{font-size:.68rem;color:#9ca3af;line-height:1.3}
+    .qual-card--on{border-color:#3f6fe8;background:#eff2fd}
+    .qual-card--on .qual-card__title{color:#1d4ed8}
+    .rp-extras{display:flex;flex-direction:column;gap:8px}
+    .rp-extras__row{display:flex;gap:8px;align-items:center}
+    .rp-extras__row select{flex:1}
+    .rp-extras__row input{flex:1}
+    .rp-extras__del{background:none;border:1.5px solid #fca5a5;color:#ef4444;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.78rem;flex-shrink:0;transition:all .12s;font-family:inherit}
+    .rp-extras__del:hover{background:#fef2f2}
+    .rp-add-btn{background:transparent;border:1.5px dashed #d1d5db;border-radius:9px;padding:10px 16px;font-size:.8rem;color:#6b7280;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;transition:all .15s}
+    .rp-add-btn:hover{border-color:#3f6fe8;color:#3f6fe8;background:rgba(63,111,232,.04)}
+    .upload-boxes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+    .upload-box-r{border:2px dashed #e5e7eb;border-radius:11px;padding:20px 12px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;display:block}
+    .upload-box-r:hover{border-color:#3f6fe8;background:rgba(63,111,232,.04)}
+    .upload-box-r--done{border-color:#10b981;background:#f0fdf4}
+    .upload-box-r__label{font-size:.78rem;font-weight:600;color:#374151;display:block}
+    .upload-box-r__status{font-size:.7rem;color:#9ca3af;display:block;margin-top:3px}
+    .rp-footer{display:flex;gap:10px;align-items:center;margin-top:4px}
+    .rp-btn-back{background:rgba(255,255,255,.9);border:1px solid rgba(63,111,232,.25);color:#3f6fe8;border-radius:10px;padding:13px 20px;font-size:.9rem;cursor:pointer;font-family:inherit;text-decoration:none;display:flex;align-items:center;gap:5px;transition:all .15s;flex-shrink:0}
+    .rp-btn-back:hover{background:rgba(63,111,232,.05);border-color:rgba(63,111,232,.4);text-decoration:none}
+    .rp-btn-next{flex:1;background:#3f6fe8;color:#fff;border:1px solid rgba(63,111,232,.4);border-radius:10px;padding:14px 20px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:filter .15s;letter-spacing:.01em}
+    .rp-btn-next:hover{filter:brightness(.92)}
+    @media(max-width:560px){
+      .qual-cards{grid-template-columns:repeat(2,1fr)}
+      .upload-boxes,.rp-grid2{grid-template-columns:1fr}
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert's</a>
+      <a href="index.html#login">Login</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container" style="padding-top:24px;padding-bottom:40px;">
+
+  <div class="reg-steps" style="margin-bottom:20px;">
+    <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">Stammdaten</div></div>
+    <div class="reg-step__line reg-step__line--done"></div>
+    <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">E-Mail</div></div>
+    <div class="reg-step__line reg-step__line--done"></div>
+    <div class="reg-step reg-step--active"><div class="reg-step__num">3</div><div class="reg-step__label">Profil</div></div>
+    <div class="reg-step__line"></div>
+    <div class="reg-step"><div class="reg-step__num">4</div><div class="reg-step__label">Verfügbarkeit</div></div>
+  </div>
+
+  <form data-demo-next="care" id="profileForm">
+    <div class="form-error" id="profileError" role="alert"></div>
+
+    <div class="rp-section">
+      <div class="rp-head">
+        <div class="rp-head__text">
+          <h3>Kurzbeschreibung</h3>
+          <p>Dein Aushängeschild – sichtbar für alle Klienten</p>
+        </div>
+      </div>
+      <div class="rp-field">
+        <label class="rp-label" for="p-bio">Beschreibung</label>
+        <textarea class="rp-input" id="p-bio" rows="4"
+          placeholder="z. B. DGKP mit 10 Jahren Erfahrung in der Langzeitpflege, Schwerpunkte Wundmanagement und Demenzbetreuung. Ich arbeite einfühlsam und zuverlässig."
+          required></textarea>
+        <p class="rp-hint">Max. 3–5 Sätze – klar und gut lesbar für Klienten.</p>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-head">
+        <div class="rp-head__text">
+          <h3>Grundqualifikation</h3>
+          <p>Wähle deine offizielle Hauptqualifikation</p>
+        </div>
+      </div>
+
+      <div class="qual-cards" id="qualCardGrid">
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="DGKP">
+          <span class="qual-card__title">DGKP</span>
+          <span class="qual-card__sub">Dipl. Gesundheits- und Krankenpflege</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="PA">
+          <span class="qual-card__title">PA</span>
+          <span class="qual-card__sub">Pflegeassistenz</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="PFA">
+          <span class="qual-card__title">PFA</span>
+          <span class="qual-card__sub">Pflegefachassistenz</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="Heimhilfe">
+          <span class="qual-card__title">Heimhilfe</span>
+          <span class="qual-card__sub">Häusliche Betreuung</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="Sozialbetreuung">
+          <span class="qual-card__title">Sozialbetreuung</span>
+          <span class="qual-card__sub">Behindertenbegleitung</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="Bachelor">
+          <span class="qual-card__title">Bachelor</span>
+          <span class="qual-card__sub">B.Sc. Pflegewissenschaft</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="Master">
+          <span class="qual-card__title">Master</span>
+          <span class="qual-card__sub">M.Sc. / Advanced Nursing Practice</span>
+        </label>
+        <label class="qual-card">
+          <input type="radio" name="qual-card-radio" value="Sonstiges">
+          <span class="qual-card__title">Sonstiges</span>
+          <span class="qual-card__sub">Andere Qualifikation</span>
+        </label>
+      </div>
+
+      <select class="sr-only" id="p-qual-main" required tabindex="-1" aria-hidden="true">
+        <option value="">Bitte auswählen</option>
+        <option value="DGKP">DGKP</option>
+        <option value="PA">Pflegeassistenz (PA)</option>
+        <option value="PFA">Pflegefachassistenz (PFA)</option>
+        <option value="Heimhilfe">Heimhilfe</option>
+        <option value="Sozialbetreuung">Sozialbetreuung / Behindertenbegleitung</option>
+        <option value="Bachelor">Bachelor – B.Sc. Pflegewissenschaft</option>
+        <option value="Master">Master – M.Sc. / Advanced Nursing Practice</option>
+        <option value="Sonstiges">Sonstiges</option>
+      </select>
+
+      <div id="qualOtherWrap" style="display:none;margin-top:14px;">
+        <label class="rp-label" for="p-qual-other">Sonstiges – bitte angeben</label>
+        <input class="rp-input" id="p-qual-other" type="text" placeholder="z. B. Rettungssanitäter, Medizinische Fachkraft…" />
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-head">
+        <div class="rp-head__text">
+          <h3>Zusatzausbildungen</h3>
+          <p>Optionale Weiterbildungen – beliebig viele hinzufügen</p>
+        </div>
+      </div>
+
+      <div class="rp-extras" id="extrasList">
+        <div class="rp-extras__row">
+          <select class="rp-input extras__select">
+            <option value="">Bitte auswählen</option>
+            <option>Wundmanagement</option>
+            <option>Palliativpflege</option>
+            <option>Demenzbegleitung</option>
+            <option>Basale Stimulation</option>
+            <option>Kinästhetik</option>
+            <option>Stomaversorgung</option>
+            <option>Diabetesberatung</option>
+            <option>Medikamentenmanagement</option>
+            <option>Intensiv-/Akutpflege</option>
+            <option>Sonstiges</option>
+          </select>
+          <input class="rp-input extras__other" type="text" placeholder="Sonstiges…" style="display:none;" />
+          <button class="rp-extras__del extras__remove" type="button">✕</button>
+        </div>
+      </div>
+      <button class="rp-add-btn" id="addExtra" type="button">+ Weitere Zusatzausbildung hinzufügen</button>
+    </div>
+
+    <div class="rp-section">
+      <div class="rp-head">
+        <div class="rp-head__text">
+          <h3>Gesundheitsberufsregister – Nachweis</h3>
+          <p>Vorder- und Rückseite hochladen (Demo: nur lokale Auswahl)</p>
+        </div>
+      </div>
+
+      <div class="upload-boxes">
+        <label class="upload-box-r" for="gbr-front" id="uploadFrontBox">
+          <span class="upload-box-r__label">Vorderseite</span>
+          <span class="upload-box-r__status" id="gbrFrontStatus">Klicken zum Hochladen</span>
+          <input id="gbr-front" type="file" accept="image/*,application/pdf" class="sr-only" required />
+        </label>
+        <label class="upload-box-r" for="gbr-back" id="uploadBackBox">
+          <span class="upload-box-r__label">Rückseite</span>
+          <span class="upload-box-r__status" id="gbrBackStatus">Klicken zum Hochladen</span>
+          <input id="gbr-back" type="file" accept="image/*,application/pdf" class="sr-only" required />
+        </label>
+      </div>
+
+      <div class="rp-field">
+        <label class="rp-label" for="gbr-id">GBR-Registernummer <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#9ca3af;">(optional)</span></label>
+        <input class="rp-input" id="gbr-id" type="text" placeholder="z. B. GBR-XXXXXXXX" />
+      </div>
+    </div>
+
+    <div class="rp-footer">
+      <a class="rp-btn-back" href="verify-email.html">← Zurück</a>
+      <button class="rp-btn-next" type="submit">Weiter zu Verfügbarkeit →</button>
+    </div>
+
+  </form>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links"><a href="#">Impressum</a><a href="#">Datenschutz</a></div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+(function () {
+  var qualSelect = document.getElementById('p-qual-main');
+  var qualOtherWrap = document.getElementById('qualOtherWrap');
+
+  document.querySelectorAll('[name="qual-card-radio"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      document.querySelectorAll('.qual-card').forEach(function (c) { c.classList.remove('qual-card--on'); });
+      this.closest('.qual-card').classList.add('qual-card--on');
+      if (qualSelect) qualSelect.value = this.value;
+      if (qualOtherWrap) qualOtherWrap.style.display = this.value === 'Sonstiges' ? '' : 'none';
+    });
+  });
+
+  function wireExtrasRow(row) {
+    var sel = row.querySelector('.extras__select');
+    var other = row.querySelector('.extras__other');
+    var del = row.querySelector('.extras__remove');
+    if (sel) sel.addEventListener('change', function () {
+      if (other) other.style.display = this.value === 'Sonstiges' ? '' : 'none';
+    });
+    if (del) del.addEventListener('click', function () { row.remove(); });
+  }
+  document.querySelectorAll('.rp-extras__row').forEach(wireExtrasRow);
+
+  document.getElementById('addExtra').addEventListener('click', function () {
+    var row = document.createElement('div');
+    row.className = 'rp-extras__row';
+    row.innerHTML =
+      '<select class="rp-input extras__select"><option value="">Bitte auswählen</option>' +
+      '<option>Wundmanagement</option><option>Palliativpflege</option><option>Demenzbegleitung</option>' +
+      '<option>Basale Stimulation</option><option>Kinästhetik</option><option>Stomaversorgung</option>' +
+      '<option>Diabetesberatung</option><option>Medikamentenmanagement</option><option>Intensiv-/Akutpflege</option>' +
+      '<option>Sonstiges</option></select>' +
+      '<input class="rp-input extras__other" type="text" placeholder="Sonstiges…" style="display:none;"/>' +
+      '<button class="rp-extras__del extras__remove" type="button">✕</button>';
+    document.getElementById('extrasList').appendChild(row);
+    wireExtrasRow(row);
+  });
+
+  function wireUpload(inputId, statusId, boxId) {
+    var inp = document.getElementById(inputId);
+    var status = document.getElementById(statusId);
+    var box = document.getElementById(boxId);
+    if (inp) inp.addEventListener('change', function () {
+      if (this.files[0]) {
+        if (status) { status.textContent = this.files[0].name; status.style.color = '#10b981'; }
+        if (box) box.classList.add('upload-box-r--done');
+      }
+    });
+  }
+  wireUpload('gbr-front', 'gbrFrontStatus', 'uploadFrontBox');
+  wireUpload('gbr-back', 'gbrBackStatus', 'uploadBackBox');
+
+  document.getElementById('profileForm').addEventListener('submit', function (e) {
+    var qualSelect = document.getElementById('p-qual-main');
+    if (!qualSelect || !qualSelect.value) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      var err = document.getElementById('profileError');
+      if (err) { err.textContent = 'Bitte wähle eine Grundqualifikation aus.'; err.style.display = 'block'; err.style.cssText += ';color:#ef4444;background:#fef2f2;border:1px solid #fca5a5;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:.84rem;'; }
+      document.getElementById('qualCardGrid').scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  }, true);
+}());
+</script>
+</body>
+</html>

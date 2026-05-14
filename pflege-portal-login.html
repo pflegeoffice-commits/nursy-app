@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Akut Plus – Pflegeportal</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { font-family:ui-sans-serif,system-ui,sans-serif; min-height:100vh; background:linear-gradient(160deg,#1a2744,#243560 60%,#1e3a6e); padding:30px 16px 60px; }
+
+    .login-wrap { max-width:480px; margin:0 auto; }
+
+    .login-logo { text-align:center; color:#fff; margin-bottom:24px; }
+    .login-logo h1 { margin:0; font-size:2rem; font-weight:900; letter-spacing:-.5px; }
+    .login-logo p  { margin:4px 0 0; font-size:.8rem; color:#a8c4e8; }
+
+    .login-card { background:#fff; border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden; }
+    .login-card-head { padding:20px 24px 16px; border-bottom:1px solid #f0f4fa; }
+    .login-card-head h2 { margin:0 0 3px; font-size:1rem; font-weight:800; color:#0f1a33; }
+    .login-card-head p  { margin:0; font-size:.75rem; color:#7a8faa; }
+    .login-card-body { padding:20px 24px 24px; }
+
+    .form-group { margin-bottom:14px; }
+    .form-label { display:block; font-size:.75rem; font-weight:700; color:#374151; margin-bottom:5px; }
+    .form-inp { width:100%; height:42px; border-radius:10px; border:1.5px solid #dde6f2; padding:0 13px; font-size:.85rem; font-family:inherit; box-sizing:border-box; transition:border .15s; background:#fff; }
+    .form-inp:focus { outline:none; border-color:#3f6fe8; }
+
+    .btn-login { width:100%; height:46px; background:#3f6fe8; color:#fff; border:none; border-radius:10px; font-size:.9rem; font-weight:800; cursor:pointer; font-family:inherit; transition:background .15s; margin-top:6px; }
+    .btn-login:hover { background:#2d5bd4; }
+    .btn-login:disabled { opacity:.6; cursor:default; }
+
+    .alert { border-radius:9px; padding:10px 14px; font-size:.78rem; margin-bottom:12px; }
+    .alert-err { background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; }
+
+    .login-footer { text-align:center; margin-top:16px; font-size:.78rem; color:#a8c4e8; }
+    .login-footer a { color:#a8c4e8; font-weight:700; text-decoration:none; }
+    .login-footer a:hover { text-decoration:underline; }
+
+    .divider { border:none; border-top:1px solid #f0f4fa; margin:18px 0 14px; }
+    .links { text-align:center; font-size:.78rem; color:#6b7280; }
+    .links a { color:#3f6fe8; font-weight:700; text-decoration:none; }
+    .links a:hover { text-decoration:underline; }
+  </style>
+    <link rel="manifest" href="/manifest-portal.json">
+    <link rel="apple-touch-icon" href="/icon-portal-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<div class="login-wrap">
+
+  <div class="login-logo">
+    <h1>Akut Plus</h1>
+    <p>Pflegedienste auf höchstem Niveau · Mitarbeiterbereich</p>
+  </div>
+
+  <div class="login-card">
+    <div class="login-card-head">
+      <h2>Anmelden</h2>
+      <p>Bitte melde dich mit deiner E-Mail-Adresse und deinem Passwort an.</p>
+    </div>
+    <div class="login-card-body">
+      <div id="alertBox"></div>
+      <div class="form-group">
+        <label class="form-label">E-Mail Adresse</label>
+        <input type="email" class="form-inp" id="email" placeholder="ihre@email.at" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Passwort</label>
+        <input type="password" class="form-inp" id="pw" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">Anmelden</button>
+      <div class="divider"></div>
+      <div class="links">
+        Noch kein Konto? <a href="/pflege-portal-register.html">Hier registrieren</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-footer">
+    <a href="/">← Zur Startseite</a>
+  </div>
+
+</div>
+<script>
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pw    = document.getElementById('pw').value;
+  const btn   = document.getElementById('loginBtn');
+  const alertEl = document.getElementById('alertBox');
+  if (!email || !pw) { alertEl.innerHTML='<div class="alert alert-err">Bitte E-Mail und Passwort eingeben.</div>'; return; }
+  btn.disabled=true; btn.textContent='Wird geprüft…';
+  const r = await fetch('/api/portal/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+  const d = await r.json();
+  if (d.ok) {
+    sessionStorage.setItem('nursy_portal_auth','1');
+    // Fahrzeugbestätigung nötig?
+    try {
+      const ck  = await fetch('/api/fahrzeug/check', { credentials: 'include' });
+      const ckd = await ck.json();
+      if (ckd.ok && !ckd.signed) {
+        location.href = '/fahrzeug-bestaetigung.html';
+      } else {
+        location.href = '/portal/app';
+      }
+    } catch(e) {
+      location.href = '/portal/app';
+    }
+  } else { alertEl.innerHTML=`<div class="alert alert-err">${d.error||'Fehler beim Anmelden'}</div>`; btn.disabled=false; btn.textContent='Anmelden'; }
+}
+document.addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/portal/sw.js',{scope:'/portal/'});}</script>
+</body>
+</html>

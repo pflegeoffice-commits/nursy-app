@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nursy – Verfügbarkeit & Präferenzen (Pflegekraft)</title><link rel="stylesheet" href="styles.css" />    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert's</a>
+      <a href="index.html#login">Login</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+<section class="section">
+  <div class="section__head">
+    <h2>Pflegekraft – Verfügbarkeit &amp; Präferenzen</h2>
+  </div>
+  <div class="reg-steps">
+    <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">Stammdaten</div></div>
+    <div class="reg-step__line reg-step__line--done"></div>
+    <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">E-Mail</div></div>
+    <div class="reg-step__line reg-step__line--done"></div>
+    <div class="reg-step reg-step--done"><div class="reg-step__num">✓</div><div class="reg-step__label">Profil</div></div>
+    <div class="reg-step__line reg-step__line--done"></div>
+    <div class="reg-step reg-step--active"><div class="reg-step__num">4</div><div class="reg-step__label">Verfügbarkeit</div></div>
+  </div>
+
+  <div class="card">
+    <form data-demo-next="care-finish" id="availForm">
+
+      <!-- Verfügbarkeitstyp -->
+      <div class="card card--inner">
+        <div class="sec-head"><h3>Verfügbarkeitstyp</h3></div>
+        <div class="avail-mode" id="availModeBox">
+          <label class="avail-mode__opt avail-mode__opt--on">
+            <input type="radio" name="avail-type" value="regular" checked>
+            <strong>Regelmäßig</strong>
+            <small>Feste Wochentage</small>
+          </label>
+          <label class="avail-mode__opt">
+            <input type="radio" name="avail-type" value="irregular">
+            <strong>Unregelmäßig</strong>
+            <small>Je nach Anfrage</small>
+          </label>
+          <label class="avail-mode__opt">
+            <input type="radio" name="avail-type" value="both">
+            <strong>Beides möglich</strong>
+            <small>Flexibel</small>
+          </label>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <!-- Wochentage & Zeiten -->
+      <div class="card card--inner" id="regularDaysCard">
+        <div class="sec-head">
+          <h3>Wochentage &amp; Zeiten</h3>
+          <label class="sec-head__action" id="selectAllLabel">
+            <input type="checkbox" id="selectAllDays" style="accent-color:#3f6fe8;"> Alle auswählen
+          </label>
+        </div>
+        <div class="avail-grid-v2" id="availDayGrid"></div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <!-- Einsatzradius -->
+      <div class="card card--inner">
+        <div class="sec-head"><h3>Einsatzradius</h3></div>
+        <p class="muted" style="margin:0 0 4px;font-size:.82rem;">Wie weit bist du bereit zu deinen Einsatzorten zu fahren?</p>
+        <div class="radius-wrap">
+          <input type="range" id="radiusSlider" min="1" max="100" value="25">
+          <span class="radius-val" id="radiusVal">25 km</span>
+        </div>
+        <div class="help">Einsätze außerhalb dieses Radius werden im Matching nicht vorgeschlagen.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <!-- Gewünschte Einsatzarten -->
+      <div class="card card--inner">
+        <div class="sec-head"><h3>Gewünschte Einsatzarten</h3></div>
+        <p class="muted" style="margin:0 0 4px;font-size:.82rem;">Wähle alle Bereiche, die du übernehmen möchtest. Mehrfachauswahl möglich.</p>
+        <div class="assign-chips" id="assignChips"></div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <!-- Beschäftigungsmodell -->
+      <div class="card card--inner">
+        <div class="sec-head"><h3>Beschäftigungsmodell</h3></div>
+        <p class="muted" style="margin:0 0 4px;font-size:.82rem;">Welche Einsatzmodelle kommen für dich in Frage? Mehrfachauswahl möglich.</p>
+        <div class="model-cards" id="modelCards"></div>
+      </div>
+
+      <div style="height:20px"></div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a class="control btn" href="register-care-profile.html" style="padding:14px 20px;font-size:1rem;">← Zurück</a>
+        <button class="control btn primary" type="submit" style="flex:1;font-size:1rem;padding:14px;">Profil abschließen &amp; aktiv werden →</button>
+      </div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links"><a href="#">Impressum</a><a href="#">Datenschutz</a></div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+(function () {
+  var DAYS = [
+    {key:'Mo',label:'Montag'},{key:'Di',label:'Dienstag'},{key:'Mi',label:'Mittwoch'},
+    {key:'Do',label:'Donnerstag'},{key:'Fr',label:'Freitag'},{key:'Sa',label:'Samstag'},{key:'So',label:'Sonntag'}
+  ];
+  var ASSIGNS = [
+    'Körperpflege','Medikamentengabe','Wundversorgung','Demenzbetreuung',
+    'Palliativbegleitung','Mobilisierung & Training','Haushalt & Alltagshilfe',
+    'Nachtdienst','24h-Betreuung','Fahrdienst / Begleitung',
+    'Stoma- & Katheterversorgung','Ernährungsmanagement','Kinästhetik','Basale Stimulation'
+  ];
+  var MODELS = [
+    {lbl:'Vollzeit',sub:'≥ 35 Std./Woche'},
+    {lbl:'Teilzeit',sub:'15–35 Std./Woche'},
+    {lbl:'Geringfügig',sub:'< 15 Std./Woche'},
+    {lbl:'Stundenbasis',sub:'Projektbezogen'},
+    {lbl:'24h-Betreuung',sub:'Im Wohnhaushalt'},
+    {lbl:'Springerdienst',sub:'Kurzfristig / flexibel'}
+  ];
+
+  var grid = document.getElementById('availDayGrid');
+  DAYS.forEach(function (d) {
+    var row = document.createElement('div');
+    row.className = 'avail-row-v2 avail-row-v2--off';
+    row.dataset.day = d.key;
+    row.innerHTML =
+      '<label style="cursor:pointer;display:flex;align-items:center;">' +
+        '<input type="checkbox" class="avail-check" data-day="' + d.key + '" style="width:16px;height:16px;margin:0;accent-color:#3f6fe8;">' +
+      '</label>' +
+      '<span class="avail-row-v2__day">' + d.key + '</span>' +
+      '<div class="avail-row-v2__times">' +
+        '<input class="control avail-time" type="time" data-day="' + d.key + '" data-slot="start" value="" disabled style="width:96px;">' +
+        '<span style="color:#9ca3af;padding:0 2px;">–</span>' +
+        '<input class="control avail-time" type="time" data-day="' + d.key + '" data-slot="end" value="" disabled style="width:96px;">' +
+      '</div>' +
+      '<label class="avail-row-v2__ganztags">' +
+        '<input type="checkbox" class="ganztags-check" data-day="' + d.key + '" disabled>' +
+        ' Ganztags' +
+      '</label>';
+    grid.appendChild(row);
+
+    var cb = row.querySelector('.avail-check');
+    var s = row.querySelector('[data-slot="start"]');
+    var e = row.querySelector('[data-slot="end"]');
+    var gz = row.querySelector('.ganztags-check');
+
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        row.classList.remove('avail-row-v2--off');
+        s.disabled = false; e.disabled = false; gz.disabled = false;
+        if (!s.value) s.value = '08:00';
+        if (!e.value) e.value = '16:00';
+      } else {
+        row.classList.add('avail-row-v2--off');
+        s.disabled = true; e.disabled = true; gz.disabled = true; gz.checked = false;
+      }
+    });
+    gz.addEventListener('change', function () {
+      if (this.checked) { s.value = '00:00'; e.value = '23:59'; s.disabled = true; e.disabled = true; }
+      else { s.value = '08:00'; e.value = '16:00'; s.disabled = false; e.disabled = false; }
+    });
+  });
+
+  document.getElementById('selectAllDays').addEventListener('change', function () {
+    var on = this.checked;
+    document.querySelectorAll('.avail-check').forEach(function (cb) {
+      cb.checked = on; cb.dispatchEvent(new Event('change'));
+    });
+  });
+
+  document.querySelectorAll('[name="avail-type"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      document.querySelectorAll('.avail-mode__opt').forEach(function (l) { l.classList.remove('avail-mode__opt--on'); });
+      this.closest('.avail-mode__opt').classList.add('avail-mode__opt--on');
+      var card = document.getElementById('regularDaysCard');
+      if (card) card.style.display = (this.value === 'irregular') ? 'none' : '';
+    });
+  });
+
+  var slider = document.getElementById('radiusSlider');
+  var valEl = document.getElementById('radiusVal');
+  if (slider && valEl) {
+    slider.addEventListener('input', function () { valEl.textContent = this.value + ' km'; });
+  }
+
+  var chipsEl = document.getElementById('assignChips');
+  ASSIGNS.forEach(function (name) {
+    var lbl = document.createElement('label');
+    lbl.className = 'assign-chip';
+    lbl.innerHTML = '<input type="checkbox" name="assign" value="' + name + '">' + name;
+    lbl.querySelector('input').addEventListener('change', function () { lbl.classList.toggle('assign-chip--on', this.checked); });
+    chipsEl.appendChild(lbl);
+  });
+
+  var modelEl = document.getElementById('modelCards');
+  MODELS.forEach(function (m) {
+    var lbl = document.createElement('label');
+    lbl.className = 'model-card';
+    lbl.innerHTML =
+      '<input type="checkbox" name="model" value="' + m.lbl + '">' +
+      '<span class="model-card__lbl">' + m.lbl + '</span>' +
+      '<span class="model-card__sub">' + m.sub + '</span>';
+    lbl.querySelector('input').addEventListener('change', function () { lbl.classList.toggle('model-card--on', this.checked); });
+    modelEl.appendChild(lbl);
+  });
+
+  document.getElementById('availForm').addEventListener('submit', function () {
+    try {
+      var modeEl = document.querySelector('[name="avail-type"]:checked');
+      var assigns = Array.from(document.querySelectorAll('[name="assign"]:checked')).map(function (i) { return i.value; });
+      var models = Array.from(document.querySelectorAll('[name="model"]:checked')).map(function (i) { return i.value; });
+      var prefs = {
+        availType: modeEl ? modeEl.value : 'regular',
+        radiusKm: slider ? parseInt(slider.value) : 25,
+        assigns: assigns,
+        models: models
+      };
+      localStorage.setItem('nursy_care_preferences_v1', JSON.stringify(prefs));
+    } catch (e) {}
+  }, true);
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+Baue diese Nursy-Web-App professionell auf eine echte persistente SQL-Datenbank um und entferne die reine localStorage-Speicherung für sensible Daten.
+
+WICHTIG:
+Die App verarbeitet pflegerische und medizinische Daten. Deshalb muss die Architektur datenschutzfreundlich und professionell aufgebaut werden.
+
+AUFGABEN:
+
+1. SQL-DATENBANK
+- Nutze die Replit SQL Database über die vorhandene DATABASE_URL Umgebungsvariable.
+- Erstelle persistente Tabellen für:
+  - Benutzer
+  - Pflegekräfte
+  - Klienten
+  - Einsätze
+  - Pflegedokumentationen
+  - Rechnungen
+  - Nachrichten
+  - Termine
+
+2. BACKEND
+- Verwende Flask + SQLAlchemy.
+- Trenne Frontend und Backend sauber.
+- Erstelle API-Endpunkte für:
+  - Registrierung
+  - Login
+  - Logout
+  - Benutzerverwaltung
+  - Einsatzverwaltung
+  - Dokumentationen
+  - Rechnungen
+
+3. LOGIN & SICHERHEIT
+- Passwörter niemals im Klartext speichern.
+- Nutze bcrypt oder werkzeug.security zum Hashen.
+- Implementiere Sessions oder JWT.
+- Rollen:
+  - Admin
+  - Pflegekraft
+  - Klient
+
+4. DATENSCHUTZ
+- Keine sensiblen Daten mehr in localStorage speichern.
+- Gesundheitsdaten nur serverseitig speichern.
+- Secrets und Zugangsdaten ausschließlich über Replit Secrets verwalten.
+- App ausschließlich über HTTPS betreiben.
+
+5. TESTMODUS
+- Erstelle Testdaten:
+  - 1 Admin
+  - 2 Pflegekräfte
+  - 2 Klienten
+  - 3 Einsätze
+- Prüfe automatisch:
+  - Login funktioniert
+  - Registrierung funktioniert
+  - Daten bleiben nach Neustart erhalten
+  - Datenbank speichert korrekt persistent
+
+6. ADMIN-DASHBOARD
+- Übersicht aller Benutzer
+- Einsätze anzeigen
+- Dokumentationen anzeigen
+- Rechnungen anzeigen
+- Benutzer deaktivieren/löschen
+
+7. FEHLERPRÜFUNG
+- Prüfe das gesamte Projekt auf:
+  - localStorage Nutzung
+  - unsichere Passwortspeicherung
+  - fehlende Datenbankanbindung
+  - fehlerhafte API-Aufrufe
+  - fehlende Formularvalidierung
+
+8. STARTMODUS
+- Stelle sicher, dass die App über:
+  python3 server.py
+  korrekt startet.
+
+9. AUSGABE
+- Zeige nach Abschluss:
+  - welche Datenbanktabellen erstellt wurden
+  - welche API-Routen existieren
+  - welche Daten jetzt persistent gespeichert werden
+  - welche Sicherheitsmaßnahmen aktiv sind
+  - wie ich den Testmodus starte

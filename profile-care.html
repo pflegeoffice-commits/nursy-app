@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Profil Pflegekraft</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Profil-Header Card ── */
+    .p-header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+    .p-header__left{display:flex;align-items:center;gap:16px}
+    .p-header__avatar{width:72px;height:72px;border-radius:50%;border:2px solid rgba(63,111,232,.2);background:linear-gradient(180deg,#fff,#f3f7ff);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:600;cursor:pointer;overflow:hidden;flex-shrink:0;position:relative}
+    .p-header__avatar img{width:100%;height:100%;object-fit:cover}
+    .p-header__avatar-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;border-radius:50%;font-size:.65rem;color:#fff;text-align:center}
+    .p-header__avatar:hover .p-header__avatar-overlay{display:flex}
+    .p-header__name{margin:0 0 3px;font-size:1.2rem;font-weight:700}
+    .p-header__sub{margin:0 0 8px;font-size:.82rem;color:var(--muted)}
+    .p-header__pills{display:flex;flex-wrap:wrap;gap:6px}
+    /* ── Tab-Leiste ── */
+    .p-tabs{display:flex;gap:4px;background:#fff;border-radius:12px;padding:5px;box-shadow:0 2px 10px rgba(63,111,232,.08);margin-bottom:16px}
+    .p-tab{flex:1;padding:10px 8px;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:500;color:#6b7280;font-family:inherit;transition:all .15s}
+    .p-tab--active{background:#3f6fe8;color:#fff;box-shadow:0 2px 8px rgba(63,111,232,.3)}
+    /* ── Tab-Panels ── */
+    .p-panel{display:none}.p-panel--active{display:block}
+    /* ── Formular-Sektionen ── */
+    .p-section{background:#fff;border-radius:var(--radius);box-shadow:0 2px 10px rgba(15,26,51,.06);padding:20px 22px;margin-bottom:14px}
+    .p-section__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f3f4f6}
+    .p-section__title{font-size:.9rem;font-weight:700;color:#1e293b;margin:0}
+    .p-save-btn{background:#3f6fe8;color:#fff;border:1px solid rgba(63,111,232,.3);border-radius:9px;padding:8px 18px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:filter .15s}
+    .p-save-btn:hover{filter:brightness(.92)}
+    .p-save-btn--ok{background:#10b981;border-color:rgba(16,185,129,.3)}
+    /* ── Felder ── */
+    .p-field{margin-bottom:14px}
+    .p-label{display:block;font-size:.75rem;font-weight:600;color:#374151;margin-bottom:5px;letter-spacing:.02em;text-transform:uppercase}
+    .p-input{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-size:.88rem;font-family:inherit;color:#1e293b;background:#fafafa;transition:border-color .15s,box-shadow .15s;outline:none}
+    .p-input:focus{border-color:#3f6fe8;box-shadow:0 0 0 3px rgba(63,111,232,.13);background:#fff}
+    .p-input[readonly]{background:#f1f5f9;color:#64748b;cursor:default}
+    .p-input::placeholder{color:#9ca3af}
+    select.p-input{cursor:pointer}
+    textarea.p-input{resize:vertical;min-height:88px;line-height:1.5}
+    .p-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .p-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .p-hint{font-size:.72rem;color:#9ca3af;margin-top:4px}
+    /* ── GBR Upload-Boxen ── */
+    .upload-box{border:2px dashed #e5e7eb;border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:border-color .15s}
+    .upload-box:hover,.upload-box--active{border-color:#3f6fe8;background:rgba(63,111,232,.03)}
+    .upload-box__label{font-size:.78rem;color:#6b7280}
+    .upload-box__status{font-size:.72rem;color:#10b981;margin-top:3px}
+    /* ── Extras ── */
+    .p-extras{display:flex;flex-direction:column;gap:8px}
+    .p-extras__row{display:flex;gap:8px;align-items:center}
+    .p-extras__row select{flex:1}
+    .p-extras__row input{flex:1}
+    .p-extras__del{background:none;border:1.5px solid #fca5a5;color:#ef4444;border-radius:7px;padding:6px 10px;cursor:pointer;font-size:.78rem;flex-shrink:0;transition:all .12s}
+    .p-extras__del:hover{background:#fef2f2}
+    .p-add-btn{background:transparent;border:1.5px dashed #d1d5db;border-radius:9px;padding:9px 16px;font-size:.8rem;color:#6b7280;cursor:pointer;font-family:inherit;width:100%;margin-top:6px;transition:all .15s}
+    .p-add-btn:hover{border-color:#3f6fe8;color:#3f6fe8;background:rgba(63,111,232,.04)}
+    /* ── Responsive ── */
+    @media(max-width:640px){
+      .p-grid2,.p-grid3{grid-template-columns:1fr}
+      .p-header__left{gap:12px}
+      .p-header__avatar{width:56px;height:56px}
+      .model-cards{grid-template-columns:repeat(2,1fr)}
+
+      /* Tabs: 2×2 auf kleinen Bildschirmen */
+      .p-tabs{flex-wrap:wrap}
+      .p-tab{flex:1 1 calc(50% - 8px);min-width:0;font-size:.78rem;padding:9px 4px}
+
+      /* Abschnitts-Kopf: Titel + Speichern-Button stapeln */
+      .p-section__head{flex-wrap:wrap;gap:8px}
+      .p-save-btn{width:100%;text-align:center}
+
+      /* Profil-Header Buttons */
+      .p-header{flex-direction:column;align-items:flex-start}
+      .p-header > :last-child{width:100%;display:flex;flex-direction:column;gap:8px}
+      .p-header > :last-child .p-save-btn{width:100%}
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+    </a>
+    <nav class="nav">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert's</a>
+      <a href="dashboard-care.html">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container" style="padding-top:24px;padding-bottom:40px;">
+
+  <!-- Profil-Header -->
+  <div class="card p-header" style="margin-bottom:16px;">
+    <div class="p-header__left">
+      <div class="p-header__avatar" id="avatarCircle" title="Foto ändern">
+        <span id="avatarInitials">PK</span>
+        <div class="p-header__avatar-overlay">Ändern</div>
+        <input id="photoInput" type="file" accept="image/*" class="sr-only" />
+      </div>
+      <div>
+        <h2 class="p-header__name" id="heroName">Mein Profil</h2>
+        <p class="p-header__sub" id="heroSub">Pflegekraft</p>
+        <div class="p-header__pills">
+          <span class="pill" id="heroPillToday">Heute —</span>
+          <span class="pill" id="heroPillTomorrow">Morgen —</span>
+          <span class="pill" id="heroPillRadius">Radius: —</span>
+        </div>
+      </div>
+    </div>
+    <a class="control btn" href="dashboard-care.html" style="flex-shrink:0;">← Zurück</a>
+  </div>
+
+  <!-- Tabs -->
+  <div class="p-tabs" role="tablist">
+    <button class="p-tab p-tab--active" data-tab="stammdaten" role="tab">Stammdaten</button>
+    <button class="p-tab" data-tab="qualifikation" role="tab">Qualifikation</button>
+    <button class="p-tab" data-tab="verfuegbarkeit" role="tab">Verfügbarkeit</button>
+    <button class="p-tab" data-tab="praeferenzen" role="tab">Präferenzen</button>
+  </div>
+
+  <!-- TAB 1: STAMMDATEN -->
+  <div class="p-panel p-panel--active" id="tab-stammdaten">
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Persönliche Angaben</h3>
+      </div>
+
+      <div class="p-grid2">
+        <div class="p-field">
+          <label class="p-label" for="firstName">Vorname</label>
+          <input class="p-input" id="firstName" type="text" placeholder="Anna" required />
+        </div>
+        <div class="p-field">
+          <label class="p-label" for="lastName">Nachname</label>
+          <input class="p-input" id="lastName" type="text" placeholder="Muster" required />
+        </div>
+      </div>
+
+      <div class="p-field">
+        <label class="p-label" for="bio">Kurzbeschreibung</label>
+        <textarea class="p-input" id="bio" placeholder="3–5 Sätze über Erfahrung, Schwerpunkte und was dich als Pflegekraft auszeichnet…" required></textarea>
+        <p class="p-hint">Wird Klienten auf deinem Profil angezeigt.</p>
+      </div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Adresse</h3>
+      </div>
+
+      <div class="p-field">
+        <label class="p-label" for="street">Straße &amp; Hausnummer</label>
+        <input class="p-input" id="street" type="text" placeholder="Hauptstraße 12" required />
+      </div>
+
+      <div class="p-grid3">
+        <div class="p-field">
+          <label class="p-label" for="zip">PLZ</label>
+          <input class="p-input" id="zip" type="text" inputmode="numeric" placeholder="4020" required />
+        </div>
+        <div class="p-field" style="grid-column:span 2;">
+          <label class="p-label" for="city">Ort</label>
+          <input class="p-input" id="city" type="text" placeholder="Linz" required />
+        </div>
+      </div>
+
+      <div class="p-field">
+        <label class="p-label" for="bezirkInput">Bezirk <span style="font-weight:400;color:#9ca3af;">(automatisch aus PLZ)</span></label>
+        <input class="p-input" id="bezirkInput" type="text" placeholder="wird ermittelt…" readonly tabindex="-1" />
+      </div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Profilfoto</h3>
+      </div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div id="photoPreviewBig" style="width:80px;height:80px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#9ca3af;overflow:hidden;flex-shrink:0;">Foto</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label class="p-save-btn" for="photoInputBig" style="cursor:pointer;display:inline-block;">Foto hochladen</label>
+          <input id="photoInputBig" type="file" accept="image/*" class="sr-only" />
+          <button class="p-add-btn" id="removePhoto" type="button" style="margin:0;padding:7px 14px;width:auto;">Foto entfernen</button>
+          <p class="p-hint" style="margin:0;">Demo: Foto wird lokal im Browser gespeichert.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;display:flex;justify-content:flex-end;">
+      <button class="p-save-btn" id="saveProfile">Speichern</button>
+    </div>
+
+    <!-- ── Konto ── -->
+    <div style="margin-top:28px;border-top:1.5px dashed #fca5a5;padding-top:20px;">
+      <p style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;">Konto</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button id="btnLogoutProfile" class="p-save-btn" style="background:#6b7280;border-color:rgba(107,114,128,.3);">Abmelden</button>
+        <button id="btnDeleteAccount" style="padding:8px 18px;border-radius:9px;border:1.5px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:600;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">Account löschen</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: QUALIFIKATION -->
+  <div class="p-panel" id="tab-qualifikation">
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Grundqualifikation</h3>
+      </div>
+
+      <div class="p-field">
+        <label class="p-label" for="qualMain">Qualifikation</label>
+        <select class="p-input" id="qualMain" required>
+          <option value="">Bitte auswählen</option>
+          <option value="DGKP">DGKP – Dipl. Gesundheits- und Krankenpflege</option>
+          <option value="PA">Pflegeassistenz (PA)</option>
+          <option value="PFA">Pflegefachassistenz (PFA)</option>
+          <option value="Heimhilfe">Heimhilfe</option>
+          <option value="Sozialbetreuung">Sozialbetreuung / Behindertenbegleitung</option>
+          <option value="Bachelor">Bachelor – B.Sc. Pflegewissenschaft</option>
+          <option value="Master">Master – M.Sc. / Advanced Nursing Practice</option>
+          <option value="Sonstiges">Sonstiges</option>
+        </select>
+      </div>
+      <div class="p-field" id="qualOtherWrap" style="display:none;">
+        <label class="p-label" for="qualOther">Sonstiges – bitte angeben</label>
+        <input class="p-input" id="qualOther" type="text" placeholder="z. B. Rettungssanitäter" />
+      </div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Zusatzausbildungen</h3>
+      </div>
+      <div class="p-extras" id="extrasList">
+        <div class="p-extras__row">
+          <select class="p-input extras__select">
+            <option value="">Bitte auswählen</option>
+            <option>Wundmanagement</option><option>Palliativpflege</option>
+            <option>Demenzbegleitung</option><option>Basale Stimulation</option>
+            <option>Kinästhetik</option><option>Stomaversorgung</option>
+            <option>Diabetesberatung</option><option>Medikamentenmanagement</option>
+            <option>Intensiv-/Akutpflege</option><option>Sonstiges</option>
+          </select>
+          <input class="p-input extras__other" type="text" placeholder="Sonstiges…" style="display:none;" />
+          <button class="p-extras__del extras__remove" type="button">✕</button>
+        </div>
+      </div>
+      <button class="p-add-btn" id="addExtra" type="button">+ Weitere Zusatzausbildung</button>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Gesundheitsberufsregister</h3>
+      </div>
+      <p style="font-size:.82rem;color:#6b7280;margin:0 0 14px;">Bitte Vorder- und Rückseite hochladen (Demo: nur lokale Auswahl).</p>
+      <div class="p-grid2">
+        <label class="upload-box" for="gbrFront">
+          <div class="upload-box__label">Vorderseite</div>
+          <div class="upload-box__status" id="gbrFrontStatus">Noch nicht hochgeladen</div>
+          <input id="gbrFront" type="file" accept="image/*,application/pdf" class="sr-only" />
+        </label>
+        <label class="upload-box" for="gbrBack">
+          <div class="upload-box__label">Rückseite</div>
+          <div class="upload-box__status" id="gbrBackStatus">Noch nicht hochgeladen</div>
+          <input id="gbrBack" type="file" accept="image/*,application/pdf" class="sr-only" />
+        </label>
+      </div>
+      <div class="p-field" style="margin-top:14px;">
+        <label class="p-label" for="gbrId">GBR-Registernummer <span style="font-weight:400;">(optional)</span></label>
+        <input class="p-input" id="gbrId" type="text" placeholder="z. B. GBR-XXXXXXXX" />
+      </div>
+    </div>
+
+    <div style="margin-top:8px;display:flex;justify-content:flex-end;">
+      <button class="p-save-btn" id="saveQual">Speichern</button>
+    </div>
+
+  </div>
+
+  <!-- TAB 3: VERFÜGBARKEIT -->
+  <div class="p-panel" id="tab-verfuegbarkeit">
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Verfügbarkeitstyp</h3>
+      </div>
+      <div class="avail-mode" id="profileAvailMode">
+        <label class="avail-mode__opt avail-mode__opt--on">
+          <input type="radio" name="p-avail-type" value="regular" checked>
+          <strong>Regelmäßig</strong><small>Feste Wochentage</small>
+        </label>
+        <label class="avail-mode__opt">
+          <input type="radio" name="p-avail-type" value="irregular">
+          <strong>Unregelmäßig</strong><small>Je nach Anfrage</small>
+        </label>
+        <label class="avail-mode__opt">
+          <input type="radio" name="p-avail-type" value="both">
+          <strong>Beides möglich</strong><small>Flexibel</small>
+        </label>
+      </div>
+    </div>
+
+    <div class="p-section" id="profileDaysCard">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Wochentage &amp; Zeiten</h3>
+        <label style="font-size:.78rem;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:5px;">
+          <input type="checkbox" id="profileSelectAll" style="accent-color:#3f6fe8;"> Alle auswählen
+        </label>
+      </div>
+      <div class="avail-grid-v2" id="profileAvailGrid"></div>
+    </div>
+
+    <div style="margin-top:8px;display:flex;justify-content:flex-end;">
+      <button class="p-save-btn" id="saveTimes">Speichern</button>
+    </div>
+
+  </div>
+
+  <!-- TAB 4: PRÄFERENZEN -->
+  <div class="p-panel" id="tab-praeferenzen">
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Einsatzradius</h3>
+      </div>
+      <p style="font-size:.82rem;color:#6b7280;margin:0 0 8px;">Wie weit bist du bereit zu fahren?</p>
+      <div class="radius-wrap">
+        <input type="range" id="profileRadiusSlider" min="1" max="100" value="25">
+        <span class="radius-val" id="profileRadiusVal">25 km</span>
+      </div>
+      <p class="p-hint">Einsätze außerhalb werden im Matching nicht vorgeschlagen.</p>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Gewünschte Einsatzarten</h3>
+      </div>
+      <p style="font-size:.82rem;color:#6b7280;margin:0 0 4px;">Mehrfachauswahl möglich.</p>
+      <div class="assign-chips" id="profileAssignChips"></div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Beschäftigungsmodell</h3>
+      </div>
+      <p style="font-size:.82rem;color:#6b7280;margin:0 0 4px;">Mehrfachauswahl möglich.</p>
+      <div class="model-cards" id="profileModelCards"></div>
+    </div>
+
+    <div style="margin-top:8px;display:flex;justify-content:flex-end;">
+      <button class="p-save-btn" id="savePrefs">Speichern</button>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links"><a href="#">Impressum</a><a href="#">Datenschutz</a></div>
+  </div>
+</footer>
+
+<script src="plz-bezirk.js"></script>
+<script src="script.js"></script>
+<script>
+(function () {
+  var DAYS = [
+    {key:'Mo',label:'Montag'},{key:'Di',label:'Dienstag'},{key:'Mi',label:'Mittwoch'},
+    {key:'Do',label:'Donnerstag'},{key:'Fr',label:'Freitag'},{key:'Sa',label:'Samstag'},{key:'So',label:'Sonntag'}
+  ];
+  var ASSIGNS = [
+    'Körperpflege','Medikamentengabe','Wundversorgung','Demenzbetreuung',
+    'Palliativbegleitung','Mobilisierung & Training','Haushalt & Alltagshilfe',
+    'Nachtdienst','24h-Betreuung','Fahrdienst / Begleitung',
+    'Stoma- & Katheterversorgung','Ernährungsmanagement','Kinästhetik','Basale Stimulation'
+  ];
+  var MODELS = [
+    {lbl:'Vollzeit',sub:'≥ 35 Std./Woche'},
+    {lbl:'Teilzeit',sub:'15–35 Std./Woche'},
+    {lbl:'Geringfügig',sub:'< 15 Std./Woche'},
+    {lbl:'Stundenbasis',sub:'Projektbezogen'},
+    {lbl:'24h-Betreuung',sub:'Im Wohnhaushalt'},
+    {lbl:'Springerdienst',sub:'Kurzfristig / flexibel'}
+  ];
+
+  /* Tab-Navigation */
+  document.querySelectorAll('.p-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.p-tab').forEach(function (b) { b.classList.remove('p-tab--active'); });
+      document.querySelectorAll('.p-panel').forEach(function (p) { p.classList.remove('p-panel--active'); });
+      btn.classList.add('p-tab--active');
+      var panel = document.getElementById('tab-' + btn.dataset.tab);
+      if (panel) panel.classList.add('p-panel--active');
+    });
+  });
+
+  /* PLZ → Bezirk */
+  var zipEl = document.getElementById('zip');
+  var bezEl = document.getElementById('bezirkInput');
+  if (zipEl && bezEl) {
+    zipEl.addEventListener('input', function () {
+      var r = (this.value.length === 4 && typeof getBezirkFromPLZ === 'function') ? getBezirkFromPLZ(this.value.trim()) : '';
+      bezEl.value = r; bezEl.style.color = r ? '#1e293b' : '#9ca3af';
+    });
+  }
+
+  /* qualMain Sonstiges */
+  var qualMain = document.getElementById('qualMain');
+  if (qualMain) {
+    qualMain.addEventListener('change', function () {
+      var w = document.getElementById('qualOtherWrap');
+      if (w) w.style.display = this.value === 'Sonstiges' ? '' : 'none';
+    });
+  }
+
+  /* Foto (Avatar) */
+  var photoInput = document.getElementById('photoInput');
+  var photoInputBig = document.getElementById('photoInputBig');
+  var avatarCircle = document.getElementById('avatarCircle');
+  var avatarInitials = document.getElementById('avatarInitials');
+  var photoPreviewBig = document.getElementById('photoPreviewBig');
+  if (avatarCircle) avatarCircle.addEventListener('click', function () { if (photoInput) photoInput.click(); });
+  function applyPhoto(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var src = e.target.result;
+      if (avatarInitials) avatarInitials.textContent = '';
+      var existing = avatarCircle.querySelector('img.p-header__avatar-photo');
+      if (existing) existing.src = src;
+      else {
+        var img = document.createElement('img');
+        img.className = 'p-header__avatar-photo';
+        img.src = src; img.alt = 'Profilfoto';
+        avatarCircle.insertBefore(img, avatarCircle.firstChild);
+      }
+      if (photoPreviewBig) { photoPreviewBig.innerHTML = ''; var img2 = document.createElement('img'); img2.src = src; img2.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%'; photoPreviewBig.appendChild(img2); }
+      try { localStorage.setItem('nursy_profile_photo', src); } catch(e) {}
+    };
+    reader.readAsDataURL(file);
+  }
+  if (photoInput) photoInput.addEventListener('change', function () { applyPhoto(this.files[0]); });
+  if (photoInputBig) photoInputBig.addEventListener('change', function () { applyPhoto(this.files[0]); });
+  var removePhoto = document.getElementById('removePhoto');
+  if (removePhoto) removePhoto.addEventListener('click', function () {
+    var img = avatarCircle ? avatarCircle.querySelector('img.p-header__avatar-photo') : null;
+    if (img) img.remove();
+    if (avatarInitials) avatarInitials.textContent = 'PK';
+    if (photoPreviewBig) { photoPreviewBig.innerHTML = 'Foto'; photoPreviewBig.style.cssText='width:80px;height:80px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#9ca3af'; }
+    try { localStorage.removeItem('nursy_profile_photo'); } catch(e) {}
+  });
+
+  /* GBR Upload-Status */
+  ['gbrFront','gbrBack'].forEach(function(id) {
+    var inp = document.getElementById(id);
+    var status = document.getElementById(id + 'Status');
+    if (inp && status) inp.addEventListener('change', function () {
+      if (this.files[0]) { status.textContent = this.files[0].name; status.style.color='#10b981'; inp.closest('.upload-box').classList.add('upload-box--active'); }
+    });
+  });
+
+  /* Extras */
+  function wireExtrasRow(row) {
+    var sel = row.querySelector('.extras__select');
+    var other = row.querySelector('.extras__other');
+    var del = row.querySelector('.extras__remove');
+    if (sel) sel.addEventListener('change', function () { if (other) other.style.display = this.value === 'Sonstiges' ? '' : 'none'; });
+    if (del) del.addEventListener('click', function () { row.remove(); });
+  }
+  document.querySelectorAll('.p-extras__row').forEach(wireExtrasRow);
+  document.getElementById('addExtra').addEventListener('click', function () {
+    var row = document.createElement('div');
+    row.className = 'p-extras__row';
+    row.innerHTML =
+      '<select class="p-input extras__select"><option value="">Bitte auswählen</option>' +
+      '<option>Wundmanagement</option><option>Palliativpflege</option><option>Demenzbegleitung</option>' +
+      '<option>Basale Stimulation</option><option>Kinästhetik</option><option>Stomaversorgung</option>' +
+      '<option>Diabetesberatung</option><option>Medikamentenmanagement</option><option>Intensiv-/Akutpflege</option>' +
+      '<option>Sonstiges</option></select>' +
+      '<input class="p-input extras__other" type="text" placeholder="Sonstiges…" style="display:none;"/>' +
+      '<button class="p-extras__del extras__remove" type="button">✕</button>';
+    document.getElementById('extrasList').appendChild(row);
+    wireExtrasRow(row);
+  });
+
+  /* Verfügbarkeitstyp (Profil) */
+  document.querySelectorAll('[name="p-avail-type"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      document.querySelectorAll('#profileAvailMode .avail-mode__opt').forEach(function (l) { l.classList.remove('avail-mode__opt--on'); });
+      this.closest('.avail-mode__opt').classList.add('avail-mode__opt--on');
+      var card = document.getElementById('profileDaysCard');
+      if (card) card.style.display = this.value === 'irregular' ? 'none' : '';
+    });
+  });
+
+  /* Tagesraster (Profil) */
+  var grid = document.getElementById('profileAvailGrid');
+  DAYS.forEach(function (d) {
+    var row = document.createElement('div');
+    row.className = 'avail-row-v2 avail-row-v2--off';
+    row.dataset.day = d.key;
+    row.innerHTML =
+      '<label style="cursor:pointer;display:flex;align-items:center;">' +
+        '<input type="checkbox" class="p-avail-check" data-day="' + d.key + '" style="width:16px;height:16px;margin:0;accent-color:#3f6fe8;">' +
+      '</label>' +
+      '<span class="avail-row-v2__day">' + d.key + '</span>' +
+      '<div class="avail-row-v2__times">' +
+        '<input class="control avail-time" type="time" data-day="' + d.key + '" data-slot="start" value="" disabled style="width:96px;">' +
+        '<span style="color:#9ca3af;padding:0 2px;">–</span>' +
+        '<input class="control avail-time" type="time" data-day="' + d.key + '" data-slot="end" value="" disabled style="width:96px;">' +
+      '</div>' +
+      '<label class="avail-row-v2__ganztags">' +
+        '<input type="checkbox" class="ganztags-check" data-day="' + d.key + '" disabled>' +
+        ' Ganztags' +
+      '</label>';
+    grid.appendChild(row);
+
+    var cb = row.querySelector('.p-avail-check');
+    var s = row.querySelector('[data-slot="start"]');
+    var e = row.querySelector('[data-slot="end"]');
+    var gz = row.querySelector('.ganztags-check');
+
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        row.classList.remove('avail-row-v2--off');
+        s.disabled = false; e.disabled = false; gz.disabled = false;
+        if (!s.value) s.value = '08:00';
+        if (!e.value) e.value = '16:00';
+      } else {
+        row.classList.add('avail-row-v2--off');
+        s.disabled = true; e.disabled = true; gz.disabled = true; gz.checked = false;
+      }
+    });
+    gz.addEventListener('change', function () {
+      if (this.checked) { s.value = '00:00'; e.value = '23:59'; s.disabled = true; e.disabled = true; }
+      else { s.value = '08:00'; e.value = '16:00'; s.disabled = false; e.disabled = false; }
+    });
+  });
+
+  /* Alle auswählen */
+  var selAll = document.getElementById('profileSelectAll');
+  if (selAll) selAll.addEventListener('change', function () {
+    var on = this.checked;
+    document.querySelectorAll('.p-avail-check').forEach(function (cb) {
+      cb.checked = on; cb.dispatchEvent(new Event('change'));
+    });
+  });
+
+  /* Radius Slider */
+  var rSlider = document.getElementById('profileRadiusSlider');
+  var rVal = document.getElementById('profileRadiusVal');
+  if (rSlider && rVal) rSlider.addEventListener('input', function () { rVal.textContent = this.value + ' km'; });
+
+  /* Einsatzarten Chips */
+  var chipsEl = document.getElementById('profileAssignChips');
+  ASSIGNS.forEach(function (name) {
+    var lbl = document.createElement('label');
+    lbl.className = 'assign-chip';
+    lbl.innerHTML = '<input type="checkbox" name="p-assign" value="' + name + '">' + name;
+    lbl.querySelector('input').addEventListener('change', function () { lbl.classList.toggle('assign-chip--on', this.checked); });
+    chipsEl.appendChild(lbl);
+  });
+
+  /* Beschäftigungsmodell Karten */
+  var modelEl = document.getElementById('profileModelCards');
+  MODELS.forEach(function (m) {
+    var lbl = document.createElement('label');
+    lbl.className = 'model-card';
+    lbl.innerHTML =
+      '<input type="checkbox" name="p-model" value="' + m.lbl + '">' +
+      '<span class="model-card__lbl">' + m.lbl + '</span>' +
+      '<span class="model-card__sub">' + m.sub + '</span>';
+    lbl.querySelector('input').addEventListener('change', function () { lbl.classList.toggle('model-card--on', this.checked); });
+    modelEl.appendChild(lbl);
+  });
+
+  /* ── Profil laden (API-first, localStorage-Fallback) ── */
+  function applyProfilData(p) {
+    if (!p) return;
+    var fn = document.getElementById('firstName');
+    var ln = document.getElementById('lastName');
+    var bioEl = document.getElementById('bio');
+    var stEl = document.getElementById('street');
+    var zipEl2 = document.getElementById('zip');
+    var cityEl = document.getElementById('city');
+    if (fn && p.firstName) fn.value = p.firstName;
+    if (ln && p.lastName)  ln.value = p.lastName;
+    if (bioEl && p.bio)    bioEl.value = p.bio;
+    if (stEl && p.street)  stEl.value = p.street;
+    if (zipEl2 && p.zip)   { zipEl2.value = p.zip; zipEl2.dispatchEvent(new Event('input')); }
+    if (cityEl && p.city)  cityEl.value = p.city;
+    var qm = document.getElementById('qualMain');
+    if (qm && p.qualMain)  { qm.value = p.qualMain; qm.dispatchEvent(new Event('change')); }
+    var qo = document.getElementById('qualOther');
+    if (qo && p.qualOther) qo.value = p.qualOther;
+    var hName = document.getElementById('heroName');
+    var hSub  = document.getElementById('heroSub');
+    if (hName && (p.firstName || p.lastName)) hName.textContent = [p.firstName, p.lastName].filter(Boolean).join(' ');
+    if (hSub && p.qualMain) hSub.textContent = 'Pflegekraft · ' + p.qualMain;
+    // Präferenzen
+    var rs = document.getElementById('profileRadiusSlider');
+    var rv = document.getElementById('profileRadiusVal');
+    if (rs && p.radiusKm) { rs.value = p.radiusKm; if (rv) rv.textContent = p.radiusKm + ' km'; }
+    var heroPillRadius = document.getElementById('heroPillRadius');
+    if (heroPillRadius && p.radiusKm) heroPillRadius.textContent = 'Radius: ' + p.radiusKm + ' km';
+    if (p.assigns && Array.isArray(p.assigns)) {
+      document.querySelectorAll('[name="p-assign"]').forEach(function(cb) {
+        cb.checked = p.assigns.indexOf(cb.value) > -1;
+        cb.closest('label').classList.toggle('assign-chip--on', cb.checked);
+      });
+    }
+    if (p.models && Array.isArray(p.models)) {
+      document.querySelectorAll('[name="p-model"]').forEach(function(cb) {
+        cb.checked = p.models.indexOf(cb.value) > -1;
+        cb.closest('label').classList.toggle('model-card--on', cb.checked);
+      });
+    }
+    // Verfügbarkeit
+    if (p.availability && typeof p.availability === 'object') {
+      var avail = p.availability;
+      var today = ['Mo','Di','Mi','Do','Fr','Sa','So'][new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+      var todayData = avail[today];
+      var heroPillToday = document.getElementById('heroPillToday');
+      var heroPillTomorrow = document.getElementById('heroPillTomorrow');
+      if (heroPillToday && todayData && todayData.start) heroPillToday.textContent = 'Heute ' + todayData.start + '–' + (todayData.end || '');
+      var tomorrowIdx = (new Date().getDay()) % 7;
+      var tomorrowKey = ['Mo','Di','Mi','Do','Fr','Sa','So'][tomorrowIdx === 0 ? 6 : tomorrowIdx - 1];
+      var tomData = avail[tomorrowKey];
+      if (heroPillTomorrow && tomData && tomData.start) heroPillTomorrow.textContent = 'Morgen ' + tomData.start + '–' + (tomData.end || '');
+      Object.keys(avail).forEach(function(day) {
+        var row = document.querySelector('.avail-row-v2[data-day="'+day+'"]');
+        if (!row) return;
+        var cb2 = row.querySelector('.p-avail-check');
+        var s2  = row.querySelector('[data-slot="start"]');
+        var e2  = row.querySelector('[data-slot="end"]');
+        if (cb2) { cb2.checked = true; cb2.dispatchEvent(new Event('change')); }
+        if (s2 && avail[day].start) s2.value = avail[day].start;
+        if (e2 && avail[day].end)   e2.value = avail[day].end;
+      });
+    }
+  }
+
+  function collectProfilData() {
+    var data = {
+      firstName: (document.getElementById('firstName') || {}).value || '',
+      lastName:  (document.getElementById('lastName')  || {}).value || '',
+      bio:       (document.getElementById('bio')       || {}).value || '',
+      street:    (document.getElementById('street')    || {}).value || '',
+      zip:       (document.getElementById('zip')       || {}).value || '',
+      city:      (document.getElementById('city')      || {}).value || '',
+      district:  (document.getElementById('bezirkInput') || {}).value || '',
+      qualMain:  (document.getElementById('qualMain')  || {}).value || '',
+      qualOther: (document.getElementById('qualOther') || {}).value || '',
+      radiusKm:  parseInt((document.getElementById('profileRadiusSlider') || {}).value || '25'),
+      assigns:   Array.from(document.querySelectorAll('[name="p-assign"]:checked')).map(function(i){return i.value;}),
+      models:    Array.from(document.querySelectorAll('[name="p-model"]:checked')).map(function(i){return i.value;}),
+    };
+    var avData = {};
+    document.querySelectorAll('.p-avail-check:checked').forEach(function(cb) {
+      var day = cb.dataset.day;
+      var s = document.querySelector('.avail-time[data-day="'+day+'"][data-slot="start"]');
+      var e2 = document.querySelector('.avail-time[data-day="'+day+'"][data-slot="end"]');
+      avData[day] = { start: s ? s.value : '', end: e2 ? e2.value : '' };
+    });
+    data.availability = avData;
+    return data;
+  }
+
+  async function saveProfilToAPI(showBtn) {
+    var data = collectProfilData();
+    try {
+      var r = await fetch('/api/care/profil', {
+        method: 'PUT', credentials: 'include',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      if (r.ok) {
+        try { localStorage.setItem('nursy_profile_care_v1', JSON.stringify(data)); } catch(e) {}
+        try { localStorage.setItem('nursy_availability_v1', JSON.stringify(data.availability)); } catch(e) {}
+        try { localStorage.setItem('nursy_care_preferences_v1', JSON.stringify({radiusKm:data.radiusKm,assigns:data.assigns,models:data.models})); } catch(e) {}
+        if (showBtn) showOk(showBtn);
+      }
+    } catch(e) {}
+  }
+
+  // API laden, Fallback auf localStorage
+  fetch('/api/care/profil', {credentials:'include'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d) {
+      if (d && d.ok && d.profil && (d.profil.firstName || d.profil.lastName)) {
+        applyProfilData(d.profil);
+      } else {
+        // localStorage-Fallback
+        try {
+          var saved = JSON.parse(localStorage.getItem('nursy_profile_care_v1') || '{}');
+          applyProfilData(saved);
+          var prefs2 = JSON.parse(localStorage.getItem('nursy_care_preferences_v1') || '{}');
+          if (prefs2.radiusKm) saved.radiusKm = prefs2.radiusKm;
+          if (prefs2.assigns)  saved.assigns  = prefs2.assigns;
+          if (prefs2.models)   saved.models   = prefs2.models;
+          var avail2 = JSON.parse(localStorage.getItem('nursy_availability_v1') || '{}');
+          if (Object.keys(avail2).length) saved.availability = avail2;
+          applyProfilData(saved);
+        } catch(e) {}
+      }
+    })
+    .catch(function() {
+      try {
+        var saved = JSON.parse(localStorage.getItem('nursy_profile_care_v1') || '{}');
+        applyProfilData(saved);
+      } catch(e) {}
+    });
+
+  /* Profil-Foto laden */
+  try {
+    var photoSrc = localStorage.getItem('nursy_profile_photo');
+    if (photoSrc && avatarCircle) {
+      if (avatarInitials) avatarInitials.textContent = '';
+      var img = document.createElement('img');
+      img.className = 'p-header__avatar-photo';
+      img.src = photoSrc; img.alt = 'Profilfoto';
+      avatarCircle.insertBefore(img, avatarCircle.firstChild);
+    }
+  } catch(e) {}
+
+  /* Save-Buttons */
+  function showOk(btn) {
+    var orig = btn.textContent;
+    btn.classList.add('p-save-btn--ok');
+    btn.textContent = 'Gespeichert ✓';
+    setTimeout(function () { btn.classList.remove('p-save-btn--ok'); btn.textContent = orig; }, 2000);
+  }
+
+  var saveProfile = document.getElementById('saveProfile');
+  if (saveProfile) saveProfile.addEventListener('click', function () { saveProfilToAPI(this); });
+
+  var saveQual = document.getElementById('saveQual');
+  if (saveQual) saveQual.addEventListener('click', function () { saveProfilToAPI(this); });
+
+  var saveTimes = document.getElementById('saveTimes');
+  if (saveTimes) saveTimes.addEventListener('click', function () { saveProfilToAPI(this); });
+
+  var savePrefs = document.getElementById('savePrefs');
+  if (savePrefs) savePrefs.addEventListener('click', function () { saveProfilToAPI(this); });
+
+  /* ── Abmelden ── */
+  var btnLogoutProfile = document.getElementById('btnLogoutProfile');
+  if(btnLogoutProfile) btnLogoutProfile.addEventListener('click', function(){
+    fetch('/api/logout', {method:'POST', credentials:'include'})
+      .then(function(){ location.href='login-care.html'; })
+      .catch(function(){ location.href='login-care.html'; });
+  });
+
+  /* ── Account löschen ── */
+  var btnDeleteAccount = document.getElementById('btnDeleteAccount');
+  if(btnDeleteAccount) btnDeleteAccount.addEventListener('click', function(){
+    if(!confirm('Account wirklich löschen?\n\nIhr Profil, alle Verbindungen und Patientendaten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+    fetch('/api/care/account', {method:'DELETE', credentials:'include'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok) location.href='index.html';
+        else alert(d.error || 'Fehler beim Löschen');
+      });
+  });
+
+}());
+</script>
+</body>
+</html>

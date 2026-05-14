@@ -1,0 +1,2291 @@
+/* Nursy Netlify Starter – Startseite + Login-Seiten
+   Fokus: Übersicht, Kartenlayout, einheitliche Control-Höhe */
+
+:root{
+  /* Hintergrund – heller */
+  --bg0:#eaf2ff;              /* sehr helles Blau */
+  --bg1:#dbe7ff;
+
+  /* Text */
+  --text:#0f1a33;
+  --muted:rgba(15,26,51,.65);
+
+  /* Primary – Nursy Blau */
+  --primary:#3f6fe8;
+  --primary-soft:rgba(63,111,232,.25);
+
+  /* Accent – Pflege Türkis */
+  --accent:#3fc6c0;
+  --accent-soft:rgba(63,198,192,.25);
+
+  /* UI */
+  --panel:#ffffff;
+  --panel2:#f2f6ff;
+  --border:1px solid rgba(63,111,232,.18);
+
+  --control-h:48px;
+  --radius:14px;
+  --gap:14px;
+
+  --shadow: 0 14px 40px rgba(15,26,51,.12);
+}
+
+*{ box-sizing:border-box; }
+html,body{
+  margin:0;
+  color:var(--text);
+  background: linear-gradient(180deg, var(--bg0), var(--bg1));
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+}
+body{
+  margin:0;
+  color:var(--text);
+  background: linear-gradient(180deg, var(--bg0), var(--bg1));
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+}
+
+a{ color:inherit; text-decoration:none; }
+a:hover{ text-decoration:underline; }
+
+.container{
+  width:min(1100px, 92vw);
+  margin:0 auto;
+}
+
+.muted{ color:var(--muted); }
+
+.sr-only{
+  position:absolute;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);
+  white-space:nowrap;border:0;
+}
+
+/* Topbar */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #eef4ff
+    );
+  border-bottom: 1px solid rgba(63,111,232,.22);
+}
+.topbar__inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 0;
+  gap:16px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand__dot{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  object-fit:cover;
+  flex-shrink:0;
+  display:block;
+}
+.brand__text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.05;
+}
+.brand__text span{
+  font-size:14px;
+  color:var(--muted);
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.nav a{
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.0);
+}
+.nav a:hover{
+  text-decoration:none;
+  background: rgba(63,111,232,.08);
+  border-color: rgba(63,111,232,.25);
+}
+
+/* Cards / layout */
+.card{
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #f3f7ff
+    );
+  border: var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.list{
+  margin:12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+.list li{ margin: 8px 0; }
+
+.grid2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+.cards3{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+}
+
+/* Hero */
+.hero{
+  display:grid;
+  grid-template-columns: 1.25fr .95fr;
+  gap: 18px;
+  padding: 26px 0 22px;
+}
+.hero__content{
+  padding: 18px 0;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border-radius:999px;
+  background: rgba(79,209,197,.08);
+  border:1px solid rgba(255,255,255,.12);
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.hero h1{
+  font-size: clamp(34px, 4.2vw, 52px);
+  margin: 0 0 10px;
+  letter-spacing: .2px;
+}
+.hero p{
+  margin:0 0 18px;
+  color: var(--muted);
+  max-width: 58ch;
+}
+.hero__actions{
+  display:flex;
+  gap: var(--gap);
+  flex-wrap:wrap;
+  margin: 14px 0 16px;
+}
+.hero__search{
+  display:grid;
+  grid-template-columns: 1fr 160px;
+  gap: var(--gap);
+  align-items:center;
+  max-width: 560px;
+}
+.hero__hint{
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.hero__panel{
+  display:flex;
+  flex-direction:column;
+  gap: var(--gap);
+}
+
+/* Section */
+.section{ padding: 18px 0 36px; }
+.section__head h2{
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+.section__head p{ margin:0 0 16px; }
+
+/* Controls (Inputs + Buttons + Links) */
+.control{
+  height: var(--control-h);
+  border-radius: var(--radius);
+  border: var(--border);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  padding: 0 14px;
+  font-size: 16px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  line-height: 1;
+}
+
+input.control{
+  width:100%;
+  outline:none;
+}
+input.control::placeholder{ color: rgba(234,240,255,.45); }
+
+.btn{
+  cursor:pointer;
+  justify-content:center;
+  font-weight: 700;
+  letter-spacing: .2px;
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+}
+.btn:hover{
+  background: rgba(255,255,255,.10);
+  text-decoration:none;
+}
+.btn:active{ transform: translateY(1px); }
+
+.primary{
+  background: linear-gradient(
+    180deg,
+    rgba(91,141,255,.50),
+    rgba(91,141,255,.25)
+  );
+  border-color: rgba(91,141,255,.55);
+}
+.primary:hover{
+  background: linear-gradient(
+    180deg,
+    rgba(91,141,255,.60),
+    rgba(91,141,255,.30)
+  );
+}
+
+/* Footer */
+.footer{
+  border-top: 1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.10);
+}
+.footer__inner{
+  padding: 18px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.footer__links{
+  display:flex;
+  gap:12px;
+}
+
+/* Auth pages */
+.auth{
+  min-height: calc(100vh - 74px);
+  display:grid;
+  place-items:center;
+  padding: 26px 0 40px;
+}
+.auth__wrap{
+  width:min(560px, 92vw);
+}
+.auth__head{
+  margin-bottom: 12px;
+}
+.auth__head h1{
+  margin:0 0 6px;
+  font-size: 34px;
+}
+.form{
+  display:grid;
+  gap: var(--gap);
+  margin-top: 12px;
+}
+.row2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+.hr{
+  height:1px;
+  background: rgba(255,255,255,.10);
+  margin: 10px 0;
+}
+.note{
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Responsive */
+@media (max-width: 920px){
+  .hero{ grid-template-columns: 1fr; }
+  .hero__search{ grid-template-columns: 1fr; }
+  .cards3{ grid-template-columns: 1fr; }
+  .grid2{ grid-template-columns: 1fr; }
+}
+
+
+/* Header / Logo Anpassung */
+.brand strong{
+  color:#1b2a55;
+}
+.brand__text span{
+  color: rgba(27,42,85,.65);
+}
+
+
+/* Feldbeschriftung (Labels + Hilfetext) */
+.field{ display:grid; gap:8px; min-width:0; }
+.field__label{ font-size:14px; color: var(--muted); }
+.help{ font-size:13px; color: rgba(15,26,51,.55); margin-top:-2px; }
+
+
+/* Eingabefelder – Text & Placeholder grauer */
+input.control,
+textarea.control,
+select.control {
+  color: rgba(15, 26, 51, 0.65);
+}
+
+input.control::placeholder,
+textarea.control::placeholder {
+  color: rgba(15, 26, 51, 0.45);
+}
+
+input.control:focus,
+textarea.control:focus {
+  color: rgba(15, 26, 51, 0.8);
+}
+
+
+/* Formular Fehlermeldung */
+.form-error{
+  display:none;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(190,120,150,.35);
+  background: linear-gradient(180deg, #f6f2f5, #efe7ee);
+  color: #2a1c2a;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+
+/* Verfügbarkeiten */
+.availability{ display:grid; gap:10px; }
+.avail-row{ display:grid; grid-template-columns: 52px 1fr; align-items:center; gap:10px; }
+.avail-day{ font-weight:700; color: rgba(15,26,51,.78); }
+.avail-slots{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.avail-time{ width: 140px; }
+.avail-sep{ opacity:.6; }
+.avail-gap{ width: 10px; }
+@media (max-width: 820px){
+  .avail-row{ grid-template-columns: 1fr; }
+}
+
+
+/* Zusatzausbildungen – dynamische Liste */
+.extras{ display:grid; gap: 10px; margin-top: 10px; }
+.extras__row{
+  display:grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items:center;
+}
+@media (max-width: 820px){
+  .extras__row{ grid-template-columns: 1fr; }
+}
+
+
+/* Kompakte Verfügbarkeit */
+.availability--compact{
+  display:grid;
+  gap:10px;
+}
+
+.avail-row--compact{
+  display:grid;
+  grid-template-columns: 60px auto;
+  align-items:center;
+  gap:12px;
+}
+
+.avail-range{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.control.small{
+  height: 40px;
+  font-size: 14px;
+  padding: 0 10px;
+  width: 120px;
+}
+
+@media (max-width: 820px){
+  .avail-row--compact{
+    grid-template-columns: 1fr;
+  }
+  .avail-range{
+    justify-content: space-between;
+  }
+}
+
+
+/* Pflegekraft Dashboard (wie Skizze – gleicher Stil) */
+.dash-top{
+  display:grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+@media (max-width: 980px){
+  .dash-top{ grid-template-columns: 1fr; }
+}
+
+.dash-profile__inner{
+  display:grid;
+  grid-template-columns: 110px 1fr;
+  gap: 16px;
+  align-items:center;
+}
+@media (max-width: 520px){
+  .dash-profile__inner{ grid-template-columns: 1fr; }
+}
+
+.avatar{
+  width: 110px;
+  height: 110px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
+  border: 1px solid rgba(15,26,51,.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: rgba(15,26,51,.6);
+  font-weight: 700;
+}
+
+.dash-profile__title{ margin: 0 0 6px 0; }
+.dash-profile__lines{ display:grid; gap: 6px; color: rgba(15,26,51,.78); }
+.dash-profile__actions{ margin-top: 12px; }
+
+.dash-map__head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.dash-map__frame{
+  border-radius: 14px;
+  border: 1px solid rgba(15,26,51,.10);
+  background: rgba(255,255,255,.55);
+  height: 280px;
+  overflow:hidden;
+}
+#dashMap{
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+}
+.dash-map__placeholder{
+  margin:auto;
+  text-align:center;
+  padding: 18px;
+}
+.dash-map__title{
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  margin-bottom: 4px;
+}
+
+/* ── Pfleger-unterwegs Benachrichtigung ── */
+.dash-enroute{
+  display:flex;
+  align-items:flex-start;
+  gap: 16px;
+  padding: 22px 20px;
+  border-left: 4px solid rgba(63,111,232,.25);
+  transition: border-color .3s, background .3s;
+}
+.dash-enroute.is-active{
+  border-left-color: #22c55e;
+  background: linear-gradient(135deg, rgba(34,197,94,.07), rgba(34,197,94,.03));
+}
+.dash-enroute__icon{
+  font-size: 2.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.dash-enroute__body{ flex: 1; min-width: 0; }
+.dash-enroute__title{
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 800;
+}
+.dash-enroute__sub{
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dash-enroute__badge{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: rgba(34,197,94,.10);
+  border: 1px solid rgba(34,197,94,.28);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #166534;
+  width: fit-content;
+}
+.badge-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+@keyframes pulse-dot{
+  0%, 100%{ opacity: 1; transform: scale(1); }
+  50%{ opacity: .55; transform: scale(.75); }
+}
+
+.dash-rowhead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.today-list{ display:grid; gap: 10px; }
+.today-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,26,51,.10);
+  background: rgba(255,255,255,.55);
+}
+.today-item__name{ font-weight: 800; color: rgba(15,26,51,.85); }
+.today-item__main{ display:grid; gap: 2px; }
+
+.dash-sections{ display:grid; gap: var(--gap); margin-top: var(--gap); }
+.dash-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 14px;
+}
+@media (max-width: 620px){
+  .dash-row{ flex-direction:column; align-items:stretch; }
+}
+
+
+/* Profil Seite */
+.profile-head{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: var(--gap);
+  align-items:start;
+}
+@media (max-width: 980px){
+  .profile-head{ grid-template-columns: 1fr; }
+}
+.profile-photo{
+  display:flex;
+  gap: 16px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.avatar--photo{
+  width: 120px;
+  height: 120px;
+}
+.profile-photo__actions{
+  display:grid;
+  gap: 10px;
+}
+.profile-meta__bar{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap:wrap;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,26,51,.10);
+  background: rgba(255,255,255,.55);
+  color: rgba(15,26,51,.78);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+
+/* Availability checkbox */
+.avail-day__label{ display:flex; align-items:center; gap:8px; cursor:pointer; }
+.avail-check{ width:18px; height:18px; accent-color: var(--primary); }
+.avail-time:disabled{ opacity:.45; cursor:not-allowed; }
+
+/* Patients – Alle ansehen */
+.patients-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 16px 16px 6px;
+}
+.patients-block{ padding: 10px 16px 16px; }
+.patients-block__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 10px;
+}
+.divider{
+  height:1px;
+  background: rgba(63,111,232,.18);
+  margin: 0 16px;
+}
+
+.patient-list{ display:flex; flex-direction:column; gap:12px; }
+
+.patient-row{
+  display:grid;
+  grid-template-columns: minmax(360px, 2.2fr) 160px 130px 360px; /* Info | Zeit | Buttons */
+  align-items:center;
+  gap: 14px;
+  padding: 12px 12px;
+  border: var(--border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.56));
+}
+.patient-info{ display:flex; flex-direction:column; gap:4px; }
+.patient-name{ font-weight: 800; letter-spacing:.2px; }
+.patient-address{ font-size: 14px; color: var(--muted); }
+.patient-time{
+  width: 160px;
+  height: 44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: var(--border);
+  background: rgba(63,111,232,.10);
+}
+.patient-actions{
+  display:flex;
+  gap:10px;
+  width: auto;
+  justify-self:end;
+}
+.patient-actions .btn{ flex:1; }
+.btn.small{ height: 44px; }
+
+.secondary{
+  background: rgba(63,111,232,.10);
+  border-color: rgba(63,111,232,.35);
+}
+.secondary:hover{
+  background: rgba(63,111,232,.14);
+}
+
+@media (max-width: 860px){
+  .patient-row{
+    grid-template-columns: 1fr;
+  }
+  .patient-time{ width:100%; justify-content:flex-start; }
+  .patient-actions{ width:100%; justify-self:stretch; }
+}
+
+
+/* Patients page */
+.patients-page .patients-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 14px;
+}
+.patients-page .patients-actions{ display:flex; gap:10px; }
+.patients-page h3{ margin:0; }
+.patients-section{ margin-top: 14px; }
+.patients-section__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(15,35,75,.10);
+  margin-bottom: 10px;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,35,75,.12);
+  background: rgba(15,35,75,.04);
+  font-weight: 800;
+}
+.patients-list{ display:flex; flex-direction:column; gap: 12px; }
+.patient-row{
+  display:grid;
+  grid-template-columns: minmax(360px, 2.2fr) 160px 360px;
+  align-items:center;
+  gap: 14px;
+  padding: 14px 14px;
+  border: 1px solid rgba(15,35,75,.10);
+  border-radius: 14px;
+  background: rgba(255,255,255,.75);
+}
+.patient-info{ display:flex; flex-direction:column; gap:4px; }
+.patient-name{ font-weight: 900; letter-spacing:.2px; }
+.patient-address{ color: var(--muted); font-size: 14px; }
+.patient-time{
+  width: 160px;
+  height: 44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-weight: 900;
+  border-radius: 12px;
+  border: 1px solid rgba(15,35,75,.12);
+  background: rgba(15,35,75,.06);
+  white-space: nowrap;
+}
+.patient-actions{ width: auto; display:flex; gap:10px; justify-self:end; }
+.patient-actions .btn{ flex:1; height:44px; }
+
+/* Buttons variants (scoped, non-breaking) */
+.btn{ cursor:pointer; }
+.wound-map-wrap{
+  background:#f8fafc;
+  border:1.5px solid #e5e7eb;
+  border-radius:11px;
+  padding:14px;
+}
+.wound-map{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.wound-map__side-label{
+  font-size:.75rem;
+  font-weight:700;
+  color:#374151;
+  margin-bottom:8px;
+}
+.wz-zone{
+  fill:#edf2ff;
+  stroke:#b7c7f4;
+  stroke-width:1.4;
+  cursor:pointer;
+}
+.wz-zone.sel{
+  fill:#3f6fe8;
+  stroke:#3f6fe8;
+}
+.wound-map__legend,
+.wound-map__selected{
+  margin-top:10px;
+  font-size:.78rem;
+  color:#6b7280;
+}
+.wound-map__legend{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.wound-map__legend i{
+  width:10px;
+  height:10px;
+  display:inline-block;
+  border-radius:999px;
+  margin-right:6px;
+}
+.wound-map__legend .unsel{ background:#edf2ff; border:1px solid #b7c7f4; }
+.wound-map__legend .sel{ background:#3f6fe8; }
+.btn--primary{ background: #0f2f6a; color:#fff; border:1px solid rgba(15,47,106,.12); }
+.btn--primary:hover{ filter: brightness(0.95); }
+.btn--secondary{ background: rgba(15,47,106,.08); color:#0f2f6a; border:1px solid rgba(15,47,106,.16); }
+.btn--secondary:hover{ background: rgba(15,47,106,.12); }
+.btn--ghost{ background: rgba(255,255,255,.55); border:1px solid rgba(15,35,75,.12); }
+.btn--ghost:hover{ background: rgba(255,255,255,.85); }
+
+.patients-empty{ margin-top: 10px; }
+
+@media (max-width: 860px){
+  .patient-row{ grid-template-columns: 1fr; }
+  .patient-time{ width:100%; justify-content:flex-start; padding-left:12px; }
+  .patient-actions{ width:100%; justify-self:stretch; }
+}
+
+
+/* --- Modal (Zeit bearbeiten) --- */
+.patient-time--editable{
+  cursor: pointer;
+  transition: transform .08s ease, background .12s ease, border-color .12s ease;
+}
+.patient-time--editable:hover{
+  background: rgba(63,111,232,.14);
+  border-color: rgba(63,111,232,.22);
+}
+.patient-time--editable:active{ transform: translateY(1px); }
+
+.modal[hidden]{ display:none; }
+.modal{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.modal__backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(11,27,58,.45);
+  backdrop-filter: blur(6px);
+}
+.modal__panel{
+  position: relative;
+  width: min(520px, calc(100% - 28px));
+  margin: 10vh auto 0;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(11,27,58,.12);
+  box-shadow: 0 30px 90px rgba(11,27,58,.25);
+  overflow: hidden;
+}
+.modal__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(11,27,58,.10);
+}
+.modal__head h3{ margin:0; font-size: 18px; }
+.iconbtn{
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(11,27,58,.10);
+  background: rgba(255,255,255,.8);
+  cursor: pointer;
+  font-weight: 800;
+}
+.iconbtn:hover{ background: rgba(255,255,255,1); }
+.modal__body{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 0; /* row-gap | column-gap: 0 damit Felder sich berühren */
+  padding: 14px 16px 6px;
+}
+
+/* Zeitfelder im Modal wie ein zusammenhängendes Feld */
+.modal__body .modal__field:nth-child(1) input[type="time"]{
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0; /* keine doppelte Linie in der Mitte */
+}
+.modal__body .modal__field:nth-child(2) input[type="time"]{
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.modal__field label{
+  display:block;
+  font-size: 13px;
+  color: rgba(11,27,58,.7);
+  margin-bottom: 6px;
+}
+.modal__field input[type="time"]{
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(11,27,58,.12);
+  background: rgba(248,251,255,.9);
+  font-weight: 700;
+}
+.modal__hint{
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.modal__actions{
+  display:flex;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+.modal__actions .btn{ flex:1; height: 44px; }
+
+@media (max-width: 520px){
+  .modal__body{ grid-template-columns: 1fr; }
+}
+
+
+/* Patient stornieren */
+.btn.danger{
+  background: rgba(220, 38, 38, .10);
+  border-color: rgba(220, 38, 38, .22);
+  color: #b91c1c;
+}
+.btn.danger:hover{
+  background: rgba(220, 38, 38, .14);
+  border-color: rgba(220, 38, 38, .28);
+}
+.patient-row.is-cancelled{
+  opacity: .65;
+}
+.patient-row.is-cancelled .patient-time{
+  text-decoration: line-through;
+}
+.badge-cancelled{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:10px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(220, 38, 38, .25);
+  background: rgba(220, 38, 38, .10);
+  color:#b91c1c;
+  font-weight:800;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+
+/* FIX: Stornieren-Button sichtbar machen (3 Buttons) */
+.patient-actions{
+  width: auto !important;
+  overflow: visible !important;
+  display: flex;
+  gap: 10px;
+}
+
+.patient-actions .btn{
+  flex: 1;
+  min-width: 110px;
+}
+
+
+
+/* Modal: dritter Button (Auftrag stornieren) */
+.modal__actions{
+  display:flex;
+  gap:12px;
+}
+.modal__actions .btn{ flex:1; }
+
+.btn--danger{
+  background: rgba(220,38,38,.12);
+  border:1px solid rgba(220,38,38,.28);
+  color:#b91c1c;
+}
+.btn--danger:hover{ background: rgba(220,38,38,.18); }
+
+/* Einsatz reaktivieren (Stornierung aufheben) */
+.btn.success{
+  background: rgba(16,185,129,.12);
+  border: 1px solid rgba(16,185,129,.28);
+  color:#065f46;
+}
+.btn.success:hover{
+  background: rgba(16,185,129,.18);
+}
+
+/* Success button for undo cancel */
+.btn--success{
+  background: rgba(16,185,129,.12);
+  border:1px solid rgba(16,185,129,.28);
+  color:#065f46;
+}
+.btn--success:hover{ background: rgba(16,185,129,.18); }
+
+/* Hinweis im 'Alle aktiven' Bereich: heute storniert */
+.badge-cancelled-note{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(220,38,38,.22);
+  background: rgba(220,38,38,.08);
+  color:#b91c1c;
+  font-weight:900;
+  font-size:11px;
+  letter-spacing:.3px;
+  text-transform: uppercase;
+  white-space:nowrap;
+}
+
+
+/* Status-Pill (immer sichtbar) */
+.status-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width: 110px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(11,27,58,.14);
+  background: rgba(11,27,58,.04);
+  color: rgba(11,27,58,.78);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: .35px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-pill.is-active{
+  border-color: rgba(16,185,129,.28);
+  background: rgba(16,185,129,.10);
+  color: #065f46;
+}
+.status-pill.is-cancelled{
+  border-color: rgba(220,38,38,.28);
+  background: rgba(220,38,38,.12);
+  color: #b91c1c;
+}
+
+.status-pill{ width: fit-content; }
+}
+
+
+
+/* --- ONE ROW Layout (Patient | Zeit+Status | Aktionen) --- */
+.patient-row{
+  display: grid;
+  grid-template-columns: minmax(260px, 2.4fr) 320px minmax(260px, 1.6fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.patient-time{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.patient-actions{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Buttons gleich breit */
+.patient-actions .btn{
+  min-width: 130px;
+}
+
+/* Mobile: sauber stapeln */
+@media (max-width: 860px){
+  .patient-row{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .patient-actions{
+    justify-content: flex-start;
+  }
+  .patient-actions .btn{
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+
+/* Status Sichtbarkeit (Zeit + Status müssen komplett sichtbar sein) */
+.patient-time{
+  overflow: visible !important;
+  min-width: 0;
+}
+.patient-time .status-pill{
+  min-width: 120px;
+}
+/* Falls die Zeit-Pill eine feste Breite hat, etwas reduzieren */
+.patient-time .time-pill,
+.patient-time .patient-time-btn{
+  min-width: 150px;
+}
+
+
+/* --- Pflegeplanung --- */
+.pfplan{ padding: 22px; }
+.pfplan__top{
+  display:flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+.pfplan__select{ min-width: 320px; }
+.select-wrap{ position:relative; }
+.select-wrap select{
+  width:100%;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  padding-right: 34px;
+}
+.select-caret{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform: translateY(-50%);
+  pointer-events:none;
+  opacity:.6;
+  font-weight: 900;
+}
+.pfplan__block{ border-top: 1px solid rgba(11,27,58,.10); padding-top: 18px; }
+.pfplan__blockHead{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.pfplan__blockHead h2{ margin:0; font-size: 22px; }
+.pfplan__mode{ display:flex; gap:10px; flex-wrap: wrap; justify-content: flex-end; }
+.pfplan__grid{
+  display:grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 18px;
+}
+.pfplan__left, .pfplan__right{
+  background: rgba(255,255,255,.60);
+  border: 1px solid rgba(11,27,58,.08);
+  border-radius: 16px;
+  padding: 16px;
+}
+.pfplan__row{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.pfplan__save{ margin-top: 14px; width: 100%; }
+.pfplan__note{ margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(11,27,58,.04); border:1px solid rgba(11,27,58,.08); }
+
+@media (max-width: 980px){
+  .pfplan__top{ flex-direction: column; align-items: stretch; }
+  .pfplan__select{ min-width: 0; }
+  .pfplan__grid{ grid-template-columns: 1fr; }
+  .pfplan__row{ grid-template-columns: 1fr; }
+}
+
+
+/* Krohwinkel-Links: kompakter Abstand */
+.pfplan__left .label{ margin-top: 10px; display:block; }
+.pfplan__left .label:first-of-type{ margin-top: 0; }
+
+/* === Pflegeplanung: längere Eingabefelder === */
+
+/* Linke Seite: volle Breite */
+.pfplan__left .input,
+.pfplan__left .textarea{
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Dropdown Klient auswählen */
+.pfplan__client-select select{
+  width: 420px;
+  max-width: 100%;
+  height: 48px;
+  font-size: 16px;
+}
+
+/* Rechte Seite Felder ebenfalls länger */
+.pfplan__right .input,
+.pfplan__right .textarea,
+.pfplan__right select{
+  width: 100%;
+}
+
+/* Buttons bleiben unten, aber mit Abstand */
+.pfplan__save{
+  margin-top: 20px;
+}
+
+/* === Höhere Eingabefelder für bessere Pflege-Doku === */
+.pfplan__left .input,
+.pfplan__right .input,
+.pfplan__right select{
+  min-height: 56px;
+  font-size: 16px;
+}
+
+.pfplan__left .textarea,
+.pfplan__right .textarea{
+  min-height: 140px;
+  font-size: 16px;
+}
+
+
+/* === Pflegeplanung: Touch-friendly (iPad) === */
+
+/* Größere Labels + Klickfläche */
+.pfplan .label{
+  display: inline-block;
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  padding: 6px 0;
+}
+
+/* Größere Inputs/Selects */
+.pfplan .input,
+.pfplan select,
+.pfplan input[type="text"],
+.pfplan input[type="date"]{
+  height: 60px;
+  font-size: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+}
+
+/* Größere Textareas */
+.pfplan .textarea,
+.pfplan textarea{
+  font-size: 18px;
+  line-height: 1.45;
+  padding: 14px 16px;
+  border-radius: 14px;
+  min-height: 170px;
+}
+
+/* Platzhalter besser lesbar */
+.pfplan ::placeholder{
+  font-size: 16px;
+  opacity: .65;
+}
+
+/* Dropdown-Caret mehr Platz */
+.select-wrap select,
+#pfFrequency{
+  padding-right: 44px !important;
+}
+
+/* Klient auswählen: breiter & höher */
+#pfPatient{
+  width: min(520px, 100%);
+}
+
+/* Modus Buttons: größer & besser antippbar */
+.pfplan__mode .btn{
+  min-height: 52px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border-radius: 14px;
+}
+
+/* Speichern Button: größer */
+.pfplan__save.btn,
+#pfSave.btn{
+  min-height: 58px;
+  font-size: 18px;
+  border-radius: 14px;
+}
+
+/* Zwei-Spalten-Grid: sauber ausrichten */
+.pfplan__grid{
+  align-items: start;
+}
+
+/* Mehr Abstand zwischen Feldern */
+.pfplan__left .label,
+.pfplan__right .label{
+  margin-top: 16px;
+}
+
+
+/* === Pflegeplanung Feinjustierung === */
+
+/* Notizen: nur Label oberhalb, kein extra Text */
+.pfplan__right .pfplan__hint{
+  display: none !important;
+}
+
+/* Ziel klar als eigener Block */
+#pfGoal{
+  margin-top: 8px;
+}
+
+/* Notizen: Label direkt über Feld, kein Zusatztext */
+#pfNotes{
+  margin-top: 0;
+}
+
+/* Pflegeplanung: Notizen Block unter Frequenz/Evaluierung */
+.pfplan__notes{
+  margin-top: 16px;
+}
+.pfplan__notes .textarea{
+  width: 100%;
+}
+
+/* --- Force Notizen-Label über Feld (Layout-Sicherheit) --- */
+.pfplan__right{
+  display: flex;
+  flex-direction: column;
+}
+.pfplan__row{
+  width: 100%;
+}
+.pfplan__notes{
+  width: 100%;
+}
+.pfplan__notes .label{
+  display:block;
+  width:100%;
+}
+.pfplan__notes .textarea{
+  display:block;
+  width:100%;
+}
+
+/* =========================
+   Pflegeplanung – Dashboard Look
+   (nur auf pflegeplanung.html)
+========================= */
+
+body[data-page="pflegeplanung"] h1.page-title{
+  font-size: 34px;
+  margin: 0;
+}
+
+body[data-page="pflegeplanung"] .page-subtitle{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+body[data-page="pflegeplanung"] .pp-wrap{
+  padding: 24px 0 40px;
+}
+
+body[data-page="pflegeplanung"] .pp-panel{
+  background: linear-gradient(180deg,#ffffff,#f3f7ff);
+  border: var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+body[data-page="pflegeplanung"] .pp-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(63,111,232,.14);
+  margin-bottom: 14px;
+}
+
+body[data-page="pflegeplanung"] .pp-head .left{
+  min-width: 260px;
+}
+
+body[data-page="pflegeplanung"] .pp-head .right{
+  width: min(420px, 100%);
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  gap: 8px;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+body[data-page="pflegeplanung"] .pp-head label{
+  font-weight: 700;
+  margin-bottom: 6px;
+  display:block;
+}
+
+body[data-page="pflegeplanung"] .pp-select{
+  width: 100%;
+}
+
+body[data-page="pflegeplanung"] .pp-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 16px;
+  padding: 14px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(63,111,232,.12);
+  background: rgba(255,255,255,.65);
+  margin: 12px 0;
+}
+
+body[data-page="pflegeplanung"] .pp-row strong{
+  display:block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+body[data-page="pflegeplanung"] .pp-row span{
+  color: var(--muted);
+  font-size: 14px;
+}
+
+body[data-page="pflegeplanung"] .pp-row .pp-action{
+  flex: 0 0 auto;
+  min-width: 170px;
+}
+
+body[data-page="pflegeplanung"] .pp-current{
+  margin-top: 18px;
+}
+
+body[data-page="pflegeplanung"] .pp-current-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+body[data-page="pflegeplanung"] .pp-current-head h2{
+  margin: 0;
+  font-size: 18px;
+}
+
+body[data-page="pflegeplanung"] .pp-current-actions{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+}
+
+body[data-page="pflegeplanung"] .pp-link{
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 999px;
+}
+body[data-page="pflegeplanung"] .pp-link:hover{
+  text-decoration:none;
+  background: rgba(63,111,232,.08);
+}
+
+body[data-page="pflegeplanung"] table.pp-table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow:hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(63,111,232,.14);
+  background: rgba(255,255,255,.75);
+}
+
+body[data-page="pflegeplanung"] table.pp-table th,
+body[data-page="pflegeplanung"] table.pp-table td{
+  text-align:left;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(63,111,232,.12);
+}
+
+body[data-page="pflegeplanung"] table.pp-table th{
+  font-size: 13px;
+  color: rgba(15,26,51,.75);
+  background: rgba(63,111,232,.06);
+}
+
+body[data-page="pflegeplanung"] table.pp-table tr:last-child td{
+  border-bottom: none;
+}
+
+body[data-page="pflegeplanung"] .pp-empty{
+  color: var(--muted);
+  padding: 10px 2px 0;
+  font-size: 13px;
+}
+
+/* Mobile */
+@media (max-width: 820px){
+  body[data-page="pflegeplanung"] .pp-head{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  body[data-page="pflegeplanung"] .pp-head .right{
+    align-items:stretch;
+  }
+  body[data-page="pflegeplanung"] .pp-row{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  body[data-page="pflegeplanung"] .pp-row .pp-action{
+    width: 100%;
+  }
+}
+
+/* Pflegeplanung table → mobile card layout */
+@media (max-width: 640px){
+  body[data-page="pflegeplanung"] .pp-current-head{
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body[data-page="pflegeplanung"] .pp-current-head h2{
+    flex: 1 1 100%;
+  }
+  body[data-page="pflegeplanung"] .pp-current-actions{
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body[data-page="pflegeplanung"] .pp-table-wrap{
+    overflow: visible;
+  }
+  body[data-page="pflegeplanung"] table.pp-table{
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+  body[data-page="pflegeplanung"] table.pp-table thead{
+    display: none;
+  }
+  body[data-page="pflegeplanung"] table.pp-table,
+  body[data-page="pflegeplanung"] table.pp-table tbody,
+  body[data-page="pflegeplanung"] table.pp-table tr,
+  body[data-page="pflegeplanung"] table.pp-table td{
+    display: block;
+    width: 100%;
+  }
+  body[data-page="pflegeplanung"] table.pp-table tr{
+    background: rgba(255,255,255,.85);
+    border: 1px solid rgba(63,111,232,.14);
+    border-left: 3px solid var(--primary, #3f6fe8);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  body[data-page="pflegeplanung"] table.pp-table td{
+    border: none;
+    padding: 3px 0;
+    font-size: 14px;
+  }
+  body[data-page="pflegeplanung"] table.pp-table td::before{
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--muted, #64748b);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    display: block;
+    margin-top: 6px;
+  }
+  body[data-page="pflegeplanung"] table.pp-table td:first-child::before{
+    margin-top: 0;
+  }
+  body[data-page="pflegeplanung"] table.pp-table td[data-label="Diagnose"]{
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text, #0f1a33);
+  }
+  body[data-page="pflegeplanung"] table.pp-table td[data-label="Diagnose"]::before{
+    display: none;
+  }
+}
+
+
+/* Pflegeplanung – Datums-Spalten (Dashboard-Style) */
+.pp-table .pp-date{white-space:nowrap;color:var(--muted);font-weight:600;}
+.pp-table .pp-date--right{text-align:right;}
+.pp-table .pp-col-date{width:140px;}
+.pp-table .pp-col-date--right{text-align:right;}
+.pp-table tbody tr{cursor:pointer;}
+.pp-table tbody tr:hover{background:rgba(63,111,232,.06);}
+.pp-table tbody tr.pp-row-selected{background:rgba(63,111,232,.12);outline:2px solid rgba(63,111,232,.35);}
+.pp-plan-abgesetzt td{opacity:.55;text-decoration:line-through;text-decoration-color:rgba(100,116,139,.5);}
+.pp-badge-abgesetzt{display:inline-block;font-size:.65rem;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(220,38,38,.12);color:#b91c1c;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;vertical-align:middle;}
+.pp-btn--danger{background:rgba(220,38,38,.1);color:#b91c1c;border-color:rgba(220,38,38,.3);}
+.pp-btn--danger:hover{background:rgba(220,38,38,.2);}
+.pp-current-actions .btn--danger{color:#b91c1c;border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.07);}
+.pp-current-actions .btn--danger:hover{background:rgba(220,38,38,.15);}
+
+/* Aktions-Modals (Bearbeiten / Evaluieren / Absetzen) */
+.pp-action-panel{width:min(560px,calc(100% - 24px));}
+.pp-action-body{display:flex;flex-direction:column;gap:14px;padding:24px 24px 20px;}
+.pp-action-body .pp-label{margin:0;}
+.pp-action-body .pp-ta{margin:0;}
+.pp-action-body .control{box-sizing:border-box;}
+.pp-action-context{background:rgba(63,111,232,.06);border:1px solid rgba(63,111,232,.15);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;}
+.pp-action-context span:last-child{font-size:.9rem;color:var(--text,#0f1a33);font-weight:600;}
+.pp-modal__footer .pp-btn{min-width:120px;}
+
+/* Mobile: Aktionsbuttons nicht überlaufen */
+@media (max-width: 640px){
+  body[data-page="pflegeplanung"] .pp-current-actions{
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body[data-page="pflegeplanung"] .pp-current-actions .btn,
+  body[data-page="pflegeplanung"] .pp-current-actions .pp-link{
+    flex: 1 1 auto;
+    text-align: center;
+    font-size: .8rem;
+    padding: 8px 10px;
+    min-width: 0;
+  }
+  .pp-action-panel{ width: calc(100% - 16px); }
+  .pp-action-body{ padding: 18px 16px 14px; gap: 12px; }
+  .pp-modal__footer{ gap: 8px; }
+  .pp-modal__footer .pp-btn{ flex: 1; min-width: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Pflegeplanung – Modals nach Skizze (Anamnese / Vorlagen / Frei definiert)
+   -------------------------------------------------------------------------- */
+
+html.pp-modal-open,
+html.pp-modal-open body{overflow:hidden;}
+
+#modalRoot:empty{display:none;}
+
+.pp-modal{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(6, 18, 41, .55);
+}
+
+.pp-modal__panel{
+  width:min(920px, calc(100% - 24px));
+  max-height:min(82vh, 980px);
+  overflow:hidden;
+  background:rgba(255,255,255,.98);
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  border:1px solid rgba(15, 23, 42, .08);
+  display:flex;
+  flex-direction:column;
+}
+
+.pp-modal__panel--wide{
+  width:min(1120px, calc(100% - 24px));
+}
+
+.pp-modal__header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:18px 18px 14px;
+  border-bottom:1px solid rgba(15, 23, 42, .08);
+}
+
+.pp-modal__title{
+  margin:0;
+  font-size:22px;
+  letter-spacing:.2px;
+}
+
+.pp-modal__close{
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  border:1px solid rgba(15, 23, 42, .10);
+  background:#fff;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:22px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.pp-modal__close:hover{background:rgba(63,111,232,.06); color:var(--text);}
+
+.pp-modal__body{
+  padding:16px 18px;
+  overflow:auto;
+}
+
+.pp-modal__footer{
+  padding:14px 18px 18px;
+  border-top:1px solid rgba(15, 23, 42, .08);
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+}
+
+/* Buttons */
+.pp-btn{
+  border:1px solid rgba(63,111,232,.25);
+  background:#fff;
+  color:var(--text);
+  padding:12px 14px;
+  border-radius:14px;
+  font-weight:700;
+  cursor:pointer;
+  min-width:150px;
+}
+.pp-btn:hover{background:rgba(63,111,232,.06);}
+.pp-btn--ghost{border-color:rgba(15, 23, 42, .12); color:var(--text); background:#fff;}
+.pp-btn--primary{
+  border-color:rgba(63,111,232,.55);
+  background:linear-gradient(180deg, rgba(63,111,232,.18), rgba(63,111,232,.10));
+}
+
+/* Layout helpers */
+.pp-muted{color:var(--muted);}
+.pp-hint{margin:10px 0 0; color:var(--muted); font-size:13px;}
+
+.pp-modal__top{display:flex; flex-direction:column; gap:12px; margin-bottom:14px;}
+
+.pp-patientline{display:flex; gap:8px; align-items:baseline;}
+.pp-patientline--small{font-size:14px; margin-bottom:8px;}
+
+.pp-topgrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+  align-items:end;
+}
+.pp-topgrid--tight{gap:10px;}
+
+.pp-grid2{
+  display:grid;
+  grid-template-columns: 1.5fr .9fr;
+  gap:14px;
+  align-items:start;
+}
+.pp-grid2--free{grid-template-columns: 1.2fr .8fr;}
+
+.pp-card{
+  border:1px solid rgba(15, 23, 42, .10);
+  background:rgba(255,255,255,.92);
+  border-radius:16px;
+  padding:14px;
+}
+.pp-card__title{margin:0 0 10px; font-size:18px;}
+
+.pp-stack{display:flex; flex-direction:column; gap:10px;}
+
+/* Fields */
+.pp-field{display:flex; flex-direction:column; gap:6px;}
+.pp-label{font-size:13px; color:var(--muted); font-weight:700;}
+.pp-ta{width:100%;border:1.5px solid rgba(63,111,232,.22);border-radius:10px;padding:8px 10px;font-size:.88rem;font-family:inherit;resize:vertical;background:#f8faff;color:var(--text,#0f1a33);}
+.pp-ta:focus{outline:none;border-color:rgba(63,111,232,.55);background:#fff;}
+
+.pp-control{
+  width:100%;
+  border:1px solid rgba(63,111,232,.25);
+  border-radius:14px;
+  padding:12px 12px;
+  background:#fff;
+  font:inherit;
+  outline:none;
+}
+.pp-control:focus{border-color:rgba(63,111,232,.6); box-shadow:0 0 0 4px rgba(63,111,232,.10);}
+.pp-control--ta{resize:vertical; min-height:64px;}
+
+/* Table (scoped to modal) */
+.pp-modal .pp-table{
+  border:1px solid rgba(15, 23, 42, .10);
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+
+.pp-modal .pp-table__head,
+.pp-modal .pp-table__row{
+  display:grid;
+  grid-template-columns: 44px 1.2fr 1fr 1fr;
+  gap:0;
+}
+
+.pp-modal .pp-table__head{
+  background:rgba(63,111,232,.06);
+  border-bottom:1px solid rgba(15, 23, 42, .08);
+}
+
+.pp-modal .pp-table__cell{
+  padding:12px 12px;
+  border-right:1px solid rgba(15, 23, 42, .06);
+  font-size:14px;
+}
+
+.pp-modal .pp-table__cell:last-child{border-right:none;}
+
+.pp-modal .pp-table__cell--check{display:flex; align-items:center; justify-content:center;}
+
+.pp-modal .pp-table__body .pp-table__row{
+  background:#fff;
+  border-bottom:1px solid rgba(15, 23, 42, .06);
+  cursor:pointer;
+}
+.pp-modal .pp-table__body .pp-table__row:last-child{border-bottom:none;}
+.pp-modal .pp-table__body .pp-table__row:hover{background:rgba(63,111,232,.04);}
+
+.pp-modal .pp-rowcheck{
+  width:18px;
+  height:18px;
+  accent-color: var(--primary);
+}
+
+/* Responsive */
+@media (max-width: 820px){
+  .pp-modal{padding:14px;}
+  .pp-modal__panel,
+  .pp-modal__panel--wide{width:calc(100% - 10px);}
+  .pp-grid2,
+  .pp-grid2--free{grid-template-columns: 1fr;}
+  .pp-topgrid{grid-template-columns: 1fr;}
+  .pp-btn{min-width:unset; flex:1;}
+  .pp-modal__footer{justify-content:stretch;}
+  .pp-modal .pp-table__head,
+  .pp-modal .pp-table__row{grid-template-columns: 44px 1fr;}
+  .pp-modal .pp-table__head .pp-table__cell:nth-child(n+3),
+  .pp-modal .pp-table__row .pp-table__cell:nth-child(n+3){display:none;}
+}
+
+
+/* ═══════════════════════════════════════════════
+   Gemeinsame Patientenauswahl (.pat-modal)
+   Wird von patient-selector.js genutzt
+   ═════════════════════════════════════════════ */
+.pat-modal{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;}
+.pat-modal[hidden]{display:none;}
+.pat-backdrop{position:absolute;inset:0;background:rgba(11,27,58,.36);backdrop-filter:blur(4px);}
+.pat-panel{position:relative;background:#fff;border-radius:18px;border:1px solid rgba(63,111,232,.12);box-shadow:0 30px 80px rgba(11,27,58,.22);width:min(400px,calc(100% - 28px));overflow:hidden;}
+.pat-panel__head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #e7edf7;}
+.pat-panel__title{font-size:15px;font-weight:800;}
+.pat-close{width:30px;height:30px;border:none;background:none;font-size:20px;color:#72809d;cursor:pointer;border-radius:8px;line-height:1;display:flex;align-items:center;justify-content:center;}
+.pat-close:hover{background:#e7edf7;}
+.pat-list{padding:12px 0;}
+.pat-row{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .12s;}
+.pat-row:hover{background:#f7f9fe;}
+.pat-row.active{background:rgba(63,111,232,.07);}
+.pat-row__avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e8eef8,#c5d5f5);color:#3f6fe8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
+.pat-row__avatar--accepted{background:linear-gradient(135deg,#bbf7d0,#86efac)!important;color:#166534!important;}
+.pat-row__info{flex:1;}
+.pat-row__name{font-size:13px;font-weight:700;}
+.pat-row__birth{font-size:11px;color:#72809d;}
+.pat-row__check{color:#3f6fe8;font-size:16px;font-weight:900;}
+@media print{.pat-modal{display:none!important;}}
+
+/* ── Gender-Avatar Chips (global, verwendet in Client-Ansichten) ── */
+.cg-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:50%;
+  font-size:11px;font-weight:900;letter-spacing:.3px;
+  background:linear-gradient(135deg,rgba(63,111,232,.18),rgba(63,111,232,.06));
+  color:#0b1b3a;border:1.5px solid rgba(15,35,75,.12);
+  vertical-align:middle;flex-shrink:0;
+}
+.cg-chip--f{
+  background:linear-gradient(135deg,#f9a8d4,#fce7f3);
+  color:#831843;border-color:rgba(236,72,153,.35);
+}
+.cg-chip--m{
+  background:linear-gradient(135deg,#93c5fd,#dbeafe);
+  color:#1e3a8a;border-color:rgba(59,130,246,.35);
+}
+
+/* ── Registrierungs-Fortschrittsanzeige ── */
+.reg-steps{display:flex;align-items:flex-start;justify-content:center;gap:0;margin:0 0 28px;padding:0 4px}
+.reg-step{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:72px}
+.reg-step__num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;background:#e5e7eb;color:#9ca3af;border:2px solid #e5e7eb;flex-shrink:0;transition:all .2s}
+.reg-step__label{font-size:.7rem;color:#9ca3af;text-align:center;line-height:1.2;white-space:nowrap}
+.reg-step--active .reg-step__num{background:var(--brand,#10b981);border-color:var(--brand,#10b981);color:#fff}
+.reg-step--active .reg-step__label{color:#111;font-weight:600}
+.reg-step--done .reg-step__num{background:#d1fae5;border-color:#6ee7b7;color:#065f46}
+.reg-step--done .reg-step__label{color:#065f46}
+.reg-step__line{flex:1;height:2px;background:#e5e7eb;margin-top:15px;min-width:20px}
+.reg-step__line--done{background:#6ee7b7}
+
+/* ── Verfügbarkeits-Modus Karten ── */
+.avail-mode{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px}
+.avail-mode__opt{flex:1;min-width:110px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:13px 8px;border:2px solid #e5e7eb;border-radius:10px;cursor:pointer;text-align:center;user-select:none;transition:border-color .15s,background .15s}
+.avail-mode__opt input{display:none}
+.avail-mode__opt strong{font-size:.85rem;color:#374151;display:block}
+.avail-mode__opt small{color:#9ca3af;font-size:.72rem;display:block}
+.avail-mode__opt--on{border-color:var(--brand,#10b981);background:#f0fdf4}
+.avail-mode__opt--on strong{color:#065f46}
+/* ── Tageszeilen v2 ── */
+.avail-grid-v2{display:flex;flex-direction:column;gap:0}
+.avail-row-v2{display:grid;grid-template-columns:22px 2.4rem 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #f3f4f6}
+.avail-row-v2:last-child{border-bottom:none}
+.avail-row-v2__day{font-weight:700;font-size:.82rem;color:#374151}
+.avail-row-v2__times{display:flex;align-items:center;gap:6px}
+.avail-row-v2__times .control{padding:6px 8px;font-size:.82rem}
+.avail-row-v2--off .avail-row-v2__day{color:#d1d5db}
+.avail-row-v2--off .avail-row-v2__times{opacity:.3;pointer-events:none}
+.avail-row-v2__ganztags{font-size:.72rem;color:#6b7280;white-space:nowrap;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none}
+.avail-row-v2__ganztags input{accent-color:#10b981}
+/* ── Radius Slider ── */
+.radius-wrap{display:flex;align-items:center;gap:14px;margin:10px 0 4px}
+.radius-wrap input[type=range]{flex:1;accent-color:var(--brand,#10b981);height:6px;cursor:pointer}
+.radius-val{font-weight:700;font-size:1.05rem;color:var(--brand,#10b981);min-width:58px;text-align:right}
+/* ── Einsatzarten Chips ── */
+.assign-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.assign-chip{display:flex;align-items:center;gap:5px;padding:6px 13px;border:2px solid #e5e7eb;border-radius:20px;cursor:pointer;font-size:.78rem;transition:all .12s;user-select:none;line-height:1.3}
+.assign-chip input{display:none}
+.assign-chip--on{border-color:var(--brand,#10b981);background:#f0fdf4;color:#065f46;font-weight:600}
+/* ── Beschäftigungs-Modell Karten ── */
+.model-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-top:10px}
+.model-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:13px 8px;border:2px solid #e5e7eb;border-radius:10px;cursor:pointer;text-align:center;user-select:none;transition:all .12s}
+.model-card input{display:none}
+.model-card__ico{font-size:1.5rem;line-height:1}
+.model-card__lbl{font-size:.8rem;font-weight:600;color:#374151}
+.model-card__sub{font-size:.69rem;color:#9ca3af}
+.model-card--on{border-color:var(--brand,#10b981);background:#f0fdf4}
+.model-card--on .model-card__lbl{color:#065f46}
+/* ── Sektions-Kopf ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding-bottom:10px;border-bottom:2px solid #f3f4f6}
+.sec-head h3{margin:0;font-size:.95rem}
+.sec-head .sec-head__action{font-size:.75rem;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:5px}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE  ≤ 640 px
+   Tablet (641 px+) und Desktop bleiben unverändert.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Hamburger-Button: auf Desktop unsichtbar */
+.nav-toggle{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:40px;height:40px;
+  border:1.5px solid rgba(63,111,232,.22);
+  border-radius:10px;
+  background:rgba(63,111,232,.06);
+  cursor:pointer;
+  font-size:20px;
+  color:#3f6fe8;
+  flex-shrink:0;
+  order:2;
+  line-height:1;
+}
+
+@media (max-width:640px){
+
+  /* ── Container Innen-Padding ── */
+  .container{ padding-inline:14px; }
+
+  /* ── Topbar ── */
+  .topbar__inner{
+    flex-wrap:wrap;
+    padding:10px 0;
+    gap:10px;
+  }
+  .brand{ order:1; }
+
+  /* Hamburger sichtbar machen */
+  .nav-toggle{ display:flex; }
+
+  /* Nav als eingeklappte Schublade */
+  .nav{
+    display:none;
+    flex-direction:column;
+    order:99;
+    flex-basis:100%;
+    gap:4px;
+    padding:10px 0 6px;
+    border-top:1px solid rgba(63,111,232,.12);
+  }
+  .nav.nav--open{ display:flex; }
+  .nav a{
+    display:block;
+    width:100%;
+    padding:11px 14px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    background:rgba(63,111,232,.04);
+  }
+  .nav a:hover{
+    background:rgba(63,111,232,.10);
+    border-color:transparent;
+  }
+
+  /* ── Typografie ── */
+  h1,.h1{ font-size:clamp(1.35rem,5.5vw,2rem); }
+  h2,.h2{ font-size:clamp(1.1rem,4.5vw,1.5rem); }
+
+  /* ── Allgemeine Grids → 1 Spalte ── */
+  .grid2,.grid3{ grid-template-columns:1fr !important; }
+
+  /* ── Buttons: Touch-freundliche Mindesthöhe ── */
+  .btn,.control.btn{
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* ── Abschnittsköpfe (auch inline-Styles überschreiben) ── */
+  .section__head{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+  }
+  .section__head > * { width:100%; }
+  .section__head .btn{ align-self:stretch; text-align:center; }
+
+  /* ── patients-head → vertikal stapeln ── */
+  .patients-head,
+  .patients-page .patients-head,
+  .patients-block__head,
+  .patients-section__head{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:10px;
+  }
+  .patients-head > *,
+  .patients-block__head > * { width:100%; }
+  .patients-section__head .btn--tour{ width:100%; }
+
+  /* ── Pflegeplanung pp-head → vertikal stapeln ── */
+  body[data-page="pflegeplanung"] .pp-head{
+    flex-direction:column;
+  }
+  body[data-page="pflegeplanung"] .pp-head .left{
+    min-width:0;
+    width:100%;
+  }
+  body[data-page="pflegeplanung"] .pp-head .right{
+    flex-wrap:wrap;
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  /* ── Registrierungs-Fortschrittsanzeige ── */
+  .reg-steps{ gap:0; }
+  .reg-step{ min-width:52px; }
+  .reg-step__label{ font-size:.6rem; }
+  .reg-step__line{ min-width:10px; }
+
+  /* ── Dashboard – Profilbereich ── */
+  .dash-profile__inner{ grid-template-columns:1fr; text-align:center; }
+  .dash-profile__actions{ display:flex; flex-direction:column; gap:8px; }
+  .dash-profile__actions .btn{ width:100%; }
+
+  /* ── Dashboard – Terminbereich Kopfzeile ── */
+  .dash-rowhead{ flex-wrap:wrap; }
+  .dash-rowhead > *:first-child{ flex:1 1 100%; }
+  .dash-rowhead .btn{ width:100%; }
+
+  /* ── Heutige Einsätze ── */
+  .today-item{ flex-wrap:wrap; gap:8px; }
+  .today-item__main{ flex:1 1 100%; }
+  .today-item > .btn{ flex:1; min-width:0; }
+
+  /* ── Patienten-Aktionen ── */
+  .patient-actions{ flex-wrap:wrap; }
+  .patient-actions .btn{ flex:1 1 calc(50% - 5px); min-width:0; }
+
+  /* ── Anfragen – Match-Cards ── */
+  .match-score__ring{
+    width:52px; height:52px;
+    font-size:13px; font-weight:800;
+  }
+  .match-actions{ flex-wrap:wrap; gap:8px; }
+  .btn-accept,.btn-decline{ flex:1; min-width:0; }
+
+  /* ── Verfügbarkeits-Zeilen ── */
+  .avail-row-v2{
+    grid-template-columns:24px 2.2rem auto;
+    gap:8px;
+  }
+  .avail-row-v2__ganztags{
+    grid-column:1/-1;
+    font-size:.75rem;
+  }
+
+  /* ── Einsatzort-/Radius-Slider ── */
+  .radius-wrap{ flex-wrap:wrap; gap:8px; }
+  .radius-val{ min-width:auto; }
+
+  /* ── Dokumentations-Formular-Aktionen ── */
+  .doc-actions,.form-footer,.form-actions{
+    flex-direction:column;
+    gap:8px;
+  }
+  .doc-actions .btn,.form-footer .btn,.form-actions .btn{
+    width:100%;
+  }
+
+  /* ── Modal-Fußzeilen ── */
+  .modal__actions{
+    flex-direction:column;
+    gap:8px;
+  }
+  .modal__actions .btn{ width:100%; }
+  .pp-modal__footer{ flex-wrap:wrap; gap:8px; }
+  .pp-btn{ flex:1; min-width:0; text-align:center; }
+
+  /* ── Rechnungszeilen ── */
+  .inv-row{ flex-wrap:wrap; gap:6px; }
+
+  /* ── Sektions-Kopf ── */
+  .sec-head{ flex-wrap:wrap; gap:8px; }
+
+  /* ── Button-Gruppen vertikal stapeln ── */
+  .mob-col{
+    flex-direction:column !important;
+    align-items:stretch !important;
+    width:100%;
+  }
+  .mob-col > *,
+  .mob-col > a,
+  .mob-col > button{
+    width:100% !important;
+    text-align:center !important;
+    justify-content:center !important;
+    min-height:44px;
+    box-sizing:border-box;
+  }
+
+}
+
+/* ── Tablet-only notice (shown on mobile, hidden on desktop) ── */
+.tablet-only-notice{
+  display: none;
+}
+@media (max-width: 767px){
+  .tablet-only-notice{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #fff;
+    border: 1.5px solid rgba(63,111,232,.18);
+    border-radius: 16px;
+    padding: 32px 24px;
+    margin: 24px 16px;
+    text-align: center;
+  }
+  .tablet-only-notice__icon{
+    font-size: 2.4rem;
+    line-height: 1;
+  }
+  .tablet-only-notice__title{
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text, #0f1a33);
+    margin: 0;
+  }
+  .tablet-only-notice__sub{
+    font-size: .88rem;
+    color: var(--muted, #64748b);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .tablet-only-notice + *{
+    display: none !important;
+  }
+}
+
+/* ── Rechnungen: Desktop-only buttons + mobile hint ── */
+.inv-mobile-hint{
+  display: none;
+}
+/* Inputs/Selects/Textareas: box-sizing fix so padding doesn't add to width */
+input,
+select,
+textarea{
+  min-width: 0;
+  max-width: 100%;
+}
+input.control,
+select.control,
+textarea.control{
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+/* date/time inputs: block display, centered content (horizontal + vertical) */
+input[type="date"],
+input[type="time"],
+input[type="date"].control,
+input[type="time"].control {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: center;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value {
+  text-align: center;
+  margin: 0;
+}
+@media (max-width: 1024px){
+  .inv-desktop-only{
+    display: none !important;
+  }
+  .inv-mobile-hint{
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(63,111,232,.07);
+    border: 1px solid rgba(63,111,232,.18);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--text, #0f1a33);
+    line-height: 1.45;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 767px){
+  .inv-desktop-only{
+    display: none !important;
+  }
+  .inv-mobile-hint span:first-child{
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+}

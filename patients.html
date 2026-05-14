@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Meine Klienten</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Patient-Avatar ── */
+    .patient-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg,#e8eef8,#c5d5f5);
+      color: #3f6fe8; font-weight: 700; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .patient-avatar--accepted {
+      background: linear-gradient(135deg,#bbf7d0,#86efac); color: #166534;
+    }
+    .patient-avatar--f {
+      background: linear-gradient(135deg,#f9a8d4,#fce7f3);
+      color: #831843; border: 2px solid rgba(236,72,153,.35);
+    }
+    .patient-avatar--m {
+      background: linear-gradient(135deg,#93c5fd,#dbeafe);
+      color: #1e3a8a; border: 2px solid rgba(59,130,246,.35);
+    }
+    /* ── Avatar-Wrapper + Status-Dot ── */
+    .patient-avatar-wrap {
+      position: relative; flex-shrink: 0; display: inline-flex;
+    }
+    .visit-dot {
+      position: absolute; top: -3px; right: -3px;
+      width: 13px; height: 13px; border-radius: 50%;
+      border: 2.5px solid #fff; z-index: 2; pointer-events: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .visit-dot--upcoming { background: #f59e0b; }
+    .visit-dot--done     { background: #22c55e; }
+    .visit-dot--overdue  { background: #ef4444; }
+    /* Inline-Geschlecht-Auswahl */
+    .patient-gender-pick { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .pgp-label { font-size: 11px; font-weight: 600; color: #7a8faa; white-space: nowrap; }
+    .pgp-select {
+      font-size: 11px; font-weight: 600; color: #3f6fe8;
+      border: 1.5px solid rgba(63,111,232,.25); border-radius: 8px;
+      background: #f4f7ff; padding: 2px 8px; cursor: pointer; outline: none;
+    }
+    .pgp-select:hover { border-color: rgba(63,111,232,.5); }
+    .patient-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f4fb; }
+    .patient-row:last-child { border-bottom: none; }
+    .patient-info { flex: 1; min-width: 0; }
+    .patient-name { font-weight: 700; font-size: 15px; color: #1d2b4f; }
+    .patient-address { font-size: 12px; color: #7a8faa; margin-top: 2px; }
+    .patient-time--editable {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-width: 90px; padding: 7px 12px; border-radius: 10px;
+      cursor: pointer; font-size: 12px; line-height: 1.3;
+      border: 1.5px solid transparent; transition: filter .15s;
+    }
+    .patient-time--editable:hover { filter: brightness(.94); }
+    .pt--active  { background: #dcfce7; border-color: #86efac; }
+    .pt--cancelled { background: #fee2e2; border-color: #fca5a5; }
+    .pt-time-val { font-weight: 700; color: #1d2b4f; }
+    .pt--cancelled .pt-time-val { color: #991b1b; text-decoration: line-through; }
+    .pt-date-val { font-size: 11px; color: #6b7280; }
+    .patient-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Profil-Modal ── */
+    .pm-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg,#3f6fe8,#6a9dff);
+      color: #fff; font-weight: 800; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+    }
+    .pm-row { display: flex; gap: 8px; align-items: baseline; margin-bottom: 8px; font-size: 14px; }
+    .pm-row label { color: #7a8faa; font-size: 12px; font-weight: 700; min-width: 90px; }
+    .pm-wish-wrap {
+      background: #f8faff; border-left: 3px solid rgba(63,111,232,.25);
+      border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; font-size: 13px;
+      font-style: italic; color: #4b5e7a;
+    }
+    .pm-wish-wrap strong { font-style: normal; font-size: 11px; color: #7a8faa; display: block; margin-bottom: 4px; }
+    .pm-visit { display: flex; gap: 12px; align-items: center; padding: 6px 0;
+      border-bottom: 1px solid #f0f4fb; font-size: 13px; }
+    .pm-visit:last-child { border-bottom: none; }
+    .pm-visit__date { color: #7a8faa; min-width: 80px; }
+    .pm-visit__time { font-weight: 700; color: #1d2b4f; }
+    .pm-visit__status { font-size: 11px; font-weight: 700; margin-left: auto;
+      padding: 2px 8px; border-radius: 10px; }
+    .pm-visit:not(.pm-visit--cancelled) .pm-visit__status { background: #dcfce7; color: #166534; }
+    .pm-visit--cancelled .pm-visit__status { background: #fee2e2; color: #b91c1c; }
+    .pm-visits-head { font-weight: 700; font-size: 13px; color: #1d2b4f; margin: 14px 0 6px; }
+
+    /* ── Nachrichten-Modal ── */
+    .msg-to { font-size: 13px; color: #7a8faa; margin-bottom: 10px; }
+    .msg-to strong { color: #1d2b4f; }
+    .msg-confirm {
+      background: #dcfce7; border-radius: 8px; padding: 10px 14px;
+      color: #166534; font-weight: 700; font-size: 13px; margin-top: 10px; text-align: center;
+    }
+
+    /* ── Zeit-Modal: Datums-Feld ── */
+    .modal__field label { font-size: 13px; color: #7a8faa; display: block; margin-bottom: 4px; }
+    .modal__field input { width: 100%; }
+
+    /* ── Tour-Button ── */
+    .btn--tour {
+      height: 36px; padding: 0 14px; border-radius: 10px; font-size: 13px;
+      border: 1px solid rgba(63,111,232,.2); background: #eff6ff;
+      color: #1d4ed8; font-weight: 700; cursor: pointer;
+    }
+    .btn--tour:hover { background: #dbeafe; }
+
+    /* ── MOBILE ≤ 640px ── */
+    @media (max-width: 640px) {
+      /* Patient-Zeile: 3 Reihen: [Avatar + Name] / [Zeit] / [Buttons 2x2] */
+      .patient-row {
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        padding: 12px !important;
+      }
+      .patient-avatar-wrap { flex-shrink: 0; }
+      .patient-info { flex: 1 1 0; min-width: 0; }
+
+      /* Zeit-Block: eigene Zeile, volle Breite */
+      .patient-time--editable {
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        justify-content: flex-start;
+        box-sizing: border-box;
+      }
+
+      /* Aktionsbuttons: eigene Zeile, 2×2 */
+      .patient-actions {
+        flex: 0 0 100%;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .patient-actions .btn {
+        flex: 1 1 calc(50% - 4px);
+        min-height: 44px;
+        min-width: 0;
+        text-align: center;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+
+      /* Kopfbereich – mob-col greift, aber sicherstellen */
+      .patients-head {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+      .patients-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px;
+        width: 100%;
+      }
+      .patients-actions > * {
+        width: 100% !important;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Abschnittsköpfe */
+      .patients-section__head {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+      }
+      .patients-section__head .btn--tour {
+        width: 100%;
+        min-height: 44px;
+      }
+    }
+
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="dashboard-care.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+  </div>
+</header>
+
+<main class="container patients-page">
+  <section class="card">
+    <div class="patients-head">
+      <div>
+        <h2>Meine Klienten</h2>
+        <p class="muted">Angenommene Anfragen erscheinen automatisch hier.</p>
+      </div>
+      <div class="patients-actions mob-col" style="display:flex;gap:8px;align-items:center;">
+        <a class="control btn primary" href="anfragen.html?add=1">+ Patient aufnehmen</a>
+        <a class="control btn" href="dashboard-care.html">Zurück</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="card patients-section">
+    <div class="patients-section__head">
+      <h3>Heute</h3>
+      <span class="pill" id="todayCount">0</span>
+      <button class="btn--tour" id="tourBtn" style="display:none;" type="button">Tour planen</button>
+    </div>
+    <div id="todayList" class="patients-list"></div>
+    <p id="todayEmpty" class="muted patients-empty" hidden>Heute sind keine Einsätze eingetragen.</p>
+  </section>
+
+  <section class="card patients-section">
+    <div class="patients-section__head">
+      <h3>Alle aktiven Patienten</h3>
+      <span class="pill" id="activeCount">0</span>
+    </div>
+    <div id="activeList" class="patients-list"></div>
+    <p id="activeEmpty" class="muted patients-empty" hidden>Noch keine aktiven Patienten. Anfragen annehmen oder von der Leitstelle zugewiesen bekommen.</p>
+  </section>
+</main>
+
+<!-- ════════ ZEIT-MODAL ════════ -->
+<div class="modal" id="timeModal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="timeModalTitle"
+       style="overflow:visible;">
+    <div class="modal__head">
+      <h3 id="timeModalTitle">Zeit bearbeiten</h3>
+      <button class="iconbtn" type="button" data-close aria-label="Schließen">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:18px 20px 6px; display:flex; flex-direction:column; gap:16px;">
+
+      <!-- Datum -->
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <label style="font-size:12px;font-weight:700;color:#7a8faa;letter-spacing:.4px;" for="timeDate">DATUM</label>
+        <div style="border:1.5px solid rgba(11,27,58,.18);border-radius:10px;background:#fff;height:46px;display:flex;align-items:center;padding:0 12px;">
+          <input id="timeDate" type="date"
+            style="border:none;outline:none;width:100%;min-width:0;font-size:15px;color:#1d2b4f;background:transparent;" />
+        </div>
+      </div>
+
+      <!-- Von / Bis -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="display:flex;flex-direction:column;gap:5px;min-width:0;">
+          <label style="font-size:12px;font-weight:700;color:#7a8faa;letter-spacing:.4px;" for="timeFrom">VON</label>
+          <div style="border:1.5px solid rgba(11,27,58,.18);border-radius:10px;background:#fff;height:46px;display:flex;align-items:center;padding:0 10px;">
+            <input id="timeFrom" type="time"
+              style="border:none;outline:none;width:100%;min-width:0;font-size:15px;color:#1d2b4f;background:transparent;" />
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;min-width:0;">
+          <label style="font-size:12px;font-weight:700;color:#7a8faa;letter-spacing:.4px;" for="timeTo">BIS</label>
+          <div style="border:1.5px solid rgba(11,27,58,.18);border-radius:10px;background:#fff;height:46px;display:flex;align-items:center;padding:0 10px;">
+            <input id="timeTo" type="time"
+              style="border:none;outline:none;width:100%;min-width:0;font-size:15px;color:#1d2b4f;background:transparent;" />
+          </div>
+        </div>
+      </div>
+
+      <p id="timeHint" aria-live="polite"
+        style="margin:0;font-size:13px;color:#7a8faa;min-height:16px;"></p>
+    </div>
+
+    <!-- Buttons -->
+    <div style="padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <button type="button" data-close
+          style="height:46px;border-radius:12px;border:1px solid rgba(11,27,58,.15);background:#f5f7fa;color:#1d2b4f;font-weight:700;font-size:15px;cursor:pointer;">
+          Abbrechen
+        </button>
+        <button type="button" id="timeSave"
+          style="height:46px;border-radius:12px;border:none;background:#1d2b4f;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">
+          Speichern
+        </button>
+      </div>
+      <button type="button" id="timeCancel"
+        style="width:100%;box-sizing:border-box;height:46px;border-radius:12px;border:1px solid rgba(220,38,38,.3);background:rgba(220,38,38,.07);color:#b91c1c;font-weight:700;font-size:15px;cursor:pointer;">
+        Auftrag stornieren
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════ PROFIL-MODAL ════════ -->
+<div class="modal" id="profileModal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+    <div class="modal__head">
+      <h3 id="profileModalTitle">Patientenprofil</h3>
+      <button class="iconbtn" type="button" data-close aria-label="Schließen">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="pm-avatar" id="pm-avatar">?</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">
+        <strong id="pm-name" style="font-size:18px;color:#1d2b4f;"></strong>
+        <span id="pm-age" class="muted" style="font-size:13px;"></span>
+      </div>
+      <div class="pm-row"><label>Pflegestufe</label><span id="pm-stufe"></span></div>
+      <div class="pm-row"><label>Adresse</label><span id="pm-address"></span></div>
+      <div class="pm-row"><label>Pflegebedarf</label><span id="pm-needs"></span></div>
+      <div class="pm-row" id="pm-haeufigkeit-row"><label>Häufigkeit</label><span id="pm-haeufigkeit"></span></div>
+      <div class="pm-row" id="pm-hauptgrund-row"><label>Hauptgrund</label><span id="pm-hauptgrund"></span></div>
+
+      <div class="pm-wish-wrap">
+        <strong>Wünsche der Familie</strong>
+        <span id="pm-wunsch"></span>
+      </div>
+
+      <p class="pm-visits-head">Geplante Einsätze</p>
+      <div id="pm-visits"></div>
+    </div>
+    <div class="modal__actions">
+      <button class="btn btn--secondary" type="button" data-close>Schließen</button>
+      <button class="btn btn--danger" type="button" id="pm-ablBtn">Beenden</button>
+      <button class="btn btn--ghost" type="button" id="pm-navBtn">Navigation</button>
+      <button class="btn btn--primary" type="button" id="pm-msgBtn">Nachricht senden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ BEENDEN-MODAL ════════ -->
+<div class="modal" id="beendenModal" hidden>
+  <div class="modal__backdrop" id="beendenBackdrop"></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="beendenTitle"
+       style="max-width:460px;padding:0;overflow:visible;">
+    <div class="modal__head" style="border-bottom:1px solid #f0f4fb;margin-bottom:0;">
+      <div>
+        <h3 id="beendenTitle" style="margin:0;font-size:18px;">Betreuung beenden</h3>
+        <p style="margin:2px 0 0;font-size:13px;color:#7a8faa;" id="beendenSubtitle"></p>
+      </div>
+      <button class="iconbtn" type="button" id="beendenClose" aria-label="Schließen">✕</button>
+    </div>
+
+    <div style="padding:18px 20px 6px;display:flex;flex-direction:column;gap:10px;">
+      <p style="margin:0;font-size:13px;font-weight:700;color:#7a8faa;letter-spacing:.4px;text-transform:uppercase;">Grund wählen *</p>
+
+      <label id="bGrund1" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:1.5px solid rgba(11,27,58,.15);cursor:pointer;transition:border-color .15s,background .15s;">
+        <input type="radio" name="beendenGrund" value="Keine Versorgung mehr notwendig"
+               style="accent-color:#1d2b4f;width:18px;height:18px;flex-shrink:0;" />
+        <span style="font-size:14px;font-weight:600;color:#1d2b4f;">Keine Versorgung mehr notwendig</span>
+      </label>
+
+      <label id="bGrund2" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:1.5px solid rgba(11,27,58,.15);cursor:pointer;transition:border-color .15s,background .15s;">
+        <input type="radio" name="beendenGrund" value="Pat entspricht nicht den Vorstellungen"
+               style="accent-color:#1d2b4f;width:18px;height:18px;flex-shrink:0;" />
+        <span style="font-size:14px;font-weight:600;color:#1d2b4f;">Pat entspricht nicht den Vorstellungen</span>
+      </label>
+
+      <label id="bGrund3" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:1.5px solid rgba(11,27,58,.15);cursor:pointer;transition:border-color .15s,background .15s;">
+        <input type="radio" name="beendenGrund" value="Sonstiges"
+               style="accent-color:#1d2b4f;width:18px;height:18px;flex-shrink:0;" />
+        <span style="font-size:14px;font-weight:600;color:#1d2b4f;">Sonstiges</span>
+      </label>
+
+      <div id="beendenSonstField" style="display:none;">
+        <div style="border:1.5px solid rgba(11,27,58,.18);border-radius:10px;background:#fff;padding:10px 12px;">
+          <textarea id="beendenSonstText" placeholder="Bitte Grund angeben …"
+            style="border:none;outline:none;width:100%;min-height:72px;font-size:14px;color:#1d2b4f;background:transparent;resize:none;font-family:inherit;"></textarea>
+        </div>
+      </div>
+
+      <p id="beendenError" style="margin:0;font-size:13px;color:#b91c1c;min-height:16px;"></p>
+    </div>
+
+    <div style="padding:4px 20px 20px;display:flex;gap:10px;">
+      <button type="button" id="beendenAbbrechen"
+        style="flex:1;height:46px;border-radius:12px;border:1px solid rgba(11,27,58,.15);background:#f5f7fa;color:#1d2b4f;font-weight:700;font-size:15px;cursor:pointer;">
+        Abbrechen
+      </button>
+      <button type="button" id="beendenSaveBtn"
+        style="flex:1;height:46px;border-radius:12px;border:none;background:#b91c1c;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">
+        Beenden
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ NACHRICHTEN-MODAL ════════ -->
+<div class="modal" id="msgModal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="msgModalTitle">
+    <div class="modal__head">
+      <h3 id="msgModalTitle">Nachricht senden</h3>
+      <button class="iconbtn" type="button" data-close aria-label="Schließen">✕</button>
+    </div>
+    <div class="modal__body">
+      <p class="msg-to">An: <strong id="msg-to"></strong></p>
+      <textarea id="msg-text" class="control" rows="5"
+        placeholder="Nachricht eingeben …" style="width:100%;resize:vertical;"></textarea>
+      <div class="msg-confirm" id="msg-confirm" style="display:none;">
+        ✓ Nachricht gesendet
+      </div>
+    </div>
+    <div class="modal__actions">
+      <button class="btn btn--secondary" type="button" data-close>Abbrechen</button>
+      <button class="btn btn--primary" type="button" id="msgSend">Senden</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script src="patients.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

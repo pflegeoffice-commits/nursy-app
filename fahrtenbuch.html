@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Nursy – Digitales Fahrtenbuch</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f2744;--navy2:#1a3a5c;--blue:#2563eb;--blue-l:#3b82f6;
+  --green:#16a34a;--red:#dc2626;
+  --bg:#f0f4fb;--card:#fff;
+  --text:#0f1a33;--muted:#64748b;--border:rgba(15,26,51,.12);--r:14px;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;
+}
+
+/* ── HEADER ── */
+.fb-hdr{
+  background:var(--navy);color:#fff;
+  padding:12px 14px 10px;flex-shrink:0;
+}
+.fb-hdr__top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.fb-hdr__back{
+  background:rgba(255,255,255,.12);border:none;border-radius:8px;
+  color:rgba(255,255,255,.85);font-size:.75rem;font-weight:700;
+  padding:5px 10px;cursor:pointer;white-space:nowrap;text-decoration:none;
+}
+.fb-hdr__back:active{background:rgba(255,255,255,.25);}
+.fb-hdr__title{font-size:1.05rem;font-weight:900;letter-spacing:-.01em;}
+.fb-hdr__sub{font-size:.7rem;opacity:.6;margin-top:2px;}
+.fb-hdr__fzbadge{
+  background:rgba(59,130,246,.4);border-radius:7px;
+  padding:3px 9px;font-size:.73rem;font-weight:900;white-space:nowrap;
+}
+
+/* ── TOOLBAR ── */
+.fb-toolbar{
+  background:#fff;border-bottom:1px solid var(--border);
+  padding:10px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.fb-new-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--blue);color:#fff;border:none;
+  border-radius:10px;padding:9px 16px;
+  font-size:.82rem;font-weight:800;cursor:pointer;
+  margin-left:auto;white-space:nowrap;
+}
+.fb-new-btn:active{opacity:.85;transform:scale(.97);}
+.fb-km-total{
+  font-size:.75rem;font-weight:700;color:var(--muted);
+}
+.fb-km-total span{color:var(--navy);font-weight:900;}
+
+/* ── LIST ── */
+.fb-list{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:10px 12px 90px;
+}
+.fb-card{
+  background:var(--card);border-radius:var(--r);margin-bottom:10px;
+  box-shadow:0 1px 6px rgba(0,0,0,.08);
+  border-left:4px solid var(--blue);overflow:hidden;
+}
+.fb-card__head{
+  padding:10px 12px 8px;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+}
+.fb-card__date{font-size:.75rem;font-weight:800;color:var(--blue);}
+.fb-card__km{
+  background:#eff6ff;border-radius:7px;padding:2px 9px;
+  font-size:.72rem;font-weight:900;color:var(--navy);white-space:nowrap;
+}
+.fb-card__route{
+  padding:0 12px 4px;
+  font-size:.88rem;font-weight:800;color:var(--text);
+  display:flex;align-items:center;gap:6px;
+}
+.fb-card__arrow{color:var(--blue);font-size:.8rem;}
+.fb-card__meta{
+  padding:4px 12px 10px;
+  display:flex;flex-wrap:wrap;gap:5px;
+}
+.fb-chip{
+  font-size:.68rem;font-weight:700;
+  background:#f1f5f9;border-radius:6px;
+  padding:2px 8px;color:var(--muted);
+}
+.fb-chip--zweck{background:#eff6ff;color:var(--blue);}
+.fb-card__actions{
+  border-top:1px solid var(--border);
+  display:flex;
+}
+.fb-card__act{
+  flex:1;border:none;background:none;cursor:pointer;
+  padding:8px;font-size:.72rem;font-weight:700;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.fb-card__act:active{background:#f8fafc;}
+.fb-card__act--del{color:var(--red);}
+.fb-card__act + .fb-card__act{border-left:1px solid var(--border);}
+
+/* ── EMPTY ── */
+.fb-empty{
+  text-align:center;padding:52px 24px;
+}
+.fb-empty__ico{font-size:2.4rem;margin-bottom:10px;}
+.fb-empty__title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+.fb-empty__sub{font-size:.8rem;color:var(--muted);line-height:1.5;}
+
+/* ── MODAL ── */
+.fb-overlay{
+  position:fixed;inset:0;background:rgba(15,26,51,.55);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:200;
+}
+.fb-overlay.open{display:flex;}
+.fb-modal{
+  background:#fff;border-radius:20px 20px 0 0;
+  width:100%;max-width:520px;max-height:92vh;
+  display:flex;flex-direction:column;
+}
+.fb-modal__hdr{
+  padding:14px 16px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.fb-modal__title{font-size:1rem;font-weight:900;color:var(--navy);}
+.fb-modal__close{
+  border:none;background:none;cursor:pointer;
+  font-size:1.3rem;color:var(--muted);padding:2px;line-height:1;
+}
+.fb-modal__body{
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:16px;display:flex;flex-direction:column;gap:12px;
+}
+.fb-field{display:flex;flex-direction:column;gap:4px;}
+.fb-field__row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fb-label{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.fb-input{
+  border:1.5px solid var(--border);border-radius:10px;
+  padding:9px 11px;font-size:.88rem;color:var(--text);
+  background:#fff;width:100%;
+  font-family:inherit;
+}
+.fb-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+.fb-km-hint{
+  font-size:.72rem;color:var(--green);font-weight:800;margin-top:3px;
+}
+.fb-modal__foot{
+  padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;
+  display:flex;gap:8px;
+}
+.fb-save-btn{
+  flex:1;background:var(--blue);color:#fff;border:none;
+  border-radius:10px;padding:12px;font-size:.9rem;font-weight:800;cursor:pointer;
+}
+.fb-save-btn:active{opacity:.85;}
+.fb-cancel-btn{
+  background:#f1f5f9;border:none;border-radius:10px;
+  padding:12px 18px;font-size:.88rem;font-weight:700;
+  color:var(--muted);cursor:pointer;
+}
+.fb-cancel-btn:active{background:#e2e8f0;}
+
+/* ── TOAST ── */
+.fb-toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#0f2744;color:#fff;border-radius:10px;padding:9px 18px;
+  font-size:.82rem;font-weight:700;opacity:0;transition:all .25s;
+  pointer-events:none;z-index:999;white-space:nowrap;
+}
+.fb-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(hover:hover){
+  .fb-card__act:hover{background:#f8fafc;}
+  .fb-new-btn:hover{background:#1d4ed8;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="fb-hdr">
+  <div class="fb-hdr__top">
+    <a class="fb-hdr__back" href="/auftragslage.html">← Auftragslage</a>
+    <div style="flex:1;text-align:center;">
+      <div class="fb-hdr__title">📖 Fahrtenbuch</div>
+    </div>
+    <div class="fb-hdr__fzbadge" id="hdrFz">–</div>
+  </div>
+  <div class="fb-hdr__sub" id="hdrSub" style="text-align:center;margin-top:4px;">Lade…</div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="fb-toolbar">
+  <div class="fb-km-total">Gesamt heute: <span id="kmHeute">0 km</span></div>
+  <button class="fb-new-btn" onclick="openModal()">+ Neue Fahrt</button>
+</div>
+
+<!-- Einsatz-Hinweis-Banner (nur sichtbar wenn von Auftragslage mit Einsatzdaten geöffnet) -->
+<div id="fbEinsatzHint" style="display:none;background:#eff6ff;border-bottom:1.5px solid #bfdbfe;padding:9px 14px;flex-shrink:0;display:none;align-items:center;gap:10px;">
+  <span style="font-size:1.1rem;">📋</span>
+  <div style="flex:1;min-width:0;">
+    <div style="font-size:.75rem;font-weight:800;color:#1d4ed8;">Einsatzdaten vorausgefüllt</div>
+    <div style="font-size:.7rem;color:#3b82f6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="fbEinsatzHintText"></div>
+  </div>
+  <button onclick="document.getElementById('fbEinsatzHint').style.display='none'"
+          style="border:none;background:none;color:#93c5fd;font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:0;">✕</button>
+</div>
+
+<!-- LIST -->
+<div class="fb-list" id="fbList">
+  <div class="fb-empty">
+    <div class="fb-empty__ico">🔄</div>
+    <div class="fb-empty__title">Lade Einträge…</div>
+  </div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="fb-overlay" id="fbOverlay">
+  <div class="fb-modal">
+    <div class="fb-modal__hdr">
+      <div class="fb-modal__title" id="modalTitle">Neue Fahrt erfassen</div>
+      <button class="fb-modal__close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="fb-modal__body">
+
+      <div class="fb-field__row">
+        <div class="fb-field">
+          <label class="fb-label">Datum</label>
+          <input class="fb-input" type="date" id="fDatum">
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">Fahrer</label>
+          <input class="fb-input" type="text" id="fFahrer" placeholder="Name">
+        </div>
+      </div>
+
+      <div class="fb-field__row">
+        <div class="fb-field">
+          <label class="fb-label">Fahrzeug</label>
+          <input class="fb-input" type="text" id="fFahrzeug" placeholder="z. B. W-NE 01">
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">Kennzeichen</label>
+          <input class="fb-input" type="text" id="fKennzeichen" placeholder="z. B. W-12345">
+        </div>
+      </div>
+
+      <div class="fb-field__row">
+        <div class="fb-field">
+          <label class="fb-label">Uhrzeit von</label>
+          <input class="fb-input" type="time" id="fVon">
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">Uhrzeit bis</label>
+          <input class="fb-input" type="time" id="fBis">
+        </div>
+      </div>
+
+      <div class="fb-field__row">
+        <div class="fb-field">
+          <label class="fb-label">Abfahrtsort</label>
+          <input class="fb-input" type="text" id="fVonOrt" placeholder="Start">
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">Zielort</label>
+          <input class="fb-input" type="text" id="fNachOrt" placeholder="Ziel">
+        </div>
+      </div>
+
+      <div class="fb-field">
+        <label class="fb-label">Fahrtzweck / Anlass</label>
+        <input class="fb-input" type="text" id="fZweck" placeholder="z. B. Patientenfahrt, Materialtransport…">
+      </div>
+
+      <div class="fb-field__row">
+        <div class="fb-field">
+          <label class="fb-label">km-Stand Abfahrt</label>
+          <input class="fb-input" type="number" id="fKmStart" placeholder="0" min="0" oninput="calcKm()">
+        </div>
+        <div class="fb-field">
+          <label class="fb-label">km-Stand Ankunft</label>
+          <input class="fb-input" type="number" id="fKmEnde" placeholder="0" min="0" oninput="calcKm()">
+        </div>
+      </div>
+      <div class="fb-km-hint" id="kmHint"></div>
+
+      <!-- Betriebsmittel / Tanken -->
+      <div style="background:#fefce8;border:1.5px solid #fde68a;border-radius:12px;padding:12px 12px 4px;margin-top:2px;">
+        <div style="font-size:.68rem;font-weight:900;color:#92400e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">⛽ Betriebsmittel</div>
+        <div class="fb-field__row">
+          <div class="fb-field">
+            <label class="fb-label">Getankt (Liter)</label>
+            <input class="fb-input" type="number" id="fGetanktLiter" placeholder="0,00" min="0" step="0.1"
+                   style="border-color:#fcd34d;">
+          </div>
+          <div class="fb-field">
+            <label class="fb-label">Kraftstoffart</label>
+            <select class="fb-input" id="fKraftstoffArt" style="border-color:#fcd34d;appearance:auto;">
+              <option value="">– keine Angabe –</option>
+              <option value="Diesel">Diesel</option>
+              <option value="Benzin">Benzin (Super)</option>
+              <option value="E10">Benzin (E10)</option>
+              <option value="Erdgas">Erdgas (CNG)</option>
+              <option value="Elektro">Elektro (kWh)</option>
+              <option value="Sonstige">Sonstige</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fb-field">
+        <label class="fb-label">Bemerkungen (optional)</label>
+        <input class="fb-input" type="text" id="fBem" placeholder="–">
+      </div>
+
+    </div>
+    <div class="fb-modal__foot">
+      <button class="fb-cancel-btn" onclick="closeModal()">Abbrechen</button>
+      <button class="fb-save-btn" id="saveBtn" onclick="saveEintrag()">Eintrag speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="fb-toast" id="fbToast"></div>
+
+<script>
+var _eintraege  = [];
+var _editId     = null;
+var _session    = { fahrzeug: '', kennzeichen: '', fahrer: '', name: '' };
+var _autoFill   = null; // { nach_ort, zweck, einsatz } aus URL-Params
+
+function toast(msg) {
+  var el = document.getElementById('fbToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+function fmt(n){ return (n||0).toLocaleString('de-AT'); }
+
+function calcKm() {
+  var s = parseInt(document.getElementById('fKmStart').value)||0;
+  var e = parseInt(document.getElementById('fKmEnde').value)||0;
+  var g = Math.max(0, e - s);
+  document.getElementById('kmHint').textContent = g > 0 ? '= ' + fmt(g) + ' km gefahren' : '';
+}
+
+function today() {
+  return new Date().toISOString().slice(0,10);
+}
+function nowTime() {
+  var d = new Date();
+  return ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderList() {
+  var list = document.getElementById('fbList');
+  if (!_eintraege.length) {
+    list.innerHTML = '<div class="fb-empty">' +
+      '<div class="fb-empty__ico">📋</div>' +
+      '<div class="fb-empty__title">Noch keine Fahrten erfasst</div>' +
+      '<div class="fb-empty__sub">Tippen Sie auf "+ Neue Fahrt"<br>um den ersten Eintrag zu erstellen.</div></div>';
+    document.getElementById('kmHeute').textContent = '0 km';
+    return;
+  }
+
+  // km heute summieren
+  var td = today();
+  var kmH = _eintraege.filter(function(e){ return e.datum===td; })
+    .reduce(function(a,e){ return a + (e.km_gesamt||0); }, 0);
+  document.getElementById('kmHeute').textContent = fmt(kmH) + ' km';
+
+  var html = '';
+  _eintraege.forEach(function(e) {
+    var dateFmt = e.datum ? new Date(e.datum+'T00:00:00').toLocaleDateString('de-AT',{weekday:'short',day:'2-digit',month:'2-digit'}) : '–';
+    var zeit = '';
+    if (e.uhrzeit_von) { zeit = e.uhrzeit_von; if (e.uhrzeit_bis) zeit += ' – ' + e.uhrzeit_bis; }
+    html += '<div class="fb-card">';
+    html += '<div class="fb-card__head">';
+    html += '<div class="fb-card__date">' + esc(dateFmt) + (zeit ? ' · ' + esc(zeit) : '') + '</div>';
+    html += '<div class="fb-card__km">' + fmt(e.km_gesamt||0) + ' km</div>';
+    html += '</div>';
+
+    if (e.von_ort || e.nach_ort) {
+      html += '<div class="fb-card__route">';
+      html += '<span>' + esc(e.von_ort||'–') + '</span>';
+      html += '<span class="fb-card__arrow">→</span>';
+      html += '<span>' + esc(e.nach_ort||'–') + '</span>';
+      html += '</div>';
+    }
+
+    html += '<div class="fb-card__meta">';
+    if (e.fahrer)     html += '<span class="fb-chip">👤 ' + esc(e.fahrer) + '</span>';
+    if (e.fahrzeug)   html += '<span class="fb-chip">🚗 ' + esc(e.fahrzeug) + '</span>';
+    if (e.kennzeichen)html += '<span class="fb-chip">' + esc(e.kennzeichen) + '</span>';
+    if (e.zweck)      html += '<span class="fb-chip fb-chip--zweck">' + esc(e.zweck) + '</span>';
+    if (e.km_start)   html += '<span class="fb-chip">Start: ' + fmt(e.km_start) + ' km</span>';
+    if (e.km_ende)    html += '<span class="fb-chip">Ende: '  + fmt(e.km_ende)  + ' km</span>';
+    if (e.bemerkungen)html += '<span class="fb-chip">' + esc(e.bemerkungen) + '</span>';
+    if (e.getankt_liter && e.getankt_liter > 0) {
+      var lStr = e.getankt_liter.toLocaleString('de-AT', {minimumFractionDigits:0,maximumFractionDigits:1});
+      var einheit = e.kraftstoff_art === 'Elektro' ? ' kWh' : ' L';
+      html += '<span class="fb-chip" style="background:#fef3c7;color:#92400e;font-weight:900;">⛽ ' + lStr + einheit;
+      if (e.kraftstoff_art) html += ' · ' + esc(e.kraftstoff_art);
+      html += '</span>';
+    }
+    html += '</div>';
+
+    html += '<div class="fb-card__actions">';
+    html += '<button class="fb-card__act" onclick="editEintrag(\''+e.id+'\')">✏️ Bearbeiten</button>';
+    html += '<button class="fb-card__act fb-card__act--del" onclick="delEintrag(\''+e.id+'\')">🗑 Löschen</button>';
+    html += '</div>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function openModal(id) {
+  _editId = id || null;
+  var e = id ? _eintraege.find(function(x){ return x.id===id; }) : null;
+  document.getElementById('modalTitle').textContent = e ? 'Fahrt bearbeiten' : 'Neue Fahrt erfassen';
+  document.getElementById('fDatum').value       = e ? e.datum        : today();
+  document.getElementById('fFahrer').value      = e ? e.fahrer       : _session.name;
+  document.getElementById('fFahrzeug').value    = e ? e.fahrzeug     : _session.fahrzeug;
+  document.getElementById('fKennzeichen').value = e ? e.kennzeichen  : _session.kennzeichen;
+  document.getElementById('fVon').value         = e ? e.uhrzeit_von  : nowTime();
+  document.getElementById('fBis').value         = e ? e.uhrzeit_bis  : '';
+  document.getElementById('fVonOrt').value      = e ? e.von_ort  : '';
+  document.getElementById('fNachOrt').value     = e ? e.nach_ort : (_autoFill ? _autoFill.nach_ort : '');
+  document.getElementById('fZweck').value       = e ? e.zweck    : (_autoFill ? _autoFill.zweck    : '');
+  document.getElementById('fKmStart').value      = e ? (e.km_start||'') : '';
+  document.getElementById('fKmEnde').value       = e ? (e.km_ende||'')  : '';
+  document.getElementById('fGetanktLiter').value = e ? (e.getankt_liter > 0 ? e.getankt_liter : '') : '';
+  document.getElementById('fKraftstoffArt').value= e ? (e.kraftstoff_art||'') : '';
+  document.getElementById('fBem').value          = e ? e.bemerkungen  : '';
+  calcKm();
+  document.getElementById('fbOverlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('fZweck').focus(); }, 200);
+}
+
+function closeModal() {
+  document.getElementById('fbOverlay').classList.remove('open');
+}
+
+function editEintrag(id) { openModal(id); }
+
+function delEintrag(id) {
+  if (!confirm('Diesen Eintrag wirklich löschen?')) return;
+  fetch('/api/fahrtenbuch/' + id, { method:'DELETE', credentials:'include' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ok) { _eintraege = _eintraege.filter(function(e){ return e.id!==id; }); renderList(); toast('Eintrag gelöscht'); }
+      else toast('Fehler: ' + (d.error||'?'));
+    }).catch(function(){ toast('Verbindungsfehler'); });
+}
+
+function saveEintrag() {
+  var btn = document.getElementById('saveBtn');
+  var datum = document.getElementById('fDatum').value;
+  if (!datum) { toast('Bitte Datum angeben'); return; }
+  btn.disabled = true; btn.textContent = 'Speichern…';
+  var body = {
+    datum:       datum,
+    fahrer:      document.getElementById('fFahrer').value.trim(),
+    fahrzeug:    document.getElementById('fFahrzeug').value.trim(),
+    kennzeichen: document.getElementById('fKennzeichen').value.trim(),
+    uhrzeit_von: document.getElementById('fVon').value,
+    uhrzeit_bis: document.getElementById('fBis').value,
+    von_ort:     document.getElementById('fVonOrt').value.trim(),
+    nach_ort:    document.getElementById('fNachOrt').value.trim(),
+    zweck:       document.getElementById('fZweck').value.trim(),
+    km_start:      parseInt(document.getElementById('fKmStart').value)||0,
+    km_ende:       parseInt(document.getElementById('fKmEnde').value)||0,
+    getankt_liter: parseFloat(document.getElementById('fGetanktLiter').value)||0,
+    kraftstoff_art: document.getElementById('fKraftstoffArt').value,
+    bemerkungen:   document.getElementById('fBem').value.trim(),
+  };
+  var url    = _editId ? '/api/fahrtenbuch/' + _editId : '/api/fahrtenbuch';
+  var method = _editId ? 'PUT' : 'POST';
+  fetch(url, { method:method, headers:{'Content-Type':'application/json'},
+               credentials:'include', body: JSON.stringify(body) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      btn.disabled = false; btn.textContent = 'Eintrag speichern';
+      if (!d.ok) { toast('Fehler: ' + (d.error||'?')); return; }
+      closeModal();
+      toast(_editId ? 'Eintrag aktualisiert' : 'Fahrt gespeichert');
+      loadEintraege();
+    })
+    .catch(function(){ btn.disabled=false; btn.textContent='Eintrag speichern'; toast('Verbindungsfehler'); });
+}
+
+function loadEintraege() {
+  fetch('/api/fahrtenbuch', { credentials: 'include' })
+    .then(function(r){
+      if (r.status === 401) { window.location.href = '/auftragslage/login'; return null; }
+      return r.json();
+    })
+    .then(function(d){
+      if (!d) return;
+      if (!d.ok) { toast(d.error || 'Fehler'); return; }
+      // Session-Info aus erster Antwort übernehmen
+      if (!_session.fahrzeug)  _session.fahrzeug    = d.fahrzeug    || '';
+      if (!_session.kennzeichen) _session.kennzeichen = d.kennzeichen || '';
+      if (!_session.name)      _session.name        = d.name        || '';
+      document.getElementById('hdrFz').textContent  = '🚗 ' + (_session.fahrzeug || '–');
+      document.getElementById('hdrSub').textContent = _session.name
+        ? ('Fahrer: ' + _session.name + ' · ' + (_session.fahrzeug ? 'nur dieses Fahrzeug' : 'alle Fahrzeuge'))
+        : 'Eingeloggt';
+      _eintraege = d.eintraege || [];
+      renderList();
+    })
+    .catch(function(){ toast('Ladefehler'); });
+}
+
+function init() {
+  document.getElementById('hdrFz').textContent  = '🚗 –';
+  document.getElementById('hdrSub').textContent = 'Lade…';
+
+  // URL-Parameter lesen (von Auftragslage übergeben)
+  var params = new URLSearchParams(window.location.search);
+  var pNach    = params.get('nach')    || '';
+  var pZweck   = params.get('zweck')   || '';
+  var pEinsatz = params.get('einsatz') || '';
+  if (pNach || pZweck) {
+    _autoFill = { nach_ort: pNach, zweck: pZweck, einsatz: pEinsatz };
+    var hint = document.getElementById('fbEinsatzHint');
+    var txt  = document.getElementById('fbEinsatzHintText');
+    if (pEinsatz) txt.textContent = 'Einsatz ' + pEinsatz + (pNach ? ' · ' + pNach : '');
+    else          txt.textContent = pNach || pZweck;
+    hint.style.display = 'flex';
+  }
+
+  loadEintraege();
+
+  // Wenn Einsatzdaten vorhanden: Modal direkt nach dem Laden öffnen
+  if (_autoFill) {
+    setTimeout(function(){ openModal(); }, 600);
+  }
+}
+
+document.getElementById('fbOverlay').addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+
+init();
+</script>
+</body>
+</html>

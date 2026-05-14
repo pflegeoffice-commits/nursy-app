@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Pflegedokumentation</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body[data-page="doc-client"] .doc-wrap{ padding:24px 0 40px; }
+    body[data-page="doc-client"] .doc-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    body[data-page="doc-client"] .doc-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    body[data-page="doc-client"] .stats-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:16px; }
+    body[data-page="doc-client"] .stat-card strong{ display:block; font-size:26px; margin-top:6px; }
+    body[data-page="doc-client"] .doc-filter{ margin:6px 0 14px; display:flex; gap:10px; flex-wrap:wrap; }
+    body[data-page="doc-client"] .doc-filter .control{ min-width:160px; }
+    body[data-page="doc-client"] .doc-day{
+      border:1px solid rgba(15,35,75,.10); border-radius:14px; background:rgba(255,255,255,.78);
+      padding:14px 16px; margin-bottom:12px;
+    }
+    body[data-page="doc-client"] .doc-day__head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;
+    }
+    body[data-page="doc-client"] .doc-day__title{ margin:0; font-size:17px; }
+    body[data-page="doc-client"] .doc-entry{
+      display:grid; grid-template-columns:90px 1fr; gap:14px; align-items:start;
+      padding:10px 0; border-top:1px solid rgba(15,35,75,.08);
+    }
+    body[data-page="doc-client"] .doc-day .doc-entry:first-of-type{ border-top:none; }
+    body[data-page="doc-client"] .doc-time{ font-weight:800; color:#1d3a8a; }
+    body[data-page="doc-client"] .doc-cat{
+      display:inline-flex; align-items:center; height:22px; padding:0 9px; margin-right:8px;
+      border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.3px; text-transform:uppercase;
+      background:rgba(63,111,232,.08); color:#1d3a8a; border:1px solid rgba(63,111,232,.18);
+    }
+    body[data-page="doc-client"] .doc-cat.is-bericht{ background:rgba(16,185,129,.10); color:#065f46; border-color:rgba(16,185,129,.28); }
+    body[data-page="doc-client"] .doc-cat.is-vital{ background:rgba(245,158,11,.12); color:#92400e; border-color:rgba(245,158,11,.30); }
+    body[data-page="doc-client"] .doc-cat.is-uebergabe{ background:rgba(124,58,237,.10); color:#5b21b6; border-color:rgba(124,58,237,.28); }
+    body[data-page="doc-client"] .doc-author{ color:var(--muted); font-size:13px; margin-top:2px; }
+    body[data-page="doc-client"] .doc-text{ margin-top:6px; line-height:1.45; }
+    body[data-page="doc-client"] .doc-empty{ color:var(--muted); padding-top:8px; }
+    @media (max-width:760px){
+      body[data-page="doc-client"] .stats-grid{ grid-template-columns:1fr; }
+      body[data-page="doc-client"] .doc-head{ flex-wrap:wrap; }
+      body[data-page="doc-client"] .doc-head > div:first-child{ flex:1 1 100%; }
+      body[data-page="doc-client"] .doc-actions{ width:100%; }
+      body[data-page="doc-client"] .doc-actions > *{ flex:1 1 auto; text-align:center; }
+      body[data-page="doc-client"] .doc-filter .control{ min-width:0; flex:1 1 auto; }
+      body[data-page="doc-client"] .doc-entry{ grid-template-columns:1fr; }
+    }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body data-page="doc-client">
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="dashboard-client.html" aria-label="Nursy Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="dashboard-client.html">Dashboard</a>
+        <a href="careplan-client.html">Pflegeplan</a>
+        <a href="durchfuehrungsnachweis-client.html">Durchführungsnachweis</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container doc-wrap">
+    <section class="card">
+      <div class="doc-head">
+        <div>
+          <h1 style="margin:0 0 6px;">Pflegedokumentation</h1>
+          <p class="muted" style="margin:0;">Tagesberichte, Übergaben und Vitalwerte deiner Pflegekräfte.</p>
+        </div>
+        <div class="doc-actions">
+          <a class="control btn" href="dashboard-client.html">Zurück</a>
+          <button class="control btn" type="button" id="docPrint">Drucken</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stat-card"><span class="muted">Einträge</span><strong id="docStatTotal">0</strong></div>
+        <div class="card stat-card"><span class="muted">Tage</span><strong id="docStatDays">0</strong></div>
+        <div class="card stat-card"><span class="muted">Letzter Eintrag</span><strong id="docStatLast">—</strong></div>
+      </div>
+
+      <div class="doc-filter">
+        <select class="control" id="docRangeFilter" aria-label="Zeitraum">
+          <option value="all">Gesamter Zeitraum</option>
+          <option value="today">Heute</option>
+          <option value="week" selected>Diese Woche</option>
+        </select>
+        <select class="control" id="docCatFilter" aria-label="Kategorie">
+          <option value="all">Alle Kategorien</option>
+          <option value="bericht">Pflegebericht</option>
+          <option value="vital">Vitalzeichen</option>
+          <option value="uebergabe">Übergabe</option>
+        </select>
+        <input class="control" id="docSearch" type="text" placeholder="Text oder Pflegekraft suchen" />
+      </div>
+
+      <div id="docDays"></div>
+      <p class="doc-empty" id="docEmpty" hidden>Keine Einträge für diesen Filter gefunden.</p>
+    </section>
+  </main>
+
+  <script src="documentation-client.js"></script>
+</body>
+</html>

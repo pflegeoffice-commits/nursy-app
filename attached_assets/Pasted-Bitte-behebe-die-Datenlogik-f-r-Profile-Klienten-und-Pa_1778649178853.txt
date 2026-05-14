@@ -1,0 +1,45 @@
+Bitte behebe die Datenlogik für Profile, Klienten und Patientenverwaltung.
+
+Aktuelles Problem:
+Wenn ich zwei Pflegepersonen-Accounts erstelle, sehen beide Pflegepersonen dieselben Patienten/Klienten. Beispiel: Der Patient „Eduard Meyer“ wurde testweise angelegt und erscheint bei beiden Pflegepersonen-Profilen. Das darf nicht passieren.
+
+Gewünschtes Verhalten:
+
+1. Jede Pflegeperson hat ein eigenes, isoliertes Profil.
+   - Jeder eingeloggte Pflegepersonen-Account darf nur die eigenen Daten sehen.
+   - Patienten/Klienten dürfen nicht global für alle Pflegepersonen angezeigt werden.
+
+2. Klienten-/Patientenprofile müssen accountbezogen gespeichert werden.
+   - Wenn eine Pflegeperson selbst einen Patienten anlegt, darf dieser Patient nur bei genau dieser Pflegeperson sichtbar sein.
+   - Der Datensatz braucht eine eindeutige Zuordnung, z. B. `createdBy`, `caregiverId`, `assignedTo` oder `ownerId`.
+
+3. Öffentlich sichtbare Profile sind getrennt von privaten Patientenakten.
+   - Öffentliche Pflegepersonenprofile dürfen öffentlich sichtbar sein.
+   - Patientenprofile bzw. Klientendokumentationen sind NICHT öffentlich.
+   - Patientenakten gehören immer zu einer bestimmten Pflegeperson oder zu einer bestätigten Pflegebeziehung.
+
+4. Patienten dürfen bei einer Pflegeperson nur angezeigt werden, wenn:
+   - die Pflegeperson den Patienten selbst erstellt hat, ODER
+   - der Patient/die Anfrage von dieser Pflegeperson angenommen/bestätigt wurde.
+
+5. Jede Patientenakte ist eine eigenständige Dokumentation.
+   - Notizen, Einsätze, Pflegedokumentation, Stammdaten und Verlauf dürfen nicht zwischen Pflegepersonen geteilt werden.
+   - Zwei verschiedene Pflegepersonen dürfen niemals automatisch dieselbe Patientenliste sehen.
+
+Bitte prüfe und ändere dafür:
+- die Datenstruktur
+- die Filterlogik beim Laden der Patienten
+- die Auth-Logik des aktuell eingeloggten Users
+- die Anzeige im Pflegepersonen-Dashboard
+- alle Stellen, an denen aktuell globale Patientendaten geladen werden
+
+Technische Ziel-Logik:
+
+Beim Laden der Patienten im Pflegepersonen-Dashboard soll ungefähr so gefiltert werden:
+
+```js
+patients.filter(patient =>
+  patient.createdBy === currentUser.id ||
+  patient.assignedCaregiverId === currentUser.id ||
+  patient.acceptedByCaregiverId === currentUser.id
+)

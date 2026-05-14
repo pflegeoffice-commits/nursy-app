@@ -1,0 +1,86 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "YPvL0npJMmutHnLvTDbrt"
+uri = "file://nursy-projekt.zip"
+type = "unspecified"
+title = "Nursy – Komplettes Projekt"
+
+[[outputs]]
+id = "dP_yalMOih7dmx-HcS_8q"
+uri = "file://nursy-1-backend.zip"
+type = "unspecified"
+title = "1 – Backend (server.py, Datenbank)"
+
+[[outputs]]
+id = "6doWxeg51doUeauFpvClD"
+uri = "file://nursy-2-html-seiten.zip"
+type = "unspecified"
+title = "2 – HTML-Seiten (40 Seiten)"
+
+[[outputs]]
+id = "Gskf2RRSdjvby3DJuF4Va"
+uri = "file://nursy-3-css-javascript.zip"
+type = "unspecified"
+title = "3 – CSS & JavaScript"
+
+[[outputs]]
+id = "wWcYbdM4NLJ_Z9AzswDHv"
+uri = "file://nursy-4-assets.zip"
+type = "unspecified"
+title = "4 – Bilder & Assets"
+
+[[outputs]]
+id = "OmZr3fpUv66_gC2Mkl-Kk"
+uri = "file://nursy-geaendert.zip"
+type = "unspecified"
+title = "Geänderte Datei: register-client.html"
+
+[[outputs]]
+id = "kI1z09z-BI4aQwKd333zk"
+uri = "file://nursy_export_clean.zip"
+type = "unspecified"
+title = "Nursy – Projektexport (aktuell)"
+
+[[outputs]]
+id = "W7l7U0FBPaWH6TRFXtJhj"
+uri = "file://nursy-project.zip"
+type = "unspecified"
+title = "Nursy – Vollständiges Projekt"
+
+[[outputs]]
+id = "VZfsAg9281zBYfox7QPTl"
+uri = "file://nursy-fahrzeuge-update.zip"
+type = "unspecified"
+title = "Nursy – Fahrzeuge Update (Quellcode)"
+
+[[outputs]]
+id = "s0Cj11efp0CplXrZjM30L"
+uri = "file://nursy_projekt.zip"
+type = "unspecified"
+title = "Nursy – Projektdateien (80 Dateien, 491 KB)"
+
+[[outputs]]
+id = "Ga_A33BzRIEnPjUKAVZE2"
+uri = "file://nursy_komplett.zip"
+type = "unspecified"
+title = "Nursy – Komplett mit requirements.txt & Anleitung"
+
+[[outputs]]
+id = "BWyuWYQbeA7eEALtfD9VY"
+uri = "file://nursy_projekt_2026-05-13.zip"
+type = "unspecified"
+title = "Nursy – Aktueller Quellcode inkl. Honorarnoten (2026-05-13)"
+
+[[outputs]]
+id = "HWyiisjcMXoGZsqHRisB3"
+uri = "file://README.md"
+type = "text"
+title = "README.md – Nursy Dokumentation"
+
+[[outputs]]
+id = "mFpWqCgEwq78N5-EjaH8J"
+uri = "file://nursy_readme.zip"
+type = "unspecified"
+title = "Nursy README – Download"

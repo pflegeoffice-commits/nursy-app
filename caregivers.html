@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Pflegekräfte</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .cg-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid #f0f4fb;
+    }
+    .cg-card:last-child { border-bottom: none; }
+    .cg-avatar {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 800;
+      background: linear-gradient(135deg,#dbeafe,#bfdbfe); color: #1e3a8a;
+    }
+    .cg-avatar--f { background: linear-gradient(135deg,#fce7f3,#fbcfe8); color: #831843; }
+    .cg-avatar--m { background: linear-gradient(135deg,#dbeafe,#bfdbfe); color: #1e3a8a; }
+    .cg-info { flex: 1; min-width: 0; }
+    .cg-name { font-weight: 700; font-size: 15px; color: #1d2b4f; }
+    .cg-sub { font-size: 12px; color: #7a8faa; margin-top: 2px; }
+    .cg-badge {
+      font-size: 11px; font-weight: 700;
+      background: #eff6ff; color: #1e40af;
+      border: 1px solid #bfdbfe; border-radius: 999px;
+      padding: 3px 10px; flex-shrink: 0; white-space: nowrap;
+    }
+    .cg-empty { padding: 24px; text-align: center; color: #7a8faa; }
+    .cg-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .cg-count { font-size: 13px; color: #7a8faa; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Nursy Startseite">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+      </a>
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="dashboard-care.html">Dashboard</a>
+        <a href="patients.html">Patienten</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <div class="section__head">
+        <h2>Pflegekräfte</h2>
+      </div>
+
+      <div class="cg-toolbar">
+        <span class="cg-count" id="cgCount">Wird geladen…</span>
+        <a class="control btn primary" href="register-care.html">+ Neue Pflegekraft registrieren</a>
+      </div>
+
+      <div class="card" style="padding: 0 16px;" id="cgList">
+        <div class="cg-empty">Wird geladen…</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="muted">© Nursy – Fürsorge mit Herz</span>
+      <div class="footer__links">
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function(){
+    function initials(vorname, nachname){
+      return ((vorname||'').charAt(0) + (nachname||'').charAt(0)).toUpperCase() || '?';
+    }
+
+    async function load(){
+      var list = document.getElementById('cgList');
+      var count = document.getElementById('cgCount');
+      try {
+        var resp = await fetch('/api/caregivers');
+        var data = await resp.json();
+        if(!data.ok || !Array.isArray(data.caregivers)){
+          list.innerHTML = '<div class="cg-empty">Fehler beim Laden.</div>';
+          return;
+        }
+        var cgs = data.caregivers;
+        count.textContent = cgs.length + ' ' + (cgs.length !== 1 ? 'Pflegekräfte' : 'Pflegekraft') + ' registriert';
+
+        if(cgs.length === 0){
+          list.innerHTML = '<div class="cg-empty">Noch keine Pflegekräfte registriert.<br><a href="register-care.html" style="color:#3f6fe8;font-weight:700;">Jetzt registrieren</a></div>';
+          return;
+        }
+
+        list.innerHTML = '';
+        cgs.forEach(function(cg){
+          var gClass = cg.gender === 'f' ? 'cg-avatar--f' : 'cg-avatar--m';
+          var addr = [cg.address, cg.plz, cg.ort].filter(Boolean).join(', ');
+          var date = cg.created_at ? new Date(cg.created_at).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+          var card = document.createElement('div');
+          card.className = 'cg-card';
+          card.innerHTML =
+            '<div class="cg-avatar ' + gClass + '">' + initials(cg.vorname, cg.nachname) + '</div>' +
+            '<div class="cg-info">' +
+              '<div class="cg-name">' + (cg.vorname||'') + ' ' + (cg.nachname||'') + '</div>' +
+              '<div class="cg-sub">' + (cg.email||'') + (addr ? ' &middot; ' + addr : '') + '</div>' +
+            '</div>' +
+            '<span class="cg-badge">Pflegekraft' + (date ? ' seit ' + date : '') + '</span>';
+          list.appendChild(card);
+        });
+      } catch(err) {
+        list.innerHTML = '<div class="cg-empty">Verbindungsfehler. Bitte Seite neu laden.</div>';
+        count.textContent = '';
+      }
+    }
+
+    load();
+  })();
+  </script>
+</body>
+</html>

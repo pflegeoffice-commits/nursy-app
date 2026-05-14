@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nursy – Passwort zurücksetzen</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--panel2,#eef4ff); }
+  .wrap { width: 100%; max-width: 420px; padding: 16px; }
+  .card {
+    background: #fff; border-radius: 18px;
+    box-shadow: 0 8px 40px rgba(15,26,51,.13);
+    padding: 40px 36px 36px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .logo__icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg,#3f6fe8,#1e3a8a);
+    display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+  }
+  .logo__text { font-size: 1.25rem; font-weight: 900; color: var(--text,#0f1a33); }
+  .logo__sub  { font-size: .78rem; color: var(--muted,#64748b); font-weight: 600; letter-spacing: .04em; }
+  h1 { font-size: 1.35rem; font-weight: 900; color: var(--text,#0f1a33); margin-bottom: 6px; }
+  .sub { font-size: .85rem; color: var(--muted,#64748b); margin-bottom: 24px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: .8rem; font-weight: 700; color: var(--text,#0f1a33); margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 11px 14px; border: 1.5px solid #dde4ef; border-radius: 10px;
+    font-size: .95rem; color: var(--text,#0f1a33); background: #f8faff;
+    outline: none; transition: border .15s; box-sizing: border-box;
+  }
+  .field input:focus { border-color: #3f6fe8; background: #fff; }
+  .btn {
+    width: 100%; padding: 13px; margin-top: 8px;
+    background: linear-gradient(135deg,#3f6fe8,#1e3a8a);
+    color: #fff; font-weight: 900; font-size: 1rem;
+    border: none; border-radius: 11px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(63,111,232,.35); transition: opacity .15s;
+  }
+  .btn:hover { opacity: .92; } .btn:disabled { opacity: .55; cursor: default; }
+  .error {
+    background: #fef2f2; border: 1.5px solid #fca5a5; color: #b91c1c;
+    border-radius: 9px; padding: 10px 14px; font-size: .83rem; font-weight: 700;
+    margin-top: 14px; display: none;
+  }
+  .success {
+    background: #f0fdf4; border: 1.5px solid #86efac; color: #15803d;
+    border-radius: 9px; padding: 14px; font-size: .88rem; font-weight: 700;
+    margin-top: 14px; display: none; text-align: center; line-height: 1.5;
+  }
+  .pw-strength { height: 4px; border-radius: 3px; margin-top: 6px; background: #e2e8f0; overflow: hidden; }
+  .pw-strength__bar { height: 100%; border-radius: 3px; transition: width .2s, background .2s; width: 0; }
+  .pw-hint { font-size: .72rem; color: var(--muted,#64748b); margin-top: 3px; }
+  .invalid-wrap { text-align: center; padding: 16px 0; }
+  .invalid-wrap .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .back { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--muted,#64748b); text-decoration: none; margin-bottom: 18px; font-weight: 600; }
+  .back:hover { color: var(--primary,#3f6fe8); }
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="leitstelle-login.html">← Zurück zum Login</a>
+  <div class="card">
+    <div class="logo">
+      <div class="logo__icon">🚑</div>
+      <div>
+        <div class="logo__text">Nursy</div>
+        <div class="logo__sub">LEITSTELLE</div>
+      </div>
+    </div>
+
+    <!-- Prüf-Overlay -->
+    <div id="checkingState">
+      <p class="sub" style="margin:0;">Link wird geprüft…</p>
+    </div>
+
+    <!-- Ungültiger/abgelaufener Token -->
+    <div id="invalidState" style="display:none;">
+      <div class="invalid-wrap">
+        <div class="icon">⛔</div>
+        <h1 style="font-size:1.1rem;">Link ungültig oder abgelaufen</h1>
+        <p class="sub">Dieser Zurücksetzen-Link ist nicht mehr gültig. Bitte fordern Sie einen neuen an.</p>
+        <a href="leitstelle-login.html" class="btn" style="display:inline-block;width:auto;padding:10px 24px;text-decoration:none;">Zum Login</a>
+      </div>
+    </div>
+
+    <!-- Passwort-Formular -->
+    <div id="formState" style="display:none;">
+      <h1>Neues Passwort</h1>
+      <p class="sub">Legen Sie jetzt Ihr neues Passwort fest.</p>
+      <form id="resetForm" onsubmit="doReset(event)">
+        <div class="field">
+          <label for="pw1">Neues Passwort</label>
+          <input type="password" id="pw1" placeholder="Mind. 8 Zeichen" autocomplete="new-password" required oninput="strength(this.value)">
+          <div class="pw-strength"><div class="pw-strength__bar" id="strBar"></div></div>
+          <div class="pw-hint" id="strHint">Mind. 8 Zeichen</div>
+        </div>
+        <div class="field">
+          <label for="pw2">Passwort bestätigen</label>
+          <input type="password" id="pw2" placeholder="Wiederholen" autocomplete="new-password" required>
+        </div>
+        <button class="btn" type="submit" id="saveBtn">Passwort speichern</button>
+        <div class="error" id="errEl"></div>
+      </form>
+    </div>
+
+    <!-- Erfolg -->
+    <div class="success" id="successEl">
+      ✅ Passwort erfolgreich gesetzt!<br>
+      <a href="leitstelle-login.html" style="color:#15803d;">Jetzt anmelden →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var token = new URLSearchParams(location.search).get('token') || '';
+
+  function show(id){
+    ['checkingState','invalidState','formState'].forEach(function(s){
+      document.getElementById(s).style.display = s === id ? '' : 'none';
+    });
+  }
+
+  if(!token){ show('invalidState'); return; }
+
+  fetch('/api/leitstelle/reset-password/validate?token='+encodeURIComponent(token))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok) show('formState');
+      else     show('invalidState');
+    })
+    .catch(function(){ show('invalidState'); });
+
+  window.strength = function(val){
+    var bar  = document.getElementById('strBar');
+    var hint = document.getElementById('strHint');
+    var s = 0;
+    if(val.length>=8) s++;
+    if(val.length>=12) s++;
+    if(/[A-Z]/.test(val)&&/[a-z]/.test(val)) s++;
+    if(/[0-9]/.test(val)) s++;
+    if(/[^A-Za-z0-9]/.test(val)) s++;
+    var pcts  = [0,20,40,65,85,100];
+    var cols  = ['#e2e8f0','#ef4444','#f59e0b','#f59e0b','#22c55e','#16a34a'];
+    var lbls  = ['','Sehr schwach','Schwach','Mittel','Stark','Sehr stark'];
+    bar.style.width      = pcts[s]+'%';
+    bar.style.background = cols[s];
+    hint.textContent     = val.length<8 ? 'Mind. 8 Zeichen' : lbls[s];
+    hint.style.color     = cols[s]==='#e2e8f0' ? '' : cols[s];
+  };
+
+  window.doReset = function(e){
+    e.preventDefault();
+    var btn  = document.getElementById('saveBtn');
+    var err  = document.getElementById('errEl');
+    var pw1  = document.getElementById('pw1').value;
+    var pw2  = document.getElementById('pw2').value;
+    err.style.display = 'none';
+
+    if(pw1.length < 8){
+      err.textContent = 'Passwort mind. 8 Zeichen.';
+      err.style.display = 'block'; return;
+    }
+    if(pw1 !== pw2){
+      err.textContent = 'Passwörter stimmen nicht überein.';
+      err.style.display = 'block'; return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Speichern…';
+
+    fetch('/api/leitstelle/reset-password', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({token: token, new_password: pw1})
+    })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+    .then(function(res){
+      if(res.ok && res.data.ok){
+        document.getElementById('formState').style.display = 'none';
+        document.getElementById('successEl').style.display = 'block';
+      } else {
+        err.textContent = res.data.error || 'Fehler beim Speichern.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Passwort speichern';
+      }
+    })
+    .catch(function(){
+      err.textContent = 'Verbindungsfehler.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Passwort speichern';
+    });
+  };
+})();
+</script>
+</body>
+</html>

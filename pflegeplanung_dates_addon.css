@@ -1,0 +1,23 @@
+/* Pflegeplanung: Metadaten-Leiste für Datum (Dashboard-Stil) – Build 20260211-131736 */
+.planung-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  margin-top:10px;
+  border:1px solid rgba(11,27,58,.10);
+  background: rgba(255,255,255,.55);
+  border-radius:14px;
+}
+.planung-meta__left,.planung-meta__right{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+.planung-meta strong{
+  font-weight:900;
+}
+@media (max-width:820px){
+  .planung-meta{ flex-direction:column; align-items:flex-start; }
+}

@@ -1,0 +1,55 @@
+modules = ["web", "nodejs-20", "python-3.11", "postgresql-16"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 server.py"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 23636
+externalPort = 3000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "--workers=2", "server:app"]
+
+[userenv]
+
+[userenv.shared]
+VAPID_PRIVATE_KEY = """
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgZpdgOMk0V4oUc8hv
+wRPD3Ejcy60nV4+ajJZYWA8g5fahRANCAARkSOUMadH+d8HrQw5mdSE+oyN82Eij
+D4zpBq+kV8O51dIk5904CEs1EBsibkdhtVEkc6bMfSstIQQHzmniLLVV
+-----END PRIVATE KEY-----"""
+VAPID_PUBLIC_KEY = "BGRI5Qxp0f53wetDDmZ1IT6jI3zYSKMPjOkGr6RXw7nV0iTn3TgISzUQGyJuR2G1USRzpsx9Ky0hBAfOaeIstVU"
+VAPID_EMAIL = "mailto:admin@akutplus.at"

@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nursy – Leitstelle Login</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--panel2, #eef4ff); }
+
+  .login-wrap {
+    width: 100%; max-width: 420px; padding: 16px;
+  }
+
+  .login-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 40px rgba(15,26,51,.13);
+    padding: 40px 36px 36px;
+  }
+
+  .login-logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px;
+  }
+  .login-logo__icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg,#3f6fe8,#1e3a8a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+  }
+  .login-logo__text { font-size: 1.25rem; font-weight: 900; color: var(--text,#0f1a33); }
+  .login-logo__sub  { font-size: .78rem; color: var(--muted,#64748b); font-weight: 600; letter-spacing: .04em; }
+
+  .login-title { font-size: 1.35rem; font-weight: 900; color: var(--text,#0f1a33); margin-bottom: 6px; }
+  .login-sub   { font-size: .85rem; color: var(--muted,#64748b); margin-bottom: 28px; }
+
+  .login-field { margin-bottom: 16px; }
+  .login-field label { display: block; font-size: .8rem; font-weight: 700; color: var(--text,#0f1a33); margin-bottom: 6px; }
+  .login-field input {
+    width: 100%; padding: 11px 14px; border: 1.5px solid #dde4ef; border-radius: 10px;
+    font-size: .95rem; color: var(--text,#0f1a33); background: #f8faff;
+    outline: none; transition: border .15s; box-sizing: border-box;
+  }
+  .login-field input:focus { border-color: #3f6fe8; background: #fff; }
+
+  .login-btn {
+    width: 100%; padding: 13px; margin-top: 8px;
+    background: linear-gradient(135deg,#3f6fe8,#1e3a8a);
+    color: #fff; font-weight: 900; font-size: 1rem;
+    border: none; border-radius: 11px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(63,111,232,.35);
+    transition: opacity .15s;
+  }
+  .login-btn:hover   { opacity: .92; }
+  .login-btn:active  { opacity: .85; }
+  .login-btn:disabled { opacity: .55; cursor: default; }
+
+  .login-error {
+    background: #fef2f2; border: 1.5px solid #fca5a5; color: #b91c1c;
+    border-radius: 9px; padding: 10px 14px; font-size: .83rem; font-weight: 700;
+    margin-top: 14px; display: none;
+  }
+
+  .logout-banner {
+    background: #e8f5e9; border: 1.5px solid #a5d6a7; color: #2e7d32;
+    border-radius: 9px; padding: 10px 14px; font-size: .83rem; font-weight: 700;
+    margin-bottom: 16px; display: none;
+  }
+
+  .login-hint {
+    margin-top: 20px; padding-top: 16px; border-top: 1px solid #e8edf5;
+    font-size: .75rem; color: var(--muted,#64748b); line-height: 1.6;
+  }
+  .login-hint strong { color: var(--text,#0f1a33); }
+
+  .change-pw-banner {
+    background: #fffbeb; border: 1.5px solid #fbbf24; color: #92400e;
+    border-radius: 9px; padding: 11px 14px; font-size: .83rem; font-weight: 700;
+    margin-bottom: 18px; display: flex; align-items: flex-start; gap: 8px;
+  }
+  .change-pw-banner__icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .pw-strength {
+    height: 4px; border-radius: 3px; margin-top: 6px; margin-bottom: 2px;
+    background: #e2e8f0; overflow: hidden;
+  }
+  .pw-strength__bar { height: 100%; border-radius: 3px; transition: width .2s, background .2s; width: 0; }
+  .pw-hint-txt { font-size: .72rem; color: var(--muted,#64748b); margin-top: 3px; }
+
+  .login-back { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--muted,#64748b); text-decoration: none; margin-bottom: 18px; font-weight: 600; }
+  .login-back:hover { color: var(--primary,#3f6fe8); }
+
+  .checking-overlay {
+    position: fixed; inset: 0; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; font-size: 1rem; color: #888;
+  }
+
+  /* ── Disponiergebiet ── */
+  .gebiet-section-title { font-size: 1.2rem; font-weight: 900; color: var(--text,#0f1a33); margin-bottom: 6px; }
+  .gebiet-section-sub   { font-size: .85rem; color: var(--muted,#64748b); margin-bottom: 22px; }
+
+  .gebiet-select-row { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+
+  .gebiet-select {
+    width: 100%; padding: 11px 14px; border: 1.5px solid #dde4ef; border-radius: 10px;
+    font-size: .95rem; color: var(--text,#0f1a33); background: #f8faff;
+    outline: none; transition: border .15s; box-sizing: border-box;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    padding-right: 36px; cursor: pointer;
+  }
+  .gebiet-select:focus { border-color: #3f6fe8; background-color: #fff; }
+
+  .gebiet-label {
+    display: block; font-size: .8rem; font-weight: 700;
+    color: var(--text,#0f1a33); margin-bottom: 6px;
+  }
+
+  .gebiet-current {
+    display: flex; align-items: center; gap: 10px;
+    background: #f0f6ff; border: 1.5px solid #c7d9ff; border-radius: 10px;
+    padding: 11px 14px; margin-bottom: 18px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .gebiet-current:hover { border-color: #3f6fe8; }
+  .gebiet-current__icon { font-size: 1.3rem; flex-shrink: 0; }
+  .gebiet-current__info { flex: 1; min-width: 0; }
+  .gebiet-current__label { font-size: .72rem; font-weight: 700; color: var(--muted,#64748b); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .gebiet-current__val { font-size: .92rem; font-weight: 800; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gebiet-current__badge { font-size: .7rem; font-weight: 700; color: #3f6fe8; flex-shrink: 0; }
+
+  .gebiet-skip {
+    display: block; text-align: center; margin-top: 12px;
+    font-size: .78rem; color: var(--muted,#64748b); font-weight: 600;
+    text-decoration: none; cursor: pointer;
+  }
+  .gebiet-skip:hover { color: #3f6fe8; }
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<div class="checking-overlay" id="checkingOverlay">Einen Moment...</div>
+
+<div class="login-wrap">
+  <a class="login-back" href="index.html">← Zurück zur Startseite</a>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo__icon">🚑</div>
+      <div>
+        <div class="login-logo__text">Nursy</div>
+        <div class="login-logo__sub">LEITSTELLE</div>
+      </div>
+    </div>
+
+    <div class="logout-banner" id="logoutBanner">Sie wurden erfolgreich abgemeldet.</div>
+
+    <!-- ── Anmelde-Formular ── -->
+    <div id="loginSection">
+      <h1 class="login-title">Anmelden</h1>
+      <p class="login-sub">Zugang für Disponenten und Leitstellen-Personal.</p>
+
+      <form id="loginForm" autocomplete="on" onsubmit="doLogin(event)">
+        <div class="login-field">
+          <label for="email">E-Mail-Adresse</label>
+          <input type="email" id="email" name="email" placeholder="disponent@example.at" autocomplete="email" required>
+        </div>
+        <div class="login-field">
+          <label for="password">Passwort</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <button class="login-btn" type="submit" id="loginBtn">Anmelden</button>
+        <div class="login-error" id="loginError"></div>
+      </form>
+
+      <div style="text-align:right;margin-top:10px;">
+        <a href="#" onclick="showForgot();return false;" style="font-size:.78rem;color:var(--muted,#64748b);text-decoration:none;font-weight:600;" onmouseover="this.style.color='#3f6fe8'" onmouseout="this.style.color=''">Passwort vergessen?</a>
+      </div>
+
+      <div class="login-hint">
+        <span style="color:#7c3aed;font-weight:700;">Admiral:</span> gleicher Login – Rolle wird nach Anmeldung erkannt.
+      </div>
+    </div>
+
+    <!-- ── Passwort-vergessen-Screen ── -->
+    <div id="forgotSection" style="display:none;">
+      <h1 class="login-title">Passwort vergessen</h1>
+      <p class="login-sub">Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Reset-Link.</p>
+
+      <form id="forgotForm" onsubmit="doForgot(event)">
+        <div class="login-field">
+          <label for="forgotEmail">E-Mail-Adresse</label>
+          <input type="email" id="forgotEmail" placeholder="disponent@example.at" autocomplete="email" required>
+        </div>
+        <button class="login-btn" type="submit" id="forgotBtn">Reset-Link senden</button>
+        <div class="login-error" id="forgotError"></div>
+        <div class="logout-banner" id="forgotSuccess" style="margin-top:14px;">
+          E-Mail gesendet! Prüfen Sie Ihren Posteingang.
+        </div>
+      </form>
+      <div style="text-align:center;margin-top:16px;">
+        <a href="#" onclick="showLogin();return false;" style="font-size:.78rem;color:var(--muted,#64748b);font-weight:600;text-decoration:none;">← Zurück zum Login</a>
+      </div>
+    </div>
+
+    <!-- ── Disponiergebiet-Screen (erscheint nach Login) ── -->
+    <div id="gebietsSection" style="display:none;">
+      <p class="gebiet-section-title">📍 Disponiergebiet</p>
+      <p class="gebiet-section-sub">Wählen Sie das Gebiet, für das Sie heute disponieren.</p>
+
+      <!-- Zuletzt verwendetes Gebiet (wird per JS befüllt) -->
+      <div id="gebietCurrentWrap" style="display:none;">
+        <div class="gebiet-current" onclick="gebietWeiterMitBisherigem()">
+          <div class="gebiet-current__icon">📍</div>
+          <div class="gebiet-current__info">
+            <div class="gebiet-current__label">Zuletzt verwendet</div>
+            <div class="gebiet-current__val" id="gebietCurrentLabel">–</div>
+          </div>
+          <div class="gebiet-current__badge">↩ Weiter</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+          <div style="flex:1;height:1px;background:#e8edf5;"></div>
+          <span style="font-size:.73rem;color:var(--muted,#64748b);font-weight:700;">oder Gebiet ändern</span>
+          <div style="flex:1;height:1px;background:#e8edf5;"></div>
+        </div>
+      </div>
+
+      <div class="gebiet-select-row">
+        <div>
+          <label class="gebiet-label" for="gbBundesland">Bundesland</label>
+          <select class="gebiet-select" id="gbBundesland" onchange="gbUpdateBezirk()">
+            <option value="">🇦🇹 Ganz Österreich</option>
+            <option value="Wien">Wien</option>
+            <option value="Niederösterreich">Niederösterreich</option>
+            <option value="Oberösterreich">Oberösterreich</option>
+            <option value="Steiermark">Steiermark</option>
+            <option value="Tirol">Tirol</option>
+            <option value="Vorarlberg">Vorarlberg</option>
+            <option value="Kärnten">Kärnten</option>
+            <option value="Salzburg">Salzburg</option>
+            <option value="Burgenland">Burgenland</option>
+          </select>
+        </div>
+        <div id="gbBezirkWrap" style="display:none;">
+          <label class="gebiet-label" for="gbBezirk">Bezirk</label>
+          <select class="gebiet-select" id="gbBezirk">
+            <option value="">– Gesamtes Bundesland –</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="login-btn" type="button" id="gebietBtn" onclick="doGebietSpeichern()">
+        🚑 Schicht beginnen
+      </button>
+      <div class="login-error" id="gebietError"></div>
+      <a class="gebiet-skip" onclick="doGebietUeberspringen()">Überspringen (ohne Gebiet fortfahren)</a>
+    </div>
+
+    <!-- ── Passwort-Änderungs-Screen (erscheint nach erstem Login) ── -->
+    <div id="changePwSection" style="display:none;">
+      <h1 class="login-title">Passwort festlegen</h1>
+      <p class="login-sub" style="margin-bottom:18px;">Bitte legen Sie bei Ihrer ersten Anmeldung ein persönliches Passwort fest.</p>
+
+      <div class="change-pw-banner">
+        <span class="change-pw-banner__icon">🔒</span>
+        <span>Das vom Administrator vergebene Passwort muss jetzt geändert werden, bevor Sie fortfahren können.</span>
+      </div>
+
+      <form id="changePwForm" onsubmit="doChangePw(event)">
+        <div class="login-field">
+          <label for="cpOld">Aktuelles Passwort</label>
+          <input type="password" id="cpOld" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div class="login-field">
+          <label for="cpNew">Neues Passwort</label>
+          <input type="password" id="cpNew" placeholder="Mind. 8 Zeichen" autocomplete="new-password" required oninput="updatePwStrength(this.value)">
+          <div class="pw-strength"><div class="pw-strength__bar" id="pwStrBar"></div></div>
+          <div class="pw-hint-txt" id="pwHintTxt">Mind. 8 Zeichen</div>
+        </div>
+        <div class="login-field">
+          <label for="cpNew2">Neues Passwort bestätigen</label>
+          <input type="password" id="cpNew2" placeholder="Wiederholen" autocomplete="new-password" required>
+        </div>
+        <button class="login-btn" type="submit" id="changePwBtn">Passwort speichern &amp; weiter</button>
+        <div class="login-error" id="changePwError"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="nursy-auth.js"></script>
+<script>
+(function(){
+  var overlay    = document.getElementById('checkingOverlay');
+  var banner     = document.getElementById('logoutBanner');
+  var params     = new URLSearchParams(window.location.search);
+  var fromLogout = params.get('logout') === '1';
+
+  function showForm(showBanner) {
+    overlay.style.display = 'none';
+    if (showBanner) banner.style.display = 'block';
+  }
+
+  if (fromLogout) {
+    NursyAuth.clear('leitstelle');
+    showForm(true);
+  } else {
+    if (NursyAuth.get('leitstelle') || NursyAuth.get('admin')) {
+      window.location.replace('leitstelle-ansicht.html');
+    } else {
+      showForm(false);
+    }
+  }
+
+  /* Passwort-Stärke-Balken */
+  window.updatePwStrength = function(val) {
+    var bar  = document.getElementById('pwStrBar');
+    var hint = document.getElementById('pwHintTxt');
+    var score = 0;
+    if (val.length >= 8)  score++;
+    if (val.length >= 12) score++;
+    if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    var pct   = [0, 20, 40, 65, 85, 100][score];
+    var color = ['#e2e8f0','#ef4444','#f59e0b','#f59e0b','#22c55e','#16a34a'][score];
+    var label = ['','Sehr schwach','Schwach','Mittel','Stark','Sehr stark'][score];
+    bar.style.width  = pct + '%';
+    bar.style.background = color;
+    hint.textContent = val.length < 8 ? 'Mind. 8 Zeichen' : label;
+    hint.style.color = color === '#e2e8f0' ? '' : color;
+  };
+
+  /* Screen-Switcher */
+  /* ── Österreichische Bezirke ── */
+  var AT_BEZIRKE = {
+    'Wien': ['1. Bezirk – Innere Stadt','2. Bezirk – Leopoldstadt','3. Bezirk – Landstraße','4. Bezirk – Wieden','5. Bezirk – Margareten','6. Bezirk – Mariahilf','7. Bezirk – Neubau','8. Bezirk – Josefstadt','9. Bezirk – Alsergrund','10. Bezirk – Favoriten','11. Bezirk – Simmering','12. Bezirk – Meidling','13. Bezirk – Hietzing','14. Bezirk – Penzing','15. Bezirk – Rudolfsheim-Fünfhaus','16. Bezirk – Ottakring','17. Bezirk – Hernals','18. Bezirk – Währing','19. Bezirk – Döbling','20. Bezirk – Brigittenau','21. Bezirk – Floridsdorf','22. Bezirk – Donaustadt','23. Bezirk – Liesing'],
+    'Niederösterreich': ['Amstetten','Baden','Bruck an der Leitha','Gänserndorf','Gmünd','Hollabrunn','Horn','Korneuburg','Krems (Land)','Krems (Stadt)','Lilienfeld','Melk','Mistelbach','Mödling','Neunkirchen','Scheibbs','St. Pölten (Land)','St. Pölten (Stadt)','Tulln','Waidhofen/Thaya','Waidhofen/Ybbs (Stadt)','Wiener Neustadt (Land)','Wiener Neustadt (Stadt)','Zwettl'],
+    'Oberösterreich': ['Braunau am Inn','Eferding','Freistadt','Gmunden','Grieskirchen','Kirchdorf an der Krems','Linz (Stadt)','Linz-Land','Perg','Ried im Innkreis','Rohrbach','Schärding','Steyr (Land)','Steyr (Stadt)','Urfahr-Umgebung','Vöcklabruck','Wels (Land)','Wels (Stadt)'],
+    'Steiermark': ['Bruck-Mürzzuschlag','Deutschlandsberg','Graz (Stadt)','Graz-Umgebung','Hartberg-Fürstenfeld','Leibnitz','Leoben','Liezen','Murau','Murtal','Südoststeiermark','Voitsberg','Weiz'],
+    'Tirol': ['Imst','Innsbruck (Land)','Innsbruck (Stadt)','Kitzbühel','Kufstein','Landeck','Lienz','Reutte','Schwaz'],
+    'Vorarlberg': ['Bludenz','Bregenz','Dornbirn','Feldkirch'],
+    'Kärnten': ['Feldkirchen','Hermagor','Klagenfurt (Land)','Klagenfurt (Stadt)','Spittal an der Drau','St. Veit an der Glan','Villach (Land)','Villach (Stadt)','Völkermarkt','Wolfsberg'],
+    'Salzburg': ['Hallein','Salzburg (Stadt)','Salzburg-Umgebung','St. Johann im Pongau','Tamsweg','Zell am See'],
+    'Burgenland': ['Eisenstadt (Stadt)','Eisenstadt-Umgebung','Güssing','Jennersdorf','Mattersburg','Neusiedl am See','Oberpullendorf','Oberwart','Rust (Stadt)']
+  };
+
+  function gbFormatLabel(bl, bz) {
+    if (!bl) return '🇦🇹 Ganz Österreich';
+    if (!bz) return '📍 ' + bl + ' (gesamt)';
+    return '📍 ' + bl + ' · ' + bz;
+  }
+
+  window.gbUpdateBezirk = function() {
+    var bl  = document.getElementById('gbBundesland').value;
+    var bz  = document.getElementById('gbBezirk');
+    var wrap= document.getElementById('gbBezirkWrap');
+    bz.innerHTML = '<option value="">– Gesamtes Bundesland –</option>';
+    if (bl && AT_BEZIRKE[bl]) {
+      AT_BEZIRKE[bl].forEach(function(b){
+        var o = document.createElement('option'); o.value = b; o.textContent = b; bz.appendChild(o);
+      });
+      wrap.style.display = '';
+    } else {
+      wrap.style.display = 'none';
+    }
+  };
+
+  var _pendingOldPw = '';
+
+  function _hideAll(){
+    ['loginSection','forgotSection','changePwSection','gebietsSection'].forEach(function(id){
+      document.getElementById(id).style.display='none';
+    });
+  }
+  window.showLogin  = function(){ _hideAll(); document.getElementById('loginSection').style.display=''; };
+  window.showForgot = function(){ _hideAll(); document.getElementById('forgotSection').style.display=''; };
+
+  function showGebiet(user) {
+    _hideAll();
+    var sec = document.getElementById('gebietsSection');
+    sec.style.display = '';
+    /* Vorherige Gebiet-Einstellung anzeigen */
+    var bl = (user && user.disponier_bundesland) || '';
+    var bz = (user && user.disponier_bezirk)     || '';
+    if (bl || bl === '') {
+      var label = gbFormatLabel(bl, bz);
+      if (bl !== '') {
+        /* Zeige "Zuletzt verwendet"-Karte */
+        document.getElementById('gebietCurrentLabel').textContent = label;
+        document.getElementById('gebietCurrentWrap').style.display = '';
+      }
+      /* Vorauswahl im Dropdown */
+      var blSel = document.getElementById('gbBundesland');
+      blSel.value = bl;
+      gbUpdateBezirk();
+      if (bz) document.getElementById('gbBezirk').value = bz;
+    }
+  }
+
+  window.gebietWeiterMitBisherigem = function() {
+    window.location.replace('leitstelle-ansicht.html');
+  };
+
+  window.doGebietSpeichern = function() {
+    var btn  = document.getElementById('gebietBtn');
+    var errEl= document.getElementById('gebietError');
+    var bl   = document.getElementById('gbBundesland').value;
+    var bz   = document.getElementById('gbBezirk').value;
+    errEl.style.display = 'none';
+    btn.disabled = true; btn.textContent = 'Speichern…';
+    fetch('/api/leitstelle/gebiet', {
+      method: 'PUT', credentials: 'same-origin',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({bundesland: bl, bezirk: bz})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.ok) {
+        window.location.replace('leitstelle-ansicht.html');
+      } else {
+        errEl.textContent = d.error || 'Fehler beim Speichern.';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = '🚑 Schicht beginnen';
+      }
+    })
+    .catch(function(){
+      errEl.textContent = 'Verbindungsfehler.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = '🚑 Schicht beginnen';
+    });
+  };
+
+  window.doGebietUeberspringen = function() {
+    window.location.replace('leitstelle-ansicht.html');
+  };
+
+  /* Nach Login: Passwort-Änderungs-Screen anzeigen */
+  function showChangePw(oldPw) {
+    _pendingOldPw = oldPw || '';
+    _hideAll();
+    document.getElementById('changePwSection').style.display = '';
+    document.getElementById('cpOld').value = oldPw || '';
+  }
+
+  /* Passwort vergessen */
+  window.doForgot = function(e){
+    e.preventDefault();
+    var btn  = document.getElementById('forgotBtn');
+    var errEl= document.getElementById('forgotError');
+    var succ = document.getElementById('forgotSuccess');
+    var em   = document.getElementById('forgotEmail').value.trim();
+    errEl.style.display='none'; succ.style.display='none';
+    btn.disabled=true; btn.textContent='Senden…';
+
+    fetch('/api/leitstelle/forgot-password',{
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email: em})
+    })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+    .then(function(res){
+      if(res.ok && res.data.ok){
+        succ.style.display='block';
+        btn.textContent='Reset-Link senden';
+      } else {
+        errEl.textContent = res.data.error || 'Fehler beim Senden.';
+        errEl.style.display='block';
+        btn.disabled=false; btn.textContent='Reset-Link senden';
+      }
+    })
+    .catch(function(){
+      errEl.textContent='Verbindungsfehler.';
+      errEl.style.display='block';
+      btn.disabled=false; btn.textContent='Reset-Link senden';
+    });
+  };
+
+  window.doLogin = function(e) {
+    e.preventDefault();
+    var btn   = document.getElementById('loginBtn');
+    var errEl = document.getElementById('loginError');
+    var email = document.getElementById('email').value.trim();
+    var pw    = document.getElementById('password').value;
+    btn.disabled = true; btn.textContent = 'Anmelden…';
+    errEl.style.display = 'none';
+
+    fetch('/api/login/leitstelle', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email: email, password: pw})
+    })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if(res.ok && res.data.ok){
+        if(res.data.token) NursyAuth.save('leitstelle', res.data.token);
+        if(res.data.must_change_pw){
+          showChangePw(pw);
+          btn.disabled = false; btn.textContent = 'Anmelden';
+        } else {
+          showGebiet(res.data.user || {});
+          btn.disabled = false; btn.textContent = 'Anmelden';
+        }
+      } else {
+        errEl.textContent = res.data.error || 'Anmeldung fehlgeschlagen';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Anmelden';
+      }
+    })
+    .catch(function(){
+      errEl.textContent = 'Verbindungsfehler — bitte erneut versuchen.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Anmelden';
+    });
+  };
+
+  window.doChangePw = function(e) {
+    e.preventDefault();
+    var btn    = document.getElementById('changePwBtn');
+    var errEl  = document.getElementById('changePwError');
+    var oldPw  = document.getElementById('cpOld').value;
+    var newPw  = document.getElementById('cpNew').value;
+    var newPw2 = document.getElementById('cpNew2').value;
+    errEl.style.display = 'none';
+
+    if (newPw.length < 8) {
+      errEl.textContent = 'Neues Passwort mind. 8 Zeichen.';
+      errEl.style.display = 'block'; return;
+    }
+    if (newPw !== newPw2) {
+      errEl.textContent = 'Die Passwörter stimmen nicht überein.';
+      errEl.style.display = 'block'; return;
+    }
+    if (newPw === oldPw) {
+      errEl.textContent = 'Neues Passwort darf nicht mit dem alten übereinstimmen.';
+      errEl.style.display = 'block'; return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Speichern…';
+
+    fetch('/api/leitstelle/change-password', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({old_password: oldPw, new_password: newPw})
+    })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if(res.ok && res.data.ok){
+        showGebiet({});
+        btn.disabled = false; btn.textContent = 'Passwort speichern & weiter';
+      } else {
+        errEl.textContent = res.data.error || 'Passwort konnte nicht gespeichert werden.';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Passwort speichern & weiter';
+      }
+    })
+    .catch(function(){
+      errEl.textContent = 'Verbindungsfehler — bitte erneut versuchen.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Passwort speichern & weiter';
+    });
+  };
+})();
+</script>
+</body>
+</html>

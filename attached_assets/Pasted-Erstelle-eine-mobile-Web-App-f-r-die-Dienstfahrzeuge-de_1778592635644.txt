@@ -1,0 +1,179 @@
+Erstelle eine mobile Web-App für die Dienstfahrzeuge des Pflegenotdienstes Akut Plus.
+
+Die App läuft am Handy im jeweiligen Dienstfahrzeug und wird vor bzw. bei Dienstbeginn verwendet.
+
+Wichtige Abgrenzung:
+Diese Funktion betrifft ausschließlich die interne Auftragslage bzw. den internen Dienstbetrieb des Pflegenotdienstes.
+
+Die digitale Dienst- und Fahrzeugbestätigung darf nur für Pflegepersonen angezeigt werden, die:
+- im internen Mitarbeiterportal registriert sind,
+- im Kalender für einen Dienst eingetragen sind,
+- tatsächlich Dienst auf einem bestimmten Fahrzeug haben,
+- dem jeweiligen Fahrzeug zugeordnet wurden.
+
+Diese Funktion darf NICHT im öffentlichen Bereich der App erscheinen.
+
+Sie betrifft NICHT:
+- externe Pfleger im öffentlichen Vermittlungsbereich,
+- Klienten,
+- Angehörige,
+- Besucher,
+- öffentliche Buchungsfunktionen,
+- allgemeine Registrierungen.
+
+Der öffentliche Bereich der App für Pfleger und Klienten bleibt davon vollständig getrennt.
+
+Die Fahrzeugbestätigung ist ausschließlich ein internes Modul für:
+- Mitarbeiterportal
+- Kalender/Dienstplanung
+- interne Auftragslage
+- Fahrzeugzuordnung
+- Adminbereich
+
+Ziel:
+Beim Start eines Dienstes muss die Pflegekraft eine digitale Dienst- und Fahrzeugbestätigung ausfüllen und unterschreiben. Ohne digitale Unterschrift darf der Dienst nicht gestartet werden.
+
+Automatisch vorausgefüllt werden:
+- Name der Pflegekraft
+- Dienstnummer
+- Fahrzeugname
+- Kennzeichen
+- Bundesland
+- Bezirk
+- Datum
+- Uhrzeit
+
+Ablauf:
+1. Eine intern registrierte Pflegeperson, die im Mitarbeiterportal im Kalender für diesen Dienst und dieses Fahrzeug eingetragen ist, loggt sich am Handy im Dienstfahrzeug ein.
+2. Die App erkennt bzw. zeigt das zugeordnete Fahrzeug.
+3. Das Dienst- und Fahrzeugformular öffnet sich automatisch.
+4. Die Daten werden automatisch vorausgefüllt.
+5. Pflegekraft kontrolliert Fahrzeug, Material und medizinische Produkte.
+6. Pflegekraft unterschreibt digital am Handy.
+7. Formular wird gespeichert.
+8. Dienst kann erst nach erfolgreicher Speicherung gestartet werden.
+
+Pflegekraft muss bestätigen:
+- Fahrzeug ordnungsgemäß übernommen
+- Fahrzeug sauber übernommen
+- Keine sichtbaren Schäden vorhanden oder Schäden wurden dokumentiert
+- Material vollständig vorhanden
+- Medizinische Produkte überprüft
+- Medizinische Produkte können fachgerecht verwendet werden
+- Haftungsregelung gelesen und akzeptiert
+- Bei selbstverschuldetem Fahrzeugschaden übernimmt die Pflegekraft ein Drittel des Versicherungs-Selbstbehalts
+- Fahrzeug, Material und medizinische Produkte sind nach Dienstende sauber und vollständig zu hinterlassen
+- Jede Pflegekraft haftet im gesetzlichen Rahmen für eigenes Fehlverhalten selbst
+
+Wichtige Zusatzregel:
+Wenn die Pflegekraft das Fahrzeug wechselt, muss automatisch eine neue Fahrzeugbestätigung unterschrieben werden.
+
+Formular-Funktionen:
+- Checkboxen für alle Bestätigungen
+- Freitextfeld für Bemerkungen
+- Foto-Upload für Fahrzeugschäden
+- digitales Signaturfeld per Finger, Maus oder Touchscreen
+- Button „Unterschreiben und Dienst starten“
+- Nach Speicherung darf das Formular nicht mehr verändert werden
+- Jedes Formular bekommt eine eindeutige Formular-ID
+
+Speicherung:
+Jedes unterschriebene Formular soll einzeln gespeichert werden.
+Zusätzlich soll automatisch ein PDF erstellt werden.
+
+Speicherstruktur:
+
+/formulare
+  /Bundesland
+    /Bezirk
+      /Datum
+        formular_Dienstnummer_Fahrzeug_Datum_Uhrzeit.json
+        formular_Dienstnummer_Fahrzeug_Datum_Uhrzeit.pdf
+        /fotos
+
+Beispiel:
+
+/formulare
+  /Oberösterreich
+    /Ried im Innkreis
+      /2026-05-12
+        formular_DN123_Fahrzeug1_2026-05-12_08-00.json
+        formular_DN123_Fahrzeug1_2026-05-12_08-00.pdf
+        /fotos
+
+Adminbereich:
+Der Admin hat einen geschützten Login.
+
+Admin-Funktionen:
+- Übersicht aller gespeicherten Formulare
+- Ordneransicht nach Bundesland
+- darunter Bezirk
+- darunter Datum
+- darunter Fahrzeug
+- darunter Dienstnummer
+- Formular öffnen
+- PDF anzeigen
+- JSON-Daten anzeigen
+- Schadensfotos anzeigen
+- Formulare herunterladen
+- Suche und Filter nach:
+  - Pflegekraft
+  - Dienstnummer
+  - Fahrzeug
+  - Kennzeichen
+  - Bundesland
+  - Bezirk
+  - Datum
+
+Design:
+- Mobile-first Design
+- optimiert für Handy im Dienstfahrzeug
+- große Buttons
+- einfache Bedienung
+- dunkles Blau als Hauptfarbe
+- stark abgerundete Buttons im Pill-Style
+- Buttons ca. 48px hoch
+- modernes, seriöses Pflegedienst-Design
+- responsive für Handy, Tablet und Desktop
+- Adminbereich wie ein Dateimanager aufgebaut
+
+Rechtlicher Text im Formular:
+„Mit meiner digitalen Unterschrift bestätige ich, dass ich die Dienst-, Haftungs-, Fahrzeug- und Materialregelungen gelesen, verstanden und akzeptiert habe. Ich bestätige außerdem, dass ich eigenverantwortlich handle und mit den verwendeten medizinischen Produkten und Materialien fachgerecht umgehen kann.“
+
+Technische Anforderungen:
+- HTML
+- CSS
+- JavaScript
+- Node.js
+- Express
+- SQLite Datenbank
+- multer für Foto-Uploads
+- pdfkit für PDF-Erstellung
+- fs/path für Ordnerstruktur
+- digitale Signatur als Bild speichern
+- Signatur im PDF anzeigen
+- Fotos dem jeweiligen Formular zuordnen
+
+Erstelle alle notwendigen Dateien:
+- package.json
+- server.js
+- database.js
+- public/index.html
+- public/login.html
+- public/admin.html
+- public/style.css
+- public/app.js
+- public/admin.js
+
+Erstelle Demo-Daten für:
+- Pflegekräfte
+- Dienstnummern
+- Fahrzeuge
+- Kennzeichen
+- Bundesländer
+- Bezirke
+
+Wichtig:
+Die Formulare müssen separat gespeichert werden.
+Der Admin muss sie nach Bundesland, Bezirk, Datum, Fahrzeug und Dienstnummer öffnen können.
+Ohne unterschriebenes Formular darf der Dienst nicht gestartet werden.

@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Neue Anfrage</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .anc-page { padding: 24px 0 60px; }
+
+    /* ── Berufsgruppen-Auswahl ── */
+    .anc-prof-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .anc-prof-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 10px;
+      border: 2px solid #dbe2f0;
+      border-radius: 14px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, transform .1s;
+      font-family: inherit;
+      text-align: center;
+    }
+    .anc-prof-btn:hover { border-color: #93c5fd; background: #f0f6ff; transform: translateY(-1px); }
+    .anc-prof-btn.selected { border-color: #3f6fe8; background: #eff2fd; }
+    .anc-prof-btn.selected .anc-prof-icon { background: #3f6fe8; color: #fff; }
+    .anc-prof-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: #edf2ff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      transition: background .15s, color .15s;
+    }
+    .anc-prof-label { font-size: .82rem; font-weight: 700; color: #1e293b; }
+    .anc-prof-soon { font-size: .68rem; color: #9ca3af; font-weight: 500; }
+
+    /* ── Form ── */
+    .anc-form-card { margin-top: 20px; }
+    .anc-section-title {
+      font-size: .78rem; font-weight: 800; color: #334155;
+      text-transform: uppercase; letter-spacing: .05em;
+      margin: 0 0 14px;
+    }
+    .anc-g2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    @media(max-width:560px){ .anc-g2 { grid-template-columns: 1fr; } }
+
+    .anc-field { margin-bottom: 14px; }
+    .anc-label {
+      display: block; font-size: .72rem; font-weight: 700;
+      color: #374151; margin-bottom: 5px;
+      text-transform: uppercase; letter-spacing: .03em;
+    }
+    .anc-input {
+      display: block; width: 100%; border: 1.5px solid #dbe2f0;
+      border-radius: 10px; padding: 10px 13px; font-size: .88rem;
+      font-family: inherit; color: #1e293b; background: #fff;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      box-sizing: border-box; -webkit-appearance: none; appearance: none;
+    }
+    .anc-input:focus { border-color: #3f6fe8; box-shadow: 0 0 0 3px rgba(63,111,232,.12); }
+    select.anc-input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    }
+    textarea.anc-input { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+    /* ── Leistungen Checkboxen ── */
+    .anc-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .anc-check-label {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 13px; border: 1.5px solid #dbe2f0;
+      border-radius: 999px; background: #fff; cursor: pointer;
+      font-size: .8rem; font-weight: 600; color: #374151;
+      transition: border-color .13s, background .13s;
+      user-select: none;
+    }
+    .anc-check-label input { display: none; }
+    .anc-check-label input:checked ~ span { color: #1d4ed8; }
+    .anc-check-label:has(input:checked) {
+      border-color: #3f6fe8; background: #eff2fd;
+    }
+    .anc-check-box {
+      width: 16px; height: 16px; border: 2px solid #d1d5db;
+      border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .anc-check-label:has(input:checked) .anc-check-box {
+      background: #3f6fe8; border-color: #3f6fe8;
+    }
+    .anc-check-label:has(input:checked) .anc-check-box::after {
+      content: ''; display: block; width: 4px; height: 8px;
+      border: 2px solid #fff; border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px,-1px);
+    }
+
+    /* ── Aktionen ── */
+    .anc-actions {
+      display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;
+    }
+    @media(max-width:480px){
+      .anc-actions { flex-direction: column; }
+      .anc-actions .btn, .anc-actions button { width: 100%; text-align: center; justify-content: center; box-sizing: border-box; }
+    }
+
+    /* ── Erfolgs-Banner ── */
+    .anc-success {
+      display: none;
+      background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(34,197,94,.04));
+      border: 1.5px solid rgba(34,197,94,.35);
+      border-radius: 14px; padding: 24px 20px;
+      text-align: center; margin-top: 24px;
+    }
+    .anc-success__icon { font-size: 2.8rem; margin-bottom: 10px; }
+    .anc-success__title { font-size: 1.2rem; font-weight: 800; color: #166534; margin: 0 0 6px; }
+    .anc-success__sub { font-size: .88rem; color: #15803d; margin: 0 0 18px; }
+
+    /* ── Matching-Ergebnis ── */
+    .anc-match { margin-top: 20px; }
+    .anc-match-found {
+      background: #f0f6ff; border: 1.5px solid rgba(63,111,232,.22);
+      border-radius: 14px; padding: 20px;
+    }
+    .anc-match-found__title { font-size: .78rem; font-weight: 800; color: #1d4ed8; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 12px; }
+    .anc-match-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; background: #fff; border: 1.5px solid #dbe2f0;
+      border-radius: 10px; margin-bottom: 8px;
+    }
+    .anc-match-item__avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #3f6fe8; color: #fff; display: flex;
+      align-items: center; justify-content: center;
+      font-size: .88rem; font-weight: 700; flex-shrink: 0;
+    }
+    .anc-match-item__name { font-weight: 700; color: #1e293b; font-size: .88rem; }
+    .anc-match-item__sub  { font-size: .76rem; color: #6b7280; margin-top: 1px; }
+
+    .anc-notdienst {
+      background: linear-gradient(135deg, rgba(251,191,36,.10), rgba(251,191,36,.04));
+      border: 1.5px solid rgba(251,191,36,.45);
+      border-radius: 14px; padding: 22px 20px; margin-top: 20px;
+    }
+    .anc-notdienst__icon { font-size: 2rem; margin-bottom: 8px; }
+    .anc-notdienst__title { font-size: 1rem; font-weight: 800; color: #92400e; margin: 0 0 6px; }
+    .anc-notdienst__sub { font-size: .85rem; color: #78350f; margin: 0 0 16px; line-height: 1.5; }
+    .anc-notdienst__contacts { display: flex; flex-wrap: wrap; gap: 10px; }
+    .anc-notdienst__link {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 16px; border-radius: 10px; font-size: .85rem; font-weight: 700;
+      text-decoration: none; transition: opacity .13s;
+    }
+    .anc-notdienst__link--tel  { background: #3f6fe8; color: #fff; }
+    .anc-notdienst__link--web  { background: #fff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
+    .anc-notdienst__link:hover { opacity: .85; }
+
+    /* ── Disabled soon buttons ── */
+    .anc-prof-btn.soon { opacity: .55; cursor: not-allowed; }
+    .anc-prof-btn.soon:hover { border-color: #dbe2f0; background: #fff; transform: none; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text"><strong>Nursy</strong><span>Fürsorge mit Herz</span></span>
+    </a>
+    <nav class="nav">
+      <a href="dashboard-client.html">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container anc-page">
+  <div class="section__head" style="margin-bottom:24px;">
+    <h2 style="margin:0 0 4px;">Neue Anfrage erstellen</h2>
+    <p class="muted" style="margin:0;">Wählen Sie eine Berufsgruppe und geben Sie Ihre Anforderungen an.</p>
+  </div>
+
+  <!-- Berufsgruppen -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="anc-section-title">Berufsgruppe wählen</div>
+    <div class="anc-prof-grid" id="ancProfGrid">
+
+      <button class="anc-prof-btn selected" data-prof="pfleger" type="button">
+        <div class="anc-prof-icon">🧑‍⚕️</div>
+        <div class="anc-prof-label">Pfleger/in</div>
+      </button>
+
+      <button class="anc-prof-btn soon" data-prof="physio" type="button" disabled>
+        <div class="anc-prof-icon">🏃</div>
+        <div class="anc-prof-label">Physiotherapeut</div>
+        <div class="anc-prof-soon">Bald verfügbar</div>
+      </button>
+
+      <button class="anc-prof-btn soon" data-prof="ergo" type="button" disabled>
+        <div class="anc-prof-icon">🧩</div>
+        <div class="anc-prof-label">Ergotherapeut</div>
+        <div class="anc-prof-soon">Bald verfügbar</div>
+      </button>
+
+      <button class="anc-prof-btn soon" data-prof="logopaede" type="button" disabled>
+        <div class="anc-prof-icon">🗣️</div>
+        <div class="anc-prof-label">Logopäde</div>
+        <div class="anc-prof-soon">Bald verfügbar</div>
+      </button>
+
+      <button class="anc-prof-btn soon" data-prof="hebamme" type="button" disabled>
+        <div class="anc-prof-icon">👶</div>
+        <div class="anc-prof-label">Hebamme</div>
+        <div class="anc-prof-soon">Bald verfügbar</div>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Anfrageformular -->
+  <div class="card anc-form-card" id="ancFormCard">
+    <form id="ancForm" novalidate>
+
+      <div class="anc-section-title">Termin & Dauer</div>
+      <div class="anc-g2">
+        <div class="anc-field">
+          <label class="anc-label" for="ancDate">Datum</label>
+          <input class="anc-input" id="ancDate" type="date" required />
+        </div>
+        <div class="anc-field">
+          <label class="anc-label" for="ancDauer">Dauer</label>
+          <select class="anc-input" id="ancDauer">
+            <option value="">— bitte wählen —</option>
+            <option value="1h">1 Stunde</option>
+            <option value="2h">2 Stunden</option>
+            <option value="3h">3 Stunden</option>
+            <option value="4h">4 Stunden</option>
+            <option value="halb">Halbtags</option>
+            <option value="voll">Ganztags</option>
+          </select>
+        </div>
+      </div>
+      <div class="anc-g2">
+        <div class="anc-field">
+          <label class="anc-label" for="ancVon">Uhrzeit von</label>
+          <input class="anc-input" id="ancVon" type="time" />
+        </div>
+        <div class="anc-field">
+          <label class="anc-label" for="ancBis">Uhrzeit bis</label>
+          <input class="anc-input" id="ancBis" type="time" />
+        </div>
+      </div>
+
+      <div class="anc-section-title" style="margin-top:8px;">Gewünschte Leistungen</div>
+      <div class="anc-checks" id="ancLeistungen">
+        <label class="anc-check-label"><input type="checkbox" value="koerperpflege" /><span class="anc-check-box"></span><span>Körperpflege</span></label>
+        <label class="anc-check-label"><input type="checkbox" value="mobilisation" /><span class="anc-check-box"></span><span>Mobilisation</span></label>
+        <label class="anc-check-label"><input type="checkbox" value="medikamente" /><span class="anc-check-box"></span><span>Medikamente</span></label>
+        <label class="anc-check-label"><input type="checkbox" value="wundversorgung" /><span class="anc-check-box"></span><span>Wundversorgung</span></label>
+        <label class="anc-check-label"><input type="checkbox" value="ernaehrung" /><span class="anc-check-box"></span><span>Ernährung</span></label>
+        <label class="anc-check-label"><input type="checkbox" value="haushalt" /><span class="anc-check-box"></span><span>Haushaltshilfe</span></label>
+        <label class="anc-check-label"><input type="checkbox" value="begleitung" /><span class="anc-check-box"></span><span>Begleitung / Fahrdienst</span></label>
+      </div>
+
+      <div class="anc-field" style="margin-top:16px;">
+        <label class="anc-label" for="ancHinweis">Besondere Hinweise</label>
+        <textarea class="anc-input" id="ancHinweis" rows="3" placeholder="z. B. Haustiere, Allergien, Zugang zur Wohnung …"></textarea>
+      </div>
+
+      <div class="anc-field">
+        <label class="anc-label" for="ancDringlichkeit">Dringlichkeit</label>
+        <select class="anc-input" id="ancDringlichkeit">
+          <option value="normal">Normal</option>
+          <option value="bald">Bald (innerhalb 48 h)</option>
+          <option value="dringend">Dringend (heute / morgen)</option>
+        </select>
+      </div>
+
+      <div class="form-error" id="ancError" role="alert" style="display:none;"></div>
+
+      <div class="anc-actions">
+        <button class="control btn primary" type="submit" id="ancSubmit">Anfrage senden</button>
+        <a class="control btn" href="dashboard-client.html">Abbrechen</a>
+      </div>
+    </form>
+
+    <!-- Erfolg -->
+    <div class="anc-success" id="ancSuccess">
+      <div class="anc-success__icon">✅</div>
+      <div class="anc-success__title">Anfrage erfolgreich gesendet!</div>
+      <div class="anc-success__sub">Ihre Anfrage wurde übermittelt. Wir suchen jetzt nach passenden Pflegekräften in Ihrer Nähe.</div>
+      <a class="control btn primary" href="dashboard-client.html">Zum Dashboard</a>
+    </div>
+
+    <!-- Matching-Ergebnis -->
+    <div class="anc-match" id="ancMatch" style="display:none;">
+
+      <!-- Treffer gefunden -->
+      <div class="anc-match-found" id="ancMatchFound" style="display:none;">
+        <div class="anc-match-found__title">Pflegekräfte in Ihrer Nähe</div>
+        <div id="ancMatchList"></div>
+        <p style="font-size:.8rem;color:#6b7280;margin:12px 0 0;">Die Leitstelle wird sich nach Prüfung Ihrer Anfrage bei Ihnen melden.</p>
+      </div>
+
+      <!-- Kein Treffer → Pflegenotdienst -->
+      <div class="anc-notdienst" id="ancMatchNone" style="display:none;">
+        <div class="anc-notdienst__icon">ℹ️</div>
+        <div class="anc-notdienst__title">Aktuell kein Pfleger in Ihrer Umgebung verfügbar</div>
+        <div class="anc-notdienst__sub">
+          Leider konnten wir derzeit keine passende Pflegekraft in Ihrer Region finden.<br>
+          Für dringende Fälle wenden Sie sich bitte direkt an den Pflegenotdienst von Akut Plus:
+        </div>
+        <div class="anc-notdienst__contacts">
+          <a class="anc-notdienst__link anc-notdienst__link--tel" href="tel:0720111007">
+            📞 0720 111007
+          </a>
+          <a class="anc-notdienst__link anc-notdienst__link--web" href="https://www.akutplus.at" target="_blank" rel="noopener">
+            🌐 www.akutplus.at
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  /* ── Patienten-ID & isolierte Keys ── */
+  var _pid = 'default';
+  try{ _pid = localStorage.getItem('nursy_current_patient_id') || localStorage.getItem('nursy_pending_patient_id') || 'default'; }catch(e){}
+  var _anfragenKey = 'nursy_client_anfragen_v1_' + _pid;
+
+  /* ── Patientendaten für Matching ── */
+  var _regData = {};
+  try{
+    _regData = JSON.parse(localStorage.getItem('nursy_registration_data_v1_' + _pid) || localStorage.getItem('nursy_registration_data_v1') || '{}');
+  }catch(e){}
+
+  /* ── Berufsgruppe auswählen ── */
+  var profBtns = document.querySelectorAll('.anc-prof-btn:not(.soon)');
+  profBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      profBtns.forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    });
+  });
+
+  /* ── Datum vorbelegen (morgen) ── */
+  var dateEl = document.getElementById('ancDate');
+  if(dateEl){
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateEl.value = tomorrow.toISOString().slice(0,10);
+  }
+
+  /* ── Matching-Ergebnis anzeigen ── */
+  function showMatchResult(matches){
+    var matchDiv  = document.getElementById('ancMatch');
+    var foundDiv  = document.getElementById('ancMatchFound');
+    var noneDiv   = document.getElementById('ancMatchNone');
+    var listDiv   = document.getElementById('ancMatchList');
+    if(!matchDiv) return;
+    matchDiv.style.display = '';
+    if(matches && matches.length > 0){
+      foundDiv.style.display = '';
+      noneDiv.style.display  = 'none';
+      listDiv.innerHTML = matches.slice(0,5).map(function(c){
+        var ini = (c.name || '?').split(' ').map(function(w){ return w[0]||''; }).slice(0,2).join('').toUpperCase();
+        var sub = [c.qualifikation, c.ort || c.bezirk].filter(Boolean).join(' · ') || 'Pflegekraft';
+        return '<div class="anc-match-item">' +
+          '<div class="anc-match-item__avatar">' + ini + '</div>' +
+          '<div><div class="anc-match-item__name">' + (c.name||'–') + '</div>' +
+          '<div class="anc-match-item__sub">' + sub + '</div></div></div>';
+      }).join('');
+    } else {
+      foundDiv.style.display = 'none';
+      noneDiv.style.display  = '';
+    }
+  }
+
+  /* ── Nach passenden Pflegekräften suchen ── */
+  function runMatching(){
+    var plz    = _regData.plz    || '';
+    var bezirk = _regData.bezirk || '';
+    if(!plz && !bezirk){ showMatchResult([]); return; }
+    var url = '/api/match/caregivers?plz=' + encodeURIComponent(plz) + '&bezirk=' + encodeURIComponent(bezirk);
+    fetch(url)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ showMatchResult(d && d.ok ? d.matches : []); })
+      .catch(function(){ showMatchResult([]); });
+  }
+
+  /* ── Formular absenden ── */
+  var form    = document.getElementById('ancForm');
+  var errBox  = document.getElementById('ancError');
+  var success = document.getElementById('ancSuccess');
+  var submit  = document.getElementById('ancSubmit');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    errBox.style.display = 'none';
+
+    var prof    = (document.querySelector('.anc-prof-btn.selected') || {}).dataset.prof || '';
+    var datum   = document.getElementById('ancDate').value;
+    var dauer   = document.getElementById('ancDauer').value;
+    var von     = document.getElementById('ancVon').value;
+    var bis     = document.getElementById('ancBis').value;
+    var hinweis = document.getElementById('ancHinweis').value;
+    var dringl  = document.getElementById('ancDringlichkeit').value;
+    var leist   = Array.from(document.querySelectorAll('#ancLeistungen input:checked')).map(function(el){ return el.value; });
+
+    if(!datum){
+      errBox.textContent = 'Bitte ein Datum wählen.';
+      errBox.style.display = 'block';
+      return;
+    }
+    if(leist.length === 0){
+      errBox.textContent = 'Bitte mindestens eine Leistung auswählen.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = 'Wird gesendet …';
+
+    var payload = {
+      berufsgruppe:  prof,
+      datum:         datum,
+      dauer:         dauer,
+      von:           von,
+      bis:           bis,
+      leistungen:    leist,
+      hinweis:       hinweis,
+      dringlichkeit: dringl,
+      patient_plz:   _regData.plz    || '',
+      patient_bezirk: _regData.bezirk || ''
+    };
+
+    function onSuccess(){
+      /* Lokal speichern (keyed) */
+      try{
+        var list = JSON.parse(localStorage.getItem(_anfragenKey) || '[]');
+        payload.id = Date.now();
+        payload.status = 'gesendet';
+        payload.sentAt = new Date().toISOString();
+        list.push(payload);
+        localStorage.setItem(_anfragenKey, JSON.stringify(list));
+      }catch(ex){}
+      form.style.display = 'none';
+      success.style.display = 'block';
+      /* Matching starten */
+      runMatching();
+    }
+
+    fetch('/api/anfragen/client', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    })
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(r); })
+    .then(onSuccess)
+    .catch(onSuccess); /* Demo-Fallback: lokal speichern + Matching trotzdem zeigen */
+  });
+}());
+</script>
+</body>
+</html>

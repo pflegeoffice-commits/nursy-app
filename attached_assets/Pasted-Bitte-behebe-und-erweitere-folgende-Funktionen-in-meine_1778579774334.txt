@@ -1,0 +1,29 @@
+Bitte behebe und erweitere folgende Funktionen in meiner App:
+
+1. Leitstellen-Bereich: Fahrzeug- und Einsatzkarte
+- Der Einsatzort auf der Karte muss mit dem tatsächlichen Einsatzort des Einsatzes übereinstimmen.
+- Einsätze in Salzburg müssen geografisch korrekt in Salzburg angezeigt werden, nicht an falschen Standardpositionen.
+- Prüfe dafür die Adress-/PLZ-/Koordinatenlogik und verbessere ggf. Geocoding, Fallbacks und Datenbindung der Einsatzkarte.
+- Wenn Koordinaten vorhanden sind, sollen diese bevorzugt verwendet werden.
+- Wenn keine Koordinaten vorhanden sind, soll anhand von Adresse, PLZ, Ort und Bezirk korrekt geocodiert werden.
+
+2. Fahrzeuge auf der Karte
+- Fahrzeuge, die pausiert sind, offline sind oder nicht aktiv sind, dürfen nicht auf der Fahrzeugkarte angezeigt werden.
+- Auf der Karte sollen nur Fahrzeuge mit aktivem Status erscheinen.
+- Bitte prüfe die Statuswerte wie z. B. active, available, paused, inactive, offline und filtere entsprechend sauber.
+
+3. Bezirkslogik Österreich
+- Bitte integriere eine vollständige Liste aller Bezirke in Österreich.
+- Die Software soll beim Erfassen einer PLZ automatisch den richtigen Bezirk erkennen können.
+- Erstelle dafür eine PLZ-zu-Bezirk-Zuordnung für Österreich.
+- Diese Logik soll bei Einsätzen, Klientenadressen und sonstigen Adresserfassungen wiederverwendbar sein.
+- Falls eine PLZ mehreren Gemeinden/Bezirken zugeordnet sein kann, soll die App eine Auswahl oder einen sinnvollen Fallback anbieten.
+
+4. Öffentliche Klienten-App: Registrierung / Anamnese
+- In der Klienten-Ansicht der öffentlichen App lässt sich die Registrierung mit Anamnese aktuell nicht speichern bzw. abschließen.
+- Bitte behebe den Fehler, sodass die Registrierung inklusive Anamnese zuverlässig gespeichert wird.
+- Nach erfolgreichem Speichern soll automatisch zum bereits erstellten Klienten-Dashboard weitergeleitet werden.
+- Falls Pflichtfelder fehlen oder ein Speicherfehler auftritt, soll eine klare Fehlermeldung angezeigt werden.
+- Nach erfolgreichem Abschluss sollen die Klientendaten und Anamnese im Dashboard korrekt sichtbar sein.
+
+Bitte prüfe die bestehenden Komponenten, Routen, Datenmodelle und API-/Storage-Logik und setze die Änderungen direkt im vorhandenen Code um, ohne bestehende Funktionen zu beschädigen.

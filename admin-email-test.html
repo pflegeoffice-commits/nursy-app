@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Nursy – E-Mail-Test</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { background: var(--panel2); min-height: 100vh; }
+    .et-header {
+      position: sticky; top: 0; z-index: 50;
+      background: linear-gradient(180deg,#fff,#eef4ff);
+      border-bottom: 1px solid rgba(63,111,232,.18);
+      padding: 0 20px;
+    }
+    .et-header__inner {
+      max-width: 680px; margin: 0 auto;
+      display: flex; align-items: center; gap: 12px; height: 54px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      height: 34px; padding: 0 14px; border-radius: 9px;
+      font-size: .8rem; font-weight: 700; color: var(--muted);
+      background: none; border: 1px solid rgba(15,26,51,.12);
+      cursor: pointer; font-family: inherit; text-decoration: none;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .back-btn:hover { background: rgba(15,26,51,.04); color: var(--text); }
+    .et-title { font-size: 1rem; font-weight: 900; color: var(--text); flex: 1; }
+
+    .et-body { max-width: 680px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    .status-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 20px;
+    }
+    @media(max-width:480px){ .status-grid { grid-template-columns: 1fr; } }
+    .status-item {
+      background: #fff; border-radius: 12px;
+      border: 1.5px solid #e8edf5;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot--ok    { background: #22c55e; }
+    .status-dot--miss  { background: #ef4444; }
+    .status-dot--unkn  { background: #94a3b8; }
+    .status-key  { font-size: .78rem; font-weight: 800; color: var(--text); }
+    .status-val  { font-size: .72rem; color: var(--muted); margin-top: 1px; }
+
+    .test-card {
+      background: #fff; border-radius: 14px;
+      border: 1.5px solid #e8edf5;
+      padding: 22px 22px 20px;
+      margin-bottom: 20px;
+    }
+    .test-card h3 { font-size: 1rem; font-weight: 900; color: var(--text); margin-bottom: 4px; }
+    .test-card p  { font-size: .82rem; color: var(--muted); margin-bottom: 16px; }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: .78rem; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+    .field input {
+      width: 100%; padding: 10px 13px; border: 1.5px solid #dde4ef; border-radius: 9px;
+      font-size: .9rem; color: var(--text); background: #f8faff;
+      outline: none; transition: border .15s; box-sizing: border-box;
+    }
+    .field input:focus { border-color: #3f6fe8; background: #fff; }
+    .btn-send {
+      height: 40px; padding: 0 22px; border-radius: 10px;
+      background: linear-gradient(135deg,#3f6fe8,#1e3a8a);
+      color: #fff; font-weight: 800; font-size: .88rem;
+      border: none; cursor: pointer; font-family: inherit;
+      transition: opacity .15s;
+    }
+    .btn-send:hover { opacity: .9; } .btn-send:disabled { opacity: .5; cursor: default; }
+
+    .result-box {
+      border-radius: 10px; padding: 12px 15px; font-size: .83rem; font-weight: 700;
+      margin-top: 14px; display: none; line-height: 1.5;
+    }
+    .result-box--ok  { background: #f0fdf4; border: 1.5px solid #86efac; color: #15803d; }
+    .result-box--err { background: #fef2f2; border: 1.5px solid #fca5a5; color: #b91c1c; }
+
+    .info-card {
+      background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px;
+      padding: 16px 18px; font-size: .82rem; color: #78350f; line-height: 1.6;
+    }
+    .info-card strong { color: #92400e; }
+    .info-card code {
+      background: rgba(0,0,0,.08); border-radius: 4px;
+      padding: 1px 5px; font-size: .78rem; font-family: monospace;
+    }
+    .secret-list { margin: 8px 0 0 0; padding: 0; list-style: none; }
+    .secret-list li { padding: 3px 0; display: flex; align-items: center; gap: 8px; }
+    .secret-list li::before { content: "•"; color: #f59e0b; font-weight: 900; }
+
+    .func-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;
+    }
+    @media(max-width:480px){ .func-grid { grid-template-columns: 1fr; } }
+    .func-item {
+      background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 10px;
+      padding: 10px 13px; font-size: .78rem; font-weight: 700; color: #15803d;
+    }
+    .func-item span { display: block; font-weight: 400; color: #166534; margin-top: 2px; font-size: .72rem; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<div class="et-header">
+  <div class="et-header__inner">
+    <a class="back-btn" href="admin.html">← Admin</a>
+    <div class="et-title">📧 E-Mail-Test &amp; Status</div>
+  </div>
+</div>
+
+<div class="et-body">
+
+  <!-- SMTP Status -->
+  <div class="test-card">
+    <h3>SMTP-Konfiguration</h3>
+    <p>Status der hinterlegten Secrets</p>
+    <div class="status-grid" id="statusGrid">
+      <div class="status-item">
+        <div class="status-dot status-dot--unkn"></div>
+        <div><div class="status-key">Wird geladen…</div></div>
+      </div>
+    </div>
+    <div id="smtpOverall" style="font-size:.82rem;font-weight:700;color:var(--muted);margin-top:4px;"></div>
+  </div>
+
+  <!-- Testmail senden -->
+  <div class="test-card">
+    <h3>Testmail senden</h3>
+    <p>Senden Sie eine Testmail an eine beliebige Adresse, um den Mailversand zu prüfen.</p>
+    <div class="field">
+      <label for="testTo">Empfänger-E-Mail</label>
+      <input type="email" id="testTo" placeholder="ihre@email.at">
+    </div>
+    <button class="btn-send" id="sendBtn" onclick="sendTest()">📨 Testmail senden</button>
+    <div class="result-box" id="resultBox"></div>
+  </div>
+
+  <!-- Secrets-Hinweis -->
+  <div class="info-card">
+    <strong>Benötigte Secrets (Replit → Secrets-Tab)</strong>
+    <ul class="secret-list">
+      <li><code>SMTP_HOST</code> – z. B. smtp.gmail.com oder mail.ionos.at</li>
+      <li><code>SMTP_PORT</code> – 587 (STARTTLS) oder 465 (SSL)</li>
+      <li><code>SMTP_USER</code> – E-Mail-Adresse des Absenders</li>
+      <li><code>SMTP_PASSWORD</code> – Passwort / App-Passwort des Absenders</li>
+      <li><code>SMTP_FROM_NAME</code> – Anzeigename, z. B. <em>Nursy Leitstelle</em></li>
+      <li><code>SMTP_FROM_EMAIL</code> – Absender-Adresse</li>
+    </ul>
+  </div>
+
+  <!-- Aktive Funktionen -->
+  <div class="test-card" style="margin-top:20px;">
+    <h3>Aktive E-Mail-Funktionen</h3>
+    <p>Diese Versand-Funktionen stehen nach Konfiguration zur Verfügung.</p>
+    <div class="func-grid">
+      <div class="func-item">🔑 Passwort vergessen
+        <span>Leitstelle / Admiral Login</span>
+      </div>
+      <div class="func-item">🔒 Erstes Login / PW-Reset
+        <span>Admin setzt PW zurück</span>
+      </div>
+      <div class="func-item">📧 Testmail
+        <span>/api/email/test</span>
+      </div>
+      <div class="func-item">📋 Bewerbungslink
+        <span>Portal Admin → Bewerber</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  fetch('/api/email/status', {credentials:'same-origin'})
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.ok){ document.getElementById('statusGrid').innerHTML='<p style="color:red">Kein Zugriff</p>'; return; }
+      var keys = d.secrets;
+      var grid = document.getElementById('statusGrid');
+      grid.innerHTML = Object.entries(keys).map(([k,v])=>`
+        <div class="status-item">
+          <div class="status-dot ${v?'status-dot--ok':'status-dot--miss'}"></div>
+          <div>
+            <div class="status-key">${k}</div>
+            <div class="status-val">${v?'✓ Gesetzt':'✗ Fehlt'}</div>
+          </div>
+        </div>`).join('');
+      var all = Object.values(keys).every(Boolean);
+      document.getElementById('smtpOverall').innerHTML = all
+        ? '<span style="color:#15803d;">✅ Alle Secrets vorhanden – Mailversand bereit</span>'
+        : '<span style="color:#b91c1c;">⚠ Fehlende Secrets – Mailversand nicht möglich</span>';
+    })
+    .catch(()=>{ document.getElementById('statusGrid').innerHTML='<p>Fehler beim Laden</p>'; });
+
+  window.sendTest = function(){
+    var to  = document.getElementById('testTo').value.trim();
+    var btn = document.getElementById('sendBtn');
+    var box = document.getElementById('resultBox');
+    box.style.display='none';
+    if(!to){ box.className='result-box result-box--err'; box.textContent='Bitte E-Mail-Adresse eingeben.'; box.style.display='block'; return; }
+    btn.disabled=true; btn.textContent='Senden…';
+    fetch('/api/email/test',{
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({to:to})
+    }).then(r=>r.json()).then(d=>{
+      box.className = 'result-box '+(d.ok?'result-box--ok':'result-box--err');
+      box.textContent = d.ok ? ('✅ Testmail erfolgreich an '+to+' gesendet.') : ('❌ Fehler: '+(d.error||'Unbekannt'));
+      box.style.display='block';
+    }).catch(()=>{
+      box.className='result-box result-box--err';
+      box.textContent='Verbindungsfehler.';
+      box.style.display='block';
+    }).finally(()=>{ btn.disabled=false; btn.textContent='📨 Testmail senden'; });
+  };
+
+  fetch('/api/admin/me',{credentials:'same-origin'}).then(r=>{
+    if(r.status===401||r.status===403) window.location.href='admin-login.html';
+  });
+})();
+</script>
+</body>
+</html>

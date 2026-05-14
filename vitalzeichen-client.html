@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Vitalzeichen</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body[data-page="vz-client"] .vz-wrap{ padding:24px 0 40px; }
+    body[data-page="vz-client"] .vz-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+    body[data-page="vz-client"] .vz-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    body[data-page="vz-client"] .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:8px; }
+    body[data-page="vz-client"] .stats-grid-ext{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    body[data-page="vz-client"] .stat-card{ text-align:center; }
+    body[data-page="vz-client"] .stat-card span{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; font-weight:700; }
+    body[data-page="vz-client"] .stat-card strong{ display:block; font-size:20px; margin-top:4px; color:#1e3a6e; }
+    body[data-page="vz-client"] .stat-card em{ display:block; font-size:11px; color:var(--muted); font-style:normal; }
+
+    body[data-page="vz-client"] .vz-form{ background:rgba(63,111,232,.04); border:1px solid rgba(63,111,232,.14); border-radius:14px; padding:18px 20px; margin-bottom:20px; }
+    body[data-page="vz-client"] .vz-form h3{ margin:0 0 6px; font-size:16px; }
+    body[data-page="vz-client"] .vz-form-section{ font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:14px 0 8px; border-top:1px solid rgba(63,111,232,.12); padding-top:12px; }
+    body[data-page="vz-client"] .vz-form-section:first-of-type{ border-top:none; padding-top:0; margin-top:8px; }
+    body[data-page="vz-client"] .vz-form-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    body[data-page="vz-client"] .vz-form-grid.cols-3{ grid-template-columns:repeat(3,1fr); }
+    body[data-page="vz-client"] .vz-form-grid.cols-2{ grid-template-columns:repeat(2,1fr); }
+    body[data-page="vz-client"] .vz-form-grid label{ font-size:13px; font-weight:700; color:var(--muted); display:block; margin-bottom:3px; }
+    body[data-page="vz-client"] .vz-form-grid input,
+    body[data-page="vz-client"] .vz-form-grid select{ width:100%; box-sizing:border-box; }
+    body[data-page="vz-client"] .vz-form-actions{ display:flex; gap:10px; margin-top:16px; }
+
+    body[data-page="vz-client"] .vz-filter{ margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    body[data-page="vz-client"] .vz-filter select{ min-width:160px; }
+
+    body[data-page="vz-client"] .vz-table-wrap{ overflow-x:auto; }
+    body[data-page="vz-client"] .vz-table{ width:100%; border-collapse:collapse; min-width:900px; }
+    body[data-page="vz-client"] .vz-table th,
+    body[data-page="vz-client"] .vz-table td{ padding:9px 7px; border-bottom:1px solid rgba(15,35,75,.08); text-align:left; font-size:13px; vertical-align:middle; white-space:nowrap; }
+    body[data-page="vz-client"] .vz-table th{ background:rgba(63,111,232,.06); font-weight:800; font-size:12px; }
+    body[data-page="vz-client"] .vz-table th.vz-th-ext{ background:rgba(16,185,129,.07); }
+    body[data-page="vz-client"] .vz-table td.vz-td-ext{ color:#065f46; }
+    body[data-page="vz-client"] .vz-table tr:last-child td{ border-bottom:none; }
+    body[data-page="vz-client"] .vz-table tr:hover td{ background:rgba(63,111,232,.03); }
+    body[data-page="vz-client"] .vz-src-self{ color:#166534; font-weight:700; }
+    body[data-page="vz-client"] .vz-src-care{ color:#1e40af; font-weight:700; }
+    body[data-page="vz-client"] .vz-bp-high{ color:#b91c1c; font-weight:800; }
+    body[data-page="vz-client"] .vz-bp-ok{ color:#065f46; }
+    body[data-page="vz-client"] .vz-bz-high{ color:#b91c1c; font-weight:800; }
+    body[data-page="vz-client"] .vz-bz-ok{ color:#065f46; }
+    body[data-page="vz-client"] .vz-del-btn{ background:none; border:none; color:#9ca3af; cursor:pointer; font-size:16px; padding:2px 6px; border-radius:4px; }
+    body[data-page="vz-client"] .vz-del-btn:hover{ color:#b91c1c; background:rgba(220,38,38,.08); }
+    body[data-page="vz-client"] .vz-empty{ color:var(--muted); padding:16px 0; text-align:center; }
+    body[data-page="vz-client"] .vz-pain{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; font-size:11px; font-weight:800; }
+    body[data-page="vz-client"] .vz-pain-low{ background:rgba(16,185,129,.12); color:#065f46; }
+    body[data-page="vz-client"] .vz-pain-mid{ background:rgba(245,158,11,.12); color:#92400e; }
+    body[data-page="vz-client"] .vz-pain-high{ background:rgba(220,38,38,.12); color:#b91c1c; }
+    body[data-page="vz-client"] .vz-meth{ font-size:11px; color:var(--muted); margin-left:4px; }
+
+    @media(max-width:700px){
+      body[data-page="vz-client"] .stats-grid{ grid-template-columns:1fr 1fr; }
+      body[data-page="vz-client"] .stats-grid-ext{ grid-template-columns:1fr 1fr; }
+      body[data-page="vz-client"] .vz-form-grid{ grid-template-columns:1fr 1fr; }
+      body[data-page="vz-client"] .vz-form-grid.cols-3{ grid-template-columns:1fr 1fr; }
+      body[data-page="vz-client"] .vz-head{ flex-wrap:wrap; }
+      body[data-page="vz-client"] .vz-head > div:first-child{ flex:1 1 100%; }
+      body[data-page="vz-client"] .vz-actions{ width:100%; flex-wrap:wrap; }
+      body[data-page="vz-client"] .vz-actions > *{ flex:1 1 auto; text-align:center; }
+    }
+
+    @media print {
+      body[data-page="vz-client"] .topbar,
+      body[data-page="vz-client"] .footer,
+      body[data-page="vz-client"] .vz-actions,
+      body[data-page="vz-client"] .vz-form,
+      body[data-page="vz-client"] #vzFormWrap,
+      body[data-page="vz-client"] .vz-filter,
+      body[data-page="vz-client"] .vz-del-btn { display:none !important; }
+
+      body[data-page="vz-client"] .vz-wrap { padding:0; }
+      body[data-page="vz-client"] .card { box-shadow:none; border:none; padding:0; }
+      body[data-page="vz-client"] .vz-table-wrap { overflow:visible; }
+      body[data-page="vz-client"] .vz-table { min-width:unset; font-size:11px; }
+      body[data-page="vz-client"] .vz-table th,
+      body[data-page="vz-client"] .vz-table td { padding:5px 4px; }
+      body[data-page="vz-client"] .stats-grid,
+      body[data-page="vz-client"] .stats-grid-ext { grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px; }
+      body[data-page="vz-client"] .stat-card { border:1px solid #ccc; border-radius:6px; padding:6px; }
+
+      body[data-page="vz-client"] .vz-print-header { display:block !important; }
+    }
+
+    body[data-page="vz-client"] .vz-print-header { display:none; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body data-page="vz-client">
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="dashboard-client.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="dashboard-client.html">Dashboard</a>
+      <a href="careplan-client.html">Pflegeplan</a>
+      <a href="documentation-client.html">Dokumentation</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container vz-wrap">
+  <section class="card">
+    <div class="vz-head">
+      <div>
+        <h1 style="margin:0 0 6px;">Vitalzeichen</h1>
+        <p class="muted" style="margin:0;">Übersicht deiner Messwerte – von Pflegekräften und selbst erfasst.</p>
+      </div>
+      <div class="vz-actions">
+        <a class="control btn" href="dashboard-client.html">Zurück</a>
+        <button class="control btn" type="button" id="vzPrint">&#128438; Drucken / PDF</button>
+        <button class="control btn" type="button" id="vzToggleForm">+ Wert eintragen</button>
+      </div>
+    </div>
+
+    <!-- Nur beim Drucken sichtbar -->
+    <div class="vz-print-header">
+      <h2 style="margin:0 0 4px;">Vitalzeichen-Protokoll</h2>
+      <p style="margin:0 0 2px;font-size:13px;" id="printPatName"></p>
+      <p style="margin:0 0 16px;font-size:12px;color:#666;" id="printDate"></p>
+    </div>
+
+    <!-- Vitale Basis-Werte -->
+    <div class="stats-grid">
+      <div class="card stat-card">
+        <span>Blutdruck</span>
+        <strong id="statBP">—</strong>
+        <em>letzter Wert (mmHg)</em>
+      </div>
+      <div class="card stat-card">
+        <span>Puls</span>
+        <strong id="statPulse">—</strong>
+        <em>letzter Wert (bpm)</em>
+      </div>
+      <div class="card stat-card">
+        <span>SpO₂</span>
+        <strong id="statSpo2">—</strong>
+        <em>letzter Wert (%)</em>
+      </div>
+      <div class="card stat-card">
+        <span>Temperatur</span>
+        <strong id="statTemp">—</strong>
+        <em>letzter Wert (°C)</em>
+      </div>
+    </div>
+
+    <!-- Erweiterte Werte -->
+    <div class="stats-grid-ext">
+      <div class="card stat-card">
+        <span>Gewicht</span>
+        <strong id="statWeight">—</strong>
+        <em>letzter Wert (kg)</em>
+      </div>
+      <div class="card stat-card">
+        <span>Blutzucker</span>
+        <strong id="statBZ">—</strong>
+        <em>letzter Wert (mg/dL)</em>
+      </div>
+      <div class="card stat-card">
+        <span>Flüssigkeitsbilanz</span>
+        <strong id="statBilanz">—</strong>
+        <em>letzter Tag (Ein – Aus)</em>
+      </div>
+    </div>
+
+    <!-- Eingabeformular -->
+    <div id="vzFormWrap" hidden>
+      <div class="vz-form">
+        <h3>Eigenen Wert eintragen</h3>
+
+        <p class="vz-form-section">Datum &amp; Uhrzeit</p>
+        <div class="vz-form-grid cols-2">
+          <div>
+            <label for="fDate">Datum</label>
+            <input class="control" type="date" id="fDate" />
+          </div>
+          <div>
+            <label for="fTime">Uhrzeit</label>
+            <input class="control" type="time" id="fTime" />
+          </div>
+        </div>
+
+        <p class="vz-form-section">Vitale Grundwerte</p>
+        <div class="vz-form-grid">
+          <div>
+            <label for="fSys">Blutdruck sys (mmHg)</label>
+            <input class="control" type="number" id="fSys" placeholder="z.B. 128" min="50" max="250" />
+          </div>
+          <div>
+            <label for="fDia">Blutdruck dia (mmHg)</label>
+            <input class="control" type="number" id="fDia" placeholder="z.B. 82" min="30" max="150" />
+          </div>
+          <div>
+            <label for="fPulse">Puls (bpm)</label>
+            <input class="control" type="number" id="fPulse" placeholder="z.B. 72" min="30" max="220" />
+          </div>
+          <div>
+            <label for="fSpo2">SpO₂ (%)</label>
+            <input class="control" type="number" id="fSpo2" placeholder="z.B. 97" min="70" max="100" />
+          </div>
+          <div>
+            <label for="fTemp">Temperatur (°C)</label>
+            <input class="control" type="number" id="fTemp" step="0.1" placeholder="z.B. 36.8" min="34" max="42" />
+          </div>
+          <div>
+            <label for="fPain">Schmerz / Befinden (1–10)</label>
+            <input class="control" type="number" id="fPain" placeholder="z.B. 2" min="1" max="10" />
+          </div>
+        </div>
+
+        <p class="vz-form-section">Erweiterte Werte</p>
+        <div class="vz-form-grid">
+          <div>
+            <label for="fWeight">Gewicht (kg)</label>
+            <input class="control" type="number" id="fWeight" step="0.1" placeholder="z.B. 78.5" min="20" max="300" />
+          </div>
+          <div>
+            <label for="fBZ">Blutzucker (mg/dL)</label>
+            <input class="control" type="number" id="fBZ" placeholder="z.B. 118" min="30" max="600" />
+          </div>
+          <div>
+            <label for="fBZMethod">BZ-Messmethode</label>
+            <select class="control" id="fBZMethod">
+              <option value="">— keine Angabe —</option>
+              <option value="Kapillär">Kapillär</option>
+              <option value="Sensor">Sensor (CGM)</option>
+              <option value="Venös">Venös</option>
+            </select>
+          </div>
+          <div></div>
+          <div>
+            <label for="fIn">Flüssigkeit Einfuhr (ml)</label>
+            <input class="control" type="number" id="fIn" placeholder="z.B. 1200" min="0" max="10000" />
+          </div>
+          <div>
+            <label for="fOut">Flüssigkeit Ausfuhr (ml)</label>
+            <input class="control" type="number" id="fOut" placeholder="z.B. 950" min="0" max="10000" />
+          </div>
+        </div>
+
+        <div class="vz-form-actions">
+          <button class="control btn primary" type="button" id="vzSave">Speichern</button>
+          <button class="control btn" type="button" id="vzCancel">Abbrechen</button>
+        </div>
+        <p class="note" id="vzError" hidden style="color:#b91c1c;margin-top:10px;"></p>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="vz-filter">
+      <select class="control" id="vzRange" aria-label="Zeitraum">
+        <option value="all">Gesamter Zeitraum</option>
+        <option value="today">Heute</option>
+        <option value="week" selected>Letzte 7 Tage</option>
+        <option value="month">Letzter Monat</option>
+      </select>
+      <select class="control" id="vzSource" aria-label="Quelle">
+        <option value="all">Alle Quellen</option>
+        <option value="self">Selbst erfasst</option>
+        <option value="care">Pflegekraft</option>
+      </select>
+    </div>
+
+    <!-- Tabelle -->
+    <div class="vz-table-wrap">
+      <table class="vz-table" aria-label="Vitalzeichen Tabelle">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Zeit</th>
+            <th>Blutdruck</th>
+            <th>Puls</th>
+            <th>SpO₂</th>
+            <th>Temp.</th>
+            <th>Befinden</th>
+            <th class="vz-th-ext">Gewicht</th>
+            <th class="vz-th-ext">Blutzucker</th>
+            <th class="vz-th-ext">Einfuhr</th>
+            <th class="vz-th-ext">Ausfuhr</th>
+            <th>Quelle</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="vzBody"></tbody>
+      </table>
+      <p class="vz-empty" id="vzEmpty" hidden>Keine Einträge für diesen Zeitraum.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var KEY = 'nursy_vital_client_v1';
+
+  var DEMO_CARE = [
+    {date:'2026-04-20',time:'08:00',sys:132,dia:84,p:78,o:96,t:36.9,v:2,weight:78.4,bz:118,bzMethod:'Kapillär',in_ml:250,out_ml:300,src:'care'},
+    {date:'2026-04-20',time:'20:00',sys:138,dia:90,p:83,o:95,t:37.1,v:3,weight:null,bz:165,bzMethod:'Sensor',in_ml:1100,out_ml:950,src:'care'},
+    {date:'2026-04-21',time:'08:00',sys:129,dia:82,p:77,o:97,t:36.8,v:2,weight:78.1,bz:98,bzMethod:'Kapillär',in_ml:280,out_ml:260,src:'care'},
+    {date:'2026-04-21',time:'20:00',sys:133,dia:86,p:81,o:96,t:37.0,v:2,weight:null,bz:null,bzMethod:'',in_ml:900,out_ml:820,src:'care'},
+    {date:'2026-04-22',time:'08:00',sys:140,dia:88,p:82,o:95,t:37.3,v:4,weight:78.3,bz:132,bzMethod:'Sensor',in_ml:300,out_ml:280,src:'care'},
+    {date:'2026-04-22',time:'20:00',sys:136,dia:87,p:80,o:94,t:37.2,v:4,weight:null,bz:null,bzMethod:'',in_ml:1050,out_ml:900,src:'care'},
+    {date:'2026-04-23',time:'08:00',sys:127,dia:80,p:76,o:97,t:36.7,v:2,weight:77.9,bz:110,bzMethod:'Kapillär',in_ml:300,out_ml:290,src:'care'},
+    {date:'2026-04-24',time:'08:00',sys:135,dia:86,p:81,o:96,t:37.0,v:3,weight:78.0,bz:124,bzMethod:'Sensor',in_ml:1200,out_ml:1050,src:'care'},
+    {date:'2026-04-25',time:'08:00',sys:128,dia:81,p:79,o:97,t:36.8,v:2,weight:78.2,bz:105,bzMethod:'Kapillär',in_ml:1150,out_ml:980,src:'care'},
+    {date:'2026-04-26',time:'08:00',sys:131,dia:83,p:80,o:96,t:37.0,v:3,weight:78.1,bz:119,bzMethod:'Sensor',in_ml:1100,out_ml:1000,src:'care'},
+    {date:'2026-04-27',time:'08:00',sys:126,dia:79,p:76,o:97,t:36.7,v:1,weight:77.8,bz:102,bzMethod:'Kapillär',in_ml:300,out_ml:280,src:'care'},
+  ];
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY) || '[]') || []; }catch(e){ return []; }
+  }
+  function save(arr){
+    try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(e){}
+  }
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+  }
+
+  function fmtDate(iso){
+    var p = iso.split('-');
+    return p[2] + '.' + p[1] + '.' + p[0];
+  }
+
+  function allRows(){
+    var selfData = load().map(function(r){ return Object.assign({}, r, {src:'self'}); });
+    return DEMO_CARE.concat(selfData).sort(function(a,b){
+      return (b.date + b.time).localeCompare(a.date + a.time);
+    });
+  }
+
+  function filterRows(rows){
+    var range  = document.getElementById('vzRange').value;
+    var source = document.getElementById('vzSource').value;
+    var today  = todayStr();
+    var cutoff7  = new Date(Date.now() - 6*24*60*60*1000).toISOString().slice(0,10);
+    var cutoff30 = new Date(Date.now() - 29*24*60*60*1000).toISOString().slice(0,10);
+    return rows.filter(function(r){
+      if(source === 'self' && r.src !== 'self') return false;
+      if(source === 'care' && r.src !== 'care') return false;
+      if(range === 'today'  && r.date !== today)    return false;
+      if(range === 'week'   && r.date < cutoff7)    return false;
+      if(range === 'month'  && r.date < cutoff30)   return false;
+      return true;
+    });
+  }
+
+  function painClass(v){
+    if(!v) return '';
+    if(v <= 3) return 'vz-pain vz-pain-low';
+    if(v <= 6) return 'vz-pain vz-pain-mid';
+    return 'vz-pain vz-pain-high';
+  }
+
+  function render(){
+    var rows = filterRows(allRows());
+    var tbody = document.getElementById('vzBody');
+    var empty = document.getElementById('vzEmpty');
+    tbody.innerHTML = '';
+    if(rows.length === 0){ empty.hidden = false; return; }
+    empty.hidden = true;
+
+    rows.forEach(function(r){
+      var tr = document.createElement('tr');
+      var bp = (r.sys && r.dia) ? r.sys + '/' + r.dia : '—';
+      var bpCls = (r.sys && r.sys >= 140) ? 'vz-bp-high' : 'vz-bp-ok';
+      var bzStr = r.bz ? r.bz + ' mg/dL' : '—';
+      var bzCls = (r.bz && r.bz >= 140) ? 'vz-bz-high' : 'vz-bz-ok';
+      var bzMeth = r.bzMethod ? '<span class="vz-meth">(' + r.bzMethod + ')</span>' : '';
+      var srcLabel = r.src === 'self' ? 'Selbst' : 'Pflegekraft';
+      var srcCls   = r.src === 'self' ? 'vz-src-self' : 'vz-src-care';
+      var delBtn = r.src === 'self'
+        ? '<button class="vz-del-btn" title="Löschen" data-id="' + r.id + '">&#x1F5D1;</button>'
+        : '';
+
+      tr.innerHTML =
+        '<td>' + fmtDate(r.date) + '</td>' +
+        '<td>' + (r.time || '—') + '</td>' +
+        '<td class="' + (r.sys ? bpCls : '') + '">' + bp + '</td>' +
+        '<td>' + (r.p ? r.p + ' bpm' : '—') + '</td>' +
+        '<td>' + (r.o ? r.o + ' %' : '—') + '</td>' +
+        '<td>' + (r.t ? r.t.toFixed(1) + ' °C' : '—') + '</td>' +
+        '<td>' + (r.v ? '<span class="' + painClass(r.v) + '">' + r.v + '</span>' : '—') + '</td>' +
+        '<td class="vz-td-ext">' + (r.weight ? r.weight.toFixed(1) + ' kg' : '—') + '</td>' +
+        '<td class="vz-td-ext ' + (r.bz ? bzCls : '') + '">' + bzStr + bzMeth + '</td>' +
+        '<td class="vz-td-ext">' + (r.in_ml  ? r.in_ml  + ' ml' : '—') + '</td>' +
+        '<td class="vz-td-ext">' + (r.out_ml ? r.out_ml + ' ml' : '—') + '</td>' +
+        '<td class="' + srcCls + '">' + srcLabel + '</td>' +
+        '<td>' + delBtn + '</td>';
+
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.vz-del-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-id');
+        save(load().filter(function(r){ return String(r.id) !== String(id); }));
+        render();
+        updateStats();
+      });
+    });
+  }
+
+  function updateStats(){
+    var rows = allRows();
+    if(!rows.length) return;
+    // Letzter Wert mit Blutdruck
+    var lastBP   = rows.find(function(r){ return r.sys && r.dia; });
+    var lastP    = rows.find(function(r){ return r.p; });
+    var lastO    = rows.find(function(r){ return r.o; });
+    var lastT    = rows.find(function(r){ return r.t; });
+    var lastW    = rows.find(function(r){ return r.weight; });
+    var lastBZ   = rows.find(function(r){ return r.bz; });
+
+    var el = function(id){ return document.getElementById(id); };
+    if(el('statBP'))     el('statBP').textContent     = lastBP  ? lastBP.sys + '/' + lastBP.dia + ' mmHg' : '—';
+    if(el('statPulse'))  el('statPulse').textContent  = lastP   ? lastP.p + ' bpm' : '—';
+    if(el('statSpo2'))   el('statSpo2').textContent   = lastO   ? lastO.o + ' %' : '—';
+    if(el('statTemp'))   el('statTemp').textContent   = lastT   ? lastT.t.toFixed(1) + ' °C' : '—';
+    if(el('statWeight')) el('statWeight').textContent = lastW   ? lastW.weight.toFixed(1) + ' kg' : '—';
+    if(el('statBZ'))     el('statBZ').textContent     = lastBZ  ? lastBZ.bz + ' mg/dL' : '—';
+
+    // Bilanz: Summe heutiger Werte
+    var today = todayStr();
+    var todayRows = rows.filter(function(r){ return r.date === today; });
+    var ein  = todayRows.reduce(function(s,r){ return s + (r.in_ml  || 0); }, 0);
+    var aus  = todayRows.reduce(function(s,r){ return s + (r.out_ml || 0); }, 0);
+    if(el('statBilanz')){
+      el('statBilanz').textContent = (ein || aus) ? ein + ' / ' + aus + ' ml' : '—';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var now = new Date();
+    document.getElementById('fDate').value = todayStr();
+    document.getElementById('fTime').value = pad(now.getHours()) + ':' + pad(now.getMinutes());
+
+    document.getElementById('vzRange').addEventListener('change', render);
+    document.getElementById('vzSource').addEventListener('change', render);
+
+    document.getElementById('vzPrint').addEventListener('click', function(){
+      // Print-Header mit Patientenname + Zeitraum befüllen
+      try{
+        var _vzPid = '';
+        try{ _vzPid = localStorage.getItem('nursy_current_patient_id') || localStorage.getItem('nursy_pending_patient_id') || ''; }catch(e){}
+        var _vzKey = _vzPid ? 'nursy_profile_client_v1_' + _vzPid : 'nursy_profile_client_v1';
+        var prof = JSON.parse(localStorage.getItem(_vzKey) || localStorage.getItem('nursy_profile_client_v1') || '{}');
+        var f = prof.fields || prof || {};
+        var _vzReg = JSON.parse(localStorage.getItem(_vzPid ? 'nursy_registration_data_v1_' + _vzPid : 'nursy_registration_data_v1') || '{}');
+        var name = (_vzReg.vorname ? (_vzReg.vorname + ' ' + (_vzReg.nachname||'')).trim() : null) || ((f.firstName || '') + ' ' + (f.lastName || '')).trim() || 'Patient';
+        var printName = document.getElementById('printPatName');
+        var printDate = document.getElementById('printDate');
+        var range = document.getElementById('vzRange');
+        var rangeLabel = range.options[range.selectedIndex].text;
+        if(printName) printName.textContent = 'Patient: ' + name;
+        if(printDate) printDate.textContent = 'Zeitraum: ' + rangeLabel + ' · Erstellt am: ' + new Date().toLocaleDateString('de-AT');
+      }catch(e){}
+      window.print();
+    });
+
+    document.getElementById('vzToggleForm').addEventListener('click', function(){
+      var w = document.getElementById('vzFormWrap');
+      w.hidden = !w.hidden;
+      this.textContent = w.hidden ? '+ Wert eintragen' : '– Schließen';
+    });
+
+    document.getElementById('vzCancel').addEventListener('click', function(){
+      document.getElementById('vzFormWrap').hidden = true;
+      document.getElementById('vzToggleForm').textContent = '+ Wert eintragen';
+    });
+
+    document.getElementById('vzSave').addEventListener('click', function(){
+      var err = document.getElementById('vzError');
+      err.hidden = true;
+
+      var date     = document.getElementById('fDate').value;
+      var time     = document.getElementById('fTime').value;
+      var sys      = parseFloat(document.getElementById('fSys').value);
+      var dia      = parseFloat(document.getElementById('fDia').value);
+      var pulse    = parseFloat(document.getElementById('fPulse').value);
+      var spo2     = parseFloat(document.getElementById('fSpo2').value);
+      var temp     = parseFloat(document.getElementById('fTemp').value);
+      var pain     = parseFloat(document.getElementById('fPain').value);
+      var weight   = parseFloat(document.getElementById('fWeight').value);
+      var bz       = parseFloat(document.getElementById('fBZ').value);
+      var bzMethod = document.getElementById('fBZMethod').value;
+      var inMl     = parseFloat(document.getElementById('fIn').value);
+      var outMl    = parseFloat(document.getElementById('fOut').value);
+
+      if(!date){
+        err.textContent = 'Bitte Datum angeben.'; err.hidden = false; return;
+      }
+      if(isNaN(sys) && isNaN(pulse) && isNaN(spo2) && isNaN(temp) && isNaN(weight) && isNaN(bz) && isNaN(inMl) && isNaN(outMl)){
+        err.textContent = 'Bitte mindestens einen Wert eintragen.'; err.hidden = false; return;
+      }
+
+      var arr = load();
+      arr.push({
+        id:       Date.now(),
+        date:     date,
+        time:     time || '',
+        sys:      isNaN(sys)    ? null : sys,
+        dia:      isNaN(dia)    ? null : dia,
+        p:        isNaN(pulse)  ? null : pulse,
+        o:        isNaN(spo2)   ? null : spo2,
+        t:        isNaN(temp)   ? null : temp,
+        v:        isNaN(pain)   ? null : pain,
+        weight:   isNaN(weight) ? null : weight,
+        bz:       isNaN(bz)     ? null : bz,
+        bzMethod: isNaN(bz) ? '' : (bzMethod || ''),
+        in_ml:    isNaN(inMl)   ? null : inMl,
+        out_ml:   isNaN(outMl)  ? null : outMl
+      });
+      save(arr);
+
+      ['fSys','fDia','fPulse','fSpo2','fTemp','fPain','fWeight','fBZ','fIn','fOut'].forEach(function(id){
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('fBZMethod').value = '';
+      var nw = new Date();
+      document.getElementById('fDate').value = todayStr();
+      document.getElementById('fTime').value = pad(nw.getHours()) + ':' + pad(nw.getMinutes());
+
+      render();
+      updateStats();
+    });
+
+    render();
+    updateStats();
+  });
+})();
+</script>
+</body>
+</html>

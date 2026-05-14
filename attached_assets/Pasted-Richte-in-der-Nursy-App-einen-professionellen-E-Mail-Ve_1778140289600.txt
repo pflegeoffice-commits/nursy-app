@@ -1,0 +1,73 @@
+Richte in der Nursy-App einen professionellen E-Mail-Versand über SMTP ein.
+
+WICHTIG:
+Keine SMTP-Zugangsdaten direkt im Code speichern. Alle Zugangsdaten müssen über Replit Secrets / Umgebungsvariablen geladen werden.
+
+Verwende diese Secrets:
+SMTP_HOST
+SMTP_PORT
+SMTP_USER
+SMTP_PASSWORD
+SMTP_FROM_NAME
+SMTP_FROM_EMAIL
+
+Aufgaben:
+
+1. Backend vorbereiten
+- Prüfe, ob server.py Flask verwendet.
+- Installiere bzw. ergänze notwendige Pakete, z. B. flask-mail oder smtplib.
+- Ergänze requirements.txt entsprechend.
+
+2. SMTP-Konfiguration
+- Lade alle SMTP-Daten ausschließlich aus os.environ.
+- Baue eine zentrale Mail-Funktion, z. B. send_email(to, subject, body, html_body=None).
+- Implementiere saubere Fehlerbehandlung, falls SMTP-Secrets fehlen.
+
+3. E-Mail-Funktionen einbauen
+Implementiere E-Mail-Versand für:
+- Registrierung / Willkommensmail
+- Passwort vergessen
+- Einsatzbestätigung
+- Rechnungsversand
+- Kontaktformular
+- Benachrichtigung an Admin bei neuer Anfrage
+
+4. API-Routen erstellen
+Erstelle sichere API-Endpunkte für:
+- /api/email/test
+- /api/auth/forgot-password
+- /api/contact/send
+- /api/invoices/send
+- /api/assignments/send-confirmation
+
+5. Testmodus
+- Erstelle eine Testfunktion, mit der ich eine Testmail an meine eigene Adresse senden kann.
+- Die Route /api/email/test soll prüfen:
+  - ob SMTP_HOST vorhanden ist
+  - ob SMTP_PORT vorhanden ist
+  - ob SMTP_USER vorhanden ist
+  - ob SMTP_PASSWORD vorhanden ist
+  - ob SMTP_FROM_EMAIL vorhanden ist
+  - ob der Mailversand erfolgreich funktioniert
+
+6. Sicherheit & Datenschutz
+- Keine Patientendaten im E-Mail-Betreff.
+- Medizinische Details nicht unverschlüsselt per E-Mail versenden.
+- E-Mails nur mit notwendigen Informationen versenden.
+- Keine Passwörter per E-Mail verschicken.
+- Passwort-zurücksetzen nur mit sicherem Token und Ablaufzeit.
+- Tokens serverseitig speichern und nach Nutzung ungültig machen.
+
+7. Admin-Oberfläche
+- Füge im Adminbereich eine kleine Seite „E-Mail-Test“ hinzu.
+- Dort kann ich eine Testadresse eingeben.
+- Button: „Testmail senden“.
+- Ergebnis anzeigen: erfolgreich oder Fehler.
+
+8. Ausgabe nach Abschluss
+Zeige mir am Ende:
+- welche Dateien geändert wurden
+- welche Secrets ich in Replit eintragen muss
+- welche E-Mail-Funktionen aktiv sind
+- wie ich eine Testmail sende
+- welche Sicherheitsmaßnahmen umgesetzt wurden

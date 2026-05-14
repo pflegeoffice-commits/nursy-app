@@ -1,0 +1,30 @@
+{
+  "id": "akutplus-leitstelle-v2",
+  "name": "Akut Plus Leitstelle",
+  "short_name": "Leitstelle",
+  "description": "Akut Plus – Leitstelle & Disposition",
+  "start_url": "/leitstelle-ansicht.html",
+  "scope": "/leitstelle-ansicht.html",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0f2744",
+  "theme_color": "#0f2744",
+  "lang": "de",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/leitstelle-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/leitstelle-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "productivity"]
+}

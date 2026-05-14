@@ -1,0 +1,2079 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nursy – Adminbereich</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { visibility: visible; }
+    /* ── Admin-spezifische Erweiterungen ── */
+
+    /* ── Header: zwei Zeilen ── */
+    .admin-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(180deg, #ffffff, #eef4ff);
+      border-bottom: 1px solid rgba(63,111,232,.22);
+    }
+    .admin-header__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .admin-header__tabs {
+      border-top: 1px solid rgba(63,111,232,.10);
+      background: rgba(255,255,255,.6);
+    }
+    .admin-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    .admin-tabs::-webkit-scrollbar { display: none; }
+    .admin-tab {
+      height: 42px;
+      padding: 0 18px;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: all .15s;
+      letter-spacing: .1px;
+      flex-shrink: 0;
+    }
+    .admin-tab:hover {
+      color: var(--primary);
+      background: rgba(63,111,232,.04);
+    }
+    .admin-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: rgba(63,111,232,.05);
+    }
+
+    .admin-logout {
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 9px;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: none;
+      border: 1px solid rgba(15,26,51,.12);
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all .15s;
+    }
+    .admin-logout:hover { background: rgba(15,26,51,.04); color: var(--text); }
+
+    /* Content */
+    .admin-body {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+    @media (max-width: 480px) { .admin-body { padding: 16px 14px 60px; } }
+
+    .admin-page { display: none; }
+    .admin-page.active { display: block; }
+
+    .page-head { margin-bottom: 22px; }
+    .page-head h2 { font-size: 1.25rem; font-weight: 800; color: var(--text); margin: 0 0 3px; }
+    .page-head p { font-size: .83rem; color: var(--muted); margin: 0; }
+
+    /* Stat-Karten */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 560px) { .stat-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 340px) { .stat-grid { grid-template-columns: 1fr; } }
+    .stat-card {
+      background: var(--panel);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(15,26,51,.05);
+    }
+    .stat-card__lbl {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat-card__val {
+      font-size: 1.85rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-card__val--blue  { color: var(--primary); }
+    .stat-card__val--muted { color: var(--muted); }
+
+    /* Card-Kopf mit Aktion */
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .card-head h3 {
+      font-size: .95rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0;
+      white-space: nowrap;
+    }
+    .card-head__actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .card-head__actions .a-inp {
+      height: 34px;
+      font-size: .8rem;
+      padding: 0 10px;
+      width: 160px;
+      min-width: 0;
+    }
+    @media (max-width: 480px) {
+      .card-head__actions { width: 100%; }
+      .card-head__actions .a-inp { flex: 1; width: auto; }
+      .card-head__actions .a-btn--sm { flex: 1; }
+    }
+
+    /* Formular-Raster */
+    .form-grid { display: block; }
+    .form-grid > * + * { margin-top: 14px; }
+    .form-row-2 {
+      display: flex;
+      gap: 14px;
+    }
+    .form-row-2 > * {
+      flex: 0 0 calc(50% - 7px);
+      width: calc(50% - 7px);
+      max-width: calc(50% - 7px);
+      min-width: 0;
+    }
+    @media (max-width: 560px) {
+      .form-row-2 { flex-wrap: wrap; }
+      .form-row-2 > * { flex: 0 0 100%; width: 100%; max-width: 100%; }
+    }
+    .field-lbl {
+      display: block;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .a-inp {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 44px;
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 0 12px;
+      font-size: .875rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--panel2);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .a-inp:focus {
+      border-color: rgba(63,111,232,.5);
+      box-shadow: 0 0 0 3px rgba(63,111,232,.10);
+      background: var(--panel);
+    }
+    select.a-inp { cursor: pointer; }
+    textarea.a-inp {
+      height: auto;
+      min-height: 72px;
+      padding: 10px 12px;
+      resize: vertical;
+    }
+
+    /* Buttons */
+    .a-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 40px;
+      padding: 0 18px;
+      border-radius: var(--radius);
+      font-size: .83rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      border: var(--border);
+      transition: filter .15s, transform .1s;
+      white-space: nowrap;
+      background: linear-gradient(180deg, rgba(91,141,255,.45), rgba(91,141,255,.22));
+      color: var(--text);
+    }
+    .a-btn:hover { filter: brightness(.93); }
+    .a-btn:active { transform: translateY(1px); }
+    .a-btn--primary {
+      background: linear-gradient(180deg, rgba(91,141,255,.55), rgba(91,141,255,.30));
+      border-color: rgba(91,141,255,.55);
+      color: #0f2f6a;
+      font-weight: 800;
+    }
+    .a-btn--danger {
+      background: rgba(220,38,38,.08);
+      border-color: rgba(220,38,38,.18);
+      color: #b91c1c;
+    }
+    .a-btn--danger:hover { background: rgba(220,38,38,.14); }
+    .a-btn--sm { height: 32px; padding: 0 12px; font-size: .77rem; border-radius: 9px; }
+    .a-btn--full { width: 100%; }
+
+    /* Status-Labels (kein Emoji, nur Text) */
+    .status-lbl {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 9px;
+      border-radius: 6px;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .2px;
+      white-space: nowrap;
+      border: var(--border);
+      background: var(--panel2);
+      color: var(--muted);
+    }
+    .status-lbl--active {
+      background: rgba(63,111,232,.08);
+      border-color: rgba(63,111,232,.22);
+      color: #1e3a8a;
+    }
+    .status-lbl--locked {
+      background: rgba(220,38,38,.06);
+      border-color: rgba(220,38,38,.18);
+      color: #991b1b;
+    }
+    .status-lbl--plus {
+      background: rgba(15,26,51,.06);
+      border-color: rgba(15,26,51,.14);
+      color: var(--text);
+    }
+
+    /* Zeilen in Karten */
+    .row-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(63,111,232,.07);
+      flex-wrap: wrap;
+    }
+    .row-item:last-child { border-bottom: none; }
+
+    .row-av {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--panel2);
+      border: var(--border);
+      color: var(--primary);
+    }
+
+    .row-info { flex: 1; min-width: 0; }
+    .row-info__name { font-weight: 700; font-size: .875rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-info__sub  { font-size: .75rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .row-labels { display: flex; gap: 5px; flex-wrap: wrap; flex-shrink: 0; }
+    .row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    @media (max-width: 600px) { .row-actions { width: 100%; } .row-labels { display: none; } }
+
+    /* Dienst-Eintrag */
+    .dienst-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(63,111,232,.07);
+    }
+    .dienst-item:last-child { border-bottom: none; }
+    .dienst-item__top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .dienst-item__name { font-weight: 700; font-size: .875rem; color: var(--text); }
+    .dienst-item__time {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .dienst-item__bottom {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .dienst-item__meta { font-size: .75rem; color: var(--muted); }
+    .dienst-item__del { margin-left: auto; flex-shrink: 0; }
+    @media (max-width: 420px) { .dienst-item__del { margin-left: 0; } }
+
+    /* Meldungs-Zeile */
+    .msg-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(63,111,232,.07);
+    }
+    .msg-item:last-child { border-bottom: none; }
+    .msg-item__typ {
+      flex-shrink: 0;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-top: 7px;
+      background: var(--muted);
+    }
+    .msg-item__typ--warn { background: #d97706; }
+    .msg-item__typ--ok   { background: #16a34a; }
+    .msg-item__body { flex: 1; min-width: 0; }
+    .msg-item__text { font-size: .875rem; color: var(--text); word-break: break-word; }
+    .msg-item__date { font-size: .72rem; color: var(--muted); margin-top: 3px; }
+    .msg-item__del  { flex-shrink: 0; }
+
+    /* Leer-Zustand */
+    .empty-state {
+      padding: 36px 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    /* Suchfeld neben Titel */
+    .search-inp {
+      display: block;
+      height: 34px;
+      padding: 0 11px;
+      border: var(--border);
+      border-radius: 10px;
+      font-size: .8rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--panel2);
+      outline: none;
+      width: 180px;
+      transition: border-color .15s;
+    }
+    .search-inp:focus {
+      border-color: rgba(63,111,232,.45);
+      box-shadow: 0 0 0 3px rgba(63,111,232,.08);
+      background: var(--panel);
+    }
+    @media (max-width: 420px) { .search-inp { width: 100%; } }
+
+    /* Toast */
+    .a-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: #fff;
+      padding: 11px 22px; border-radius: 12px;
+      font-size: .85rem; font-weight: 700; z-index: 9999;
+      opacity: 0; transition: opacity .18s; pointer-events: none;
+      white-space: nowrap; box-shadow: var(--shadow);
+    }
+    .a-toast.show { opacity: 1; }
+
+    /* Modal */
+    .a-modal {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .a-modal[hidden] { display: none; }
+    .a-modal__bg {
+      position: absolute; inset: 0;
+      background: rgba(15,26,51,.35);
+      backdrop-filter: blur(4px);
+    }
+    .a-modal__panel {
+      position: relative;
+      width: min(460px, calc(100% - 24px));
+      background: var(--panel);
+      border: var(--border);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(15,26,51,.18);
+    }
+    .a-modal__title { font-size: .95rem; font-weight: 800; color: var(--text); margin: 0 0 16px; }
+    .a-modal__foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="admin-header">
+  <div class="admin-header__top">
+    <a class="brand" href="index.html" style="text-decoration:none;">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Adminbereich</span>
+      </span>
+    </a>
+    <button class="admin-logout" onclick="adminBackup()" style="background:#e8f0fe;color:#1d4ed8;border-color:#93c5fd;margin-right:6px;" title="Datensicherung herunterladen">💾 Backup</button>
+    <button class="admin-logout" id="logoutBtn">Abmelden</button>
+  </div>
+  <div class="admin-header__tabs">
+    <nav class="admin-tabs">
+      <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+      <button class="admin-tab" data-tab="benutzer">Benutzer</button>
+      <button class="admin-tab" data-tab="caregivers">Pflegekräfte</button>
+      <button class="admin-tab" data-tab="klienten">Klienten</button>
+      <button class="admin-tab" data-tab="leitstelle">Leitstelle</button>
+      <button class="admin-tab" data-tab="nachrichten">Meldungen</button>
+      <button class="admin-tab" data-tab="fahrzeuge">🚗 Fahrzeuge</button>
+      <button class="admin-tab" data-tab="startseite">🌐 Startseite</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Seiten ── -->
+<div class="admin-body container">
+
+  <!-- ═══ Dashboard ═══ -->
+  <div class="admin-page active" id="page-dashboard">
+    <div class="page-head">
+      <h2>Dashboard</h2>
+      <p>Übersicht über alle Nursy-Aktivitäten.</p>
+    </div>
+
+    <div class="stat-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-card__lbl">Pflegekräfte</div>
+        <div class="stat-card__val stat-card__val--blue" id="s-cg-total">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Aktiv</div>
+        <div class="stat-card__val" id="s-cg-active">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Gesperrt</div>
+        <div class="stat-card__val stat-card__val--muted" id="s-cg-locked">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Patienten</div>
+        <div class="stat-card__val" id="s-pat">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Offene Anfragen</div>
+        <div class="stat-card__val" id="s-req">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Dienste heute</div>
+        <div class="stat-card__val stat-card__val--blue" id="s-dienste">–</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer;" onclick="switchTab('klienten')" title="Klienten-Tab öffnen">
+        <div class="stat-card__lbl">Klienten (App)</div>
+        <div class="stat-card__val" id="s-pat-app">–</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer;" onclick="switchTab('caregivers')" title="Pflegekräfte-Tab öffnen">
+        <div class="stat-card__lbl">Pflegekräfte (App)</div>
+        <div class="stat-card__val stat-card__val--blue" id="s-cg-app">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Matching-Verbindungen</div>
+        <div class="stat-card__val" style="color:#16a34a;" id="s-match-verb">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__lbl">Offene Match-Anfragen</div>
+        <div class="stat-card__val" style="color:#d97706;" id="s-match-anf">–</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head">
+        <h3>Dienste – Heute</h3>
+        <button class="a-btn a-btn--sm" onclick="switchTab('leitstelle')">Zur Leitstelle</button>
+      </div>
+      <div id="dash-dienste-today">
+        <div class="empty-state">Wird geladen…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Aktive Systemmeldungen</h3>
+        <button class="a-btn a-btn--sm" onclick="switchTab('nachrichten')">Verwalten</button>
+      </div>
+      <div id="dash-messages">
+        <div class="empty-state">Wird geladen…</div>
+      </div>
+    </div>
+
+    <!-- Portal Quick Access -->
+    <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0f4435 0%,#059669 100%);border:none;">
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="color:#fff;font-size:.95rem;font-weight:900;margin-bottom:3px;">🏥 Akut Plus Pflegeportal – Verwaltung</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.74rem;">Bewerbungen · Dienstplan · Schulungen &amp; Events · Informationen</div>
+        </div>
+        <a href="pflege-portal-admin.html" style="background:#fff;color:#065f46;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:800;text-decoration:none;flex-shrink:0;">Zum Portal →</a>
+      </div>
+    </div>
+
+    <!-- Billing Quick Access -->
+    <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0f2744 0%,#1d4ed8 100%);border:none;">
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="color:#fff;font-size:.95rem;font-weight:900;margin-bottom:3px;">🧾 Verrechnungsstelle</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.74rem;">Leistungskatalog · Akut Plus &amp; Nursy Rechnungen · Zahlungsstatus</div>
+        </div>
+        <button onclick="goToBilling()" style="background:#fff;color:#0f2744;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:800;border:none;cursor:pointer;flex-shrink:0;">Zur Abrechnung →</button>
+      </div>
+    </div>
+
+    <!-- Benutzerverwaltung Quick Access -->
+    <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#3b0764 0%,#7c3aed 100%);border:none;">
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="color:#fff;font-size:.95rem;font-weight:900;margin-bottom:3px;">🔐 Benutzerverwaltung &amp; Rechte</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.74rem;">Interne Benutzer · Seitenzugriff · Rollen &amp; Berechtigungen</div>
+        </div>
+        <a href="nutzer-verwaltung.html" style="background:#fff;color:#3b0764;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:800;text-decoration:none;flex-shrink:0;">Verwalten →</a>
+      </div>
+    </div>
+
+    <!-- Einsatzarchiv Quick Access -->
+    <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#1c1917 0%,#78350f 100%);border:none;">
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="color:#fff;font-size:.95rem;font-weight:900;margin-bottom:3px;">🗂️ Einsatzarchiv</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.74rem;">Abgeschlossene Einsätze · Protokoll · Folgeeinsatz erstellen</div>
+        </div>
+        <a href="einsatz-archiv.html" style="background:#fff;color:#78350f;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:800;text-decoration:none;flex-shrink:0;">Zum Archiv →</a>
+      </div>
+    </div>
+
+    <!-- E-Mail-Test Quick Access -->
+    <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0c4a6e 0%,#0284c7 100%);border:none;">
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="color:#fff;font-size:.95rem;font-weight:900;margin-bottom:3px;">📧 E-Mail-Konfiguration &amp; Test</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.74rem;">SMTP-Status prüfen · Testmail senden · Passwort-vergessen konfigurieren</div>
+        </div>
+        <a href="admin-email-test.html" style="background:#fff;color:#0c4a6e;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:800;text-decoration:none;flex-shrink:0;">Zum Test →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Pflegekräfte ═══ -->
+  <div class="admin-page" id="page-caregivers">
+    <div class="page-head">
+      <h2>Pflegekräfte</h2>
+      <p>Registrierte Pflegekräfte verwalten, sperren und Beitragsplan zuweisen.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Alle Pflegekräfte</h3>
+        <input class="search-inp" id="cgSearch" type="search" placeholder="Name oder E-Mail…" />
+      </div>
+      <div id="cgList">
+        <div class="empty-state">Wird geladen…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Klienten ═══ -->
+  <div class="admin-page" id="page-klienten">
+    <div class="page-head">
+      <h2>Klienten</h2>
+      <p>Registrierte Klienten und ihre Pflege-Anfragen einsehen.</p>
+    </div>
+
+    <!-- App Klienten (care_accepted_patients) -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-head">
+        <h3>📱 App Klienten <span id="appKlBadge" style="font-size:.75rem;font-weight:600;color:#64748b;margin-left:6px;"></span></h3>
+        <input class="search-inp" id="appKlSearch" type="search" placeholder="Name oder Pfleger…" />
+      </div>
+      <div id="appKlList">
+        <div class="empty-state">Wird geladen…</div>
+      </div>
+    </div>
+
+    <!-- Portal Klienten (patients table) -->
+    <div class="card">
+      <div class="card-head">
+        <h3>🌐 Portal-Klienten</h3>
+        <input class="search-inp" id="klSearch" type="search" placeholder="Name, E-Mail oder Ort…" />
+      </div>
+      <div id="klList">
+        <div class="empty-state">Wird geladen…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Klienten Detail-Modal -->
+  <div id="klModal" hidden>
+    <div id="klModalBg" style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;"></div>
+    <div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;padding:28px 24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <h3 id="klModalTitle" style="font-size:1.05rem;font-weight:800;color:#0f1a33;margin:0;"></h3>
+          <button id="klModalClose" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#64748b;line-height:1;">×</button>
+        </div>
+        <div id="klModalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Leitstelle ═══ -->
+  <div class="admin-page" id="page-leitstelle">
+    <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2>Leitstelle</h2>
+        <p>Dienstplan, Fahrzeugdisposition und Einsätze koordinieren.</p>
+      </div>
+      <a href="leitstelle-ansicht.html" class="a-btn a-btn--primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 2"/></svg>
+        Leitstelle öffnen
+      </a>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head"><h3>Dienst eintragen</h3></div>
+      <div class="form-grid">
+        <div>
+          <label class="field-lbl" for="df-date">Datum</label>
+          <input class="a-inp" id="df-date" type="date" />
+        </div>
+        <div>
+          <label class="field-lbl" for="df-cg">Pflegekraft</label>
+          <select class="a-inp" id="df-cg">
+            <option value="">Auswählen…</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl" for="df-von">Von</label>
+          <input class="a-inp" id="df-von" type="time" />
+        </div>
+        <div>
+          <label class="field-lbl" for="df-bis">Bis</label>
+          <input class="a-inp" id="df-bis" type="time" />
+        </div>
+        <div>
+          <label class="field-lbl" for="df-typ">Diensttyp</label>
+          <select class="a-inp" id="df-typ">
+            <option value="bereitschaft">Bereitschaft</option>
+            <option value="akuteinsatz">Akuteinsatz</option>
+            <option value="heimbesuch">Heimbesuch</option>
+            <option value="transport">Transport</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl" for="df-fz">Fahrzeug (optional)</label>
+          <input class="a-inp" id="df-fz" type="text" placeholder="z.B. N1 – VW Crafter" />
+        </div>
+        <div>
+          <label class="field-lbl" for="df-notiz">Notiz (optional)</label>
+          <textarea class="a-inp" id="df-notiz" rows="2" placeholder="Besondere Hinweise…"></textarea>
+        </div>
+        <div>
+          <button class="a-btn a-btn--primary" id="dienstSaveBtn" type="button">Dienst speichern</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Dienstplan</h3>
+        <div class="card-head__actions">
+          <input class="a-inp" id="planDate" type="date" />
+          <button class="a-btn a-btn--sm" id="planAllBtn">Alle anzeigen</button>
+        </div>
+      </div>
+      <div id="dienstList">
+        <div class="empty-state">Datum wählen oder alle anzeigen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Meldungen ═══ -->
+  <!-- ── BENUTZER TAB ── -->
+  <div class="admin-page" id="page-benutzer">
+    <div class="page-head">
+      <h2>Benutzerverwaltung</h2>
+      <p>Leitstellen-Accounts und Pfleger-Konten anlegen und verwalten.</p>
+    </div>
+
+    <!-- Leitstelle-Benutzer -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head">
+        <h3>Leitstellen-Benutzer</h3>
+        <div class="card-head__actions">
+          <button class="a-btn a-btn--primary a-btn--sm" onclick="showLsCreateForm()">＋ Neuer Disponent</button>
+        </div>
+      </div>
+
+      <!-- Erstellen-Formular (ausklappbar) -->
+      <div id="lsCreateForm" style="display:none; padding:16px; border-bottom:1px solid #e8edf5; background:#f8faff;">
+        <div class="form-grid">
+          <div>
+            <label class="field-lbl">Vorname *</label>
+            <input class="a-inp" id="ls-vorname" placeholder="Vorname">
+          </div>
+          <div>
+            <label class="field-lbl">Nachname *</label>
+            <input class="a-inp" id="ls-nachname" placeholder="Nachname">
+          </div>
+          <div>
+            <label class="field-lbl">E-Mail *</label>
+            <input class="a-inp" type="email" id="ls-email" placeholder="disponent@example.at">
+          </div>
+          <div>
+            <label class="field-lbl">Rolle</label>
+            <select class="a-inp" id="ls-rolle">
+              <option value="disponent">Disponent</option>
+              <option value="leitstelle">Leitstellen-Leitung</option>
+              <option value="readonly">Nur-Lesen</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-lbl">Passwort * (min. 8 Z.)</label>
+            <input class="a-inp" type="password" id="ls-password" placeholder="••••••••">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="a-btn a-btn--primary a-btn--sm" onclick="createLsUser()">Anlegen</button>
+          <button class="a-btn a-btn--sm" onclick="hideLsCreateForm()">Abbrechen</button>
+        </div>
+        <div id="ls-create-err" style="color:#b91c1c;font-size:.8rem;font-weight:700;margin-top:8px;display:none;"></div>
+      </div>
+
+      <div id="lsUserList" style="min-height:60px;"></div>
+    </div>
+
+    <!-- Pfleger-Konten -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head">
+        <h3>Pfleger-Konten</h3>
+        <div class="card-head__actions">
+          <button class="a-btn a-btn--primary a-btn--sm" onclick="showPflegerForm()">＋ Neuer Pfleger</button>
+        </div>
+      </div>
+
+      <div id="pflegerCreateForm" style="display:none; padding:16px; border-bottom:1px solid #e8edf5; background:#f8faff;">
+        <div class="form-grid">
+          <div>
+            <label class="field-lbl">Vorname *</label>
+            <input class="a-inp" id="pf-vorname" placeholder="Vorname">
+          </div>
+          <div>
+            <label class="field-lbl">Nachname *</label>
+            <input class="a-inp" id="pf-nachname" placeholder="Nachname">
+          </div>
+          <div>
+            <label class="field-lbl">E-Mail *</label>
+            <input class="a-inp" type="email" id="pf-email" placeholder="pfleger@example.at">
+          </div>
+          <div>
+            <label class="field-lbl">Passwort * (min. 8 Z.)</label>
+            <input class="a-inp" type="password" id="pf-password" placeholder="••••••••">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="a-btn a-btn--primary a-btn--sm" onclick="createPfleger()">Anlegen</button>
+          <button class="a-btn a-btn--sm" onclick="hidePflegerForm()">Abbrechen</button>
+        </div>
+        <div id="pf-create-err" style="color:#b91c1c;font-size:.8rem;font-weight:700;margin-top:8px;display:none;"></div>
+      </div>
+
+      <div id="pfUserList" style="min-height:60px;"></div>
+    </div>
+  </div>
+
+  <div class="admin-page" id="page-nachrichten">
+    <div class="page-head">
+      <h2>Systemmeldungen</h2>
+      <p>Meldungen ans Pflegekräfte-Dashboard senden.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head"><h3>Neue Meldung</h3></div>
+      <div class="form-grid">
+        <div>
+          <label class="field-lbl" for="msg-text">Meldungstext</label>
+          <textarea class="a-inp" id="msg-text" rows="2"
+            placeholder="z.B. Wartungsarbeiten am Samstag 02:00–04:00 Uhr"></textarea>
+        </div>
+        <div>
+          <label class="field-lbl" for="msg-typ">Typ</label>
+          <select class="a-inp" id="msg-typ">
+            <option value="info">Info</option>
+            <option value="warn">Warnung</option>
+            <option value="ok">Positiv</option>
+          </select>
+        </div>
+        <div>
+          <button class="a-btn a-btn--primary a-btn--full" id="msgSaveBtn" type="button">Meldung senden</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Aktive Meldungen</h3></div>
+      <div id="msgList">
+        <div class="empty-state">Keine aktiven Meldungen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Startseite Content-Blöcke ═══ -->
+  <div class="admin-page" id="page-startseite">
+    <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2>Startseiten-Inhalte</h2>
+        <p>Texte, Fotos, Infos und Werbung auf der öffentlichen Startseite verwalten.</p>
+      </div>
+      <button class="a-btn a-btn--primary" onclick="sbOpenModal(null)">+ Neuer Block</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Alle Blöcke</h3>
+        <button class="a-btn" onclick="loadStartseiteBlocks()" style="font-size:.78rem;padding:5px 12px;">↺ Aktualisieren</button>
+      </div>
+      <div id="sbList"><div class="empty-state">Wird geladen…</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ Fahrzeuge ═══ -->
+  <div class="admin-page" id="page-fahrzeuge">
+    <div class="page-head">
+      <h2>Fahrzeugverwaltung</h2>
+      <p>Fahrzeuge hinzufügen, bearbeiten und nach Bundesland &amp; Bezirk einteilen.</p>
+    </div>
+
+    <!-- Add form -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head"><h3>Neues Fahrzeug</h3></div>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+        <div>
+          <label class="field-lbl">Fahrzeugnummer *</label>
+          <input class="a-inp" id="fz-name" placeholder="z. B. W-04, NÖ-03" style="text-transform:uppercase;">
+        </div>
+        <div>
+          <label class="field-lbl">Typ</label>
+          <select class="a-inp" id="fz-typ">
+            <option value="HKP">HKP (Hauskrankenpflege)</option>
+            <option value="Akut">Akut Plus</option>
+            <option value="Palliativ">Palliativ</option>
+            <option value="Transport">Transport</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl">Bundesland *</label>
+          <select class="a-inp" id="fz-bundesland" onchange="fzUpdateBezirkeCreate(this.value)">
+            <option value="">– wählen –</option>
+            <option>Wien</option>
+            <option>Niederösterreich</option>
+            <option>Oberösterreich</option>
+            <option>Steiermark</option>
+            <option>Tirol</option>
+            <option>Salzburg</option>
+            <option>Kärnten</option>
+            <option>Vorarlberg</option>
+            <option>Burgenland</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-lbl">Bezirk / Region</label>
+          <select class="a-inp" id="fz-bezirk">
+            <option value="">– zuerst Bundesland wählen –</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="a-btn a-btn--primary" onclick="fzAdminAdd()">Fahrzeug hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- Vehicle list grouped by Bundesland -->
+    <div class="card">
+      <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;">
+        <h3>Alle Fahrzeuge</h3>
+        <button class="a-btn" onclick="fzAdminLoad()" style="font-size:.78rem;padding:5px 12px;">↺ Aktualisieren</button>
+      </div>
+      <div id="fzAdminList">
+        <div class="empty-state">Lade Fahrzeuge…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Modal: Startseite Block bearbeiten ── -->
+<div class="a-modal" id="sbModal" hidden>
+  <div class="a-modal__bg" id="sbModalBg"></div>
+  <div class="a-modal__panel" style="max-width:560px;">
+    <h2 class="a-modal__title" id="sbModalTitle">Neuer Block</h2>
+    <div class="form-grid" style="gap:14px;">
+      <div>
+        <label class="field-lbl" for="sb-typ">Typ / Kategorie</label>
+        <select class="a-inp" id="sb-typ">
+          <option value="info">ℹ️ Info</option>
+          <option value="news">📰 News / Aktuell</option>
+          <option value="werbung">📢 Werbung / Angebot</option>
+          <option value="wichtig">⚠️ Wichtig</option>
+          <option value="bild">🖼️ Bild / Foto</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-lbl" for="sb-titel">Titel (optional)</label>
+        <input class="a-inp" id="sb-titel" type="text" placeholder="z. B. Sommer-Angebot 2026" maxlength="120" />
+      </div>
+      <div>
+        <label class="field-lbl" for="sb-inhalt">Text / Beschreibung</label>
+        <textarea class="a-inp" id="sb-inhalt" rows="4"
+          placeholder="Ihr Text, Infos oder Werbetext…" style="resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label class="field-lbl" for="sb-bild-url">Foto-URL (https://…)</label>
+        <input class="a-inp" id="sb-bild-url" type="url" placeholder="https://example.com/bild.jpg" />
+        <div style="font-size:.72rem;color:#64748b;margin-top:4px;">Foto-Link aus dem Internet einfügen (z. B. von Ihrer Website).</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label class="field-lbl" for="sb-link-text">Button-Text (optional)</label>
+          <input class="a-inp" id="sb-link-text" type="text" placeholder="z. B. Mehr erfahren" maxlength="60" />
+        </div>
+        <div>
+          <label class="field-lbl" for="sb-link-url">Button-Link (optional)</label>
+          <input class="a-inp" id="sb-link-url" type="url" placeholder="https://…" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label class="field-lbl" for="sb-reihenfolge">Reihenfolge (kleiner = weiter oben)</label>
+          <input class="a-inp" id="sb-reihenfolge" type="number" min="0" max="999" value="0" />
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:2px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;font-weight:700;">
+            <input type="checkbox" id="sb-aktiv" checked style="width:18px;height:18px;" />
+            Block sofort sichtbar (aktiv)
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="a-modal__foot">
+      <button class="a-btn" id="sbModalCancel">Abbrechen</button>
+      <button class="a-btn a-btn--primary" id="sbModalSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Pflegekraft bearbeiten ── -->
+<div class="a-modal" id="cgModal" hidden>
+  <div class="a-modal__bg" id="cgModalBg"></div>
+  <div class="a-modal__panel">
+    <h2 class="a-modal__title" id="cgModalTitle">Pflegekraft bearbeiten</h2>
+    <div id="cgModalInfo" style="margin-bottom:14px;padding:10px 12px;background:#f8fafc;border-radius:8px;font-size:.8rem;"></div>
+    <div class="form-grid">
+      <div>
+        <label class="field-lbl" for="cg-status">Status</label>
+        <select class="a-inp" id="cg-status">
+          <option value="active">Aktiv</option>
+          <option value="locked">Gesperrt</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-lbl" for="cg-plan">Beitragsplan</label>
+        <select class="a-inp" id="cg-plan">
+          <option value="normal">Normal</option>
+          <option value="plus">Plus</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-lbl" for="cg-notes">Interne Notiz</label>
+        <textarea class="a-inp" id="cg-notes" rows="2" placeholder="z.B. Grund für Sperrung"></textarea>
+      </div>
+    </div>
+    <div class="a-modal__foot">
+      <button class="a-btn" id="cgModalCancel">Abbrechen</button>
+      <button class="a-btn a-btn--primary" id="cgModalSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="a-toast" id="toast"></div>
+
+<script src="nursy-auth.js"></script>
+<script>
+/* ── Auth guard ── */
+(function(){
+  function goLogin(){
+    try{ NursyAuth.clear('admin'); }catch(e){}
+    window.location.replace('admin-login.html');
+  }
+  var token = null;
+  try{ token = NursyAuth.get('admin'); }catch(e){}
+  if(!token){ goLogin(); return; }
+
+  // Validate token server-side (non-blocking — page already visible)
+  fetch('/api/admin/me', { credentials: 'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(!d.ok) goLogin(); })
+    .catch(function(){ /* network error — stay on page, API calls will fail individually */ });
+})();
+
+/* ── Toast ── */
+function toast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+/* ── Escape HTML ── */
+function esc(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+/* ── Tab-Navigation ── */
+function switchTab(tab){
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('[data-tab="'+tab+'"]').forEach(b=>b.classList.add('active'));
+  if(tab==='dashboard')   loadDashboard();
+  if(tab==='benutzer')    loadBenutzer();
+  if(tab==='caregivers')  loadCaregivers();
+  if(tab==='klienten')    { loadKlienten(); loadAppKLAdmin(); }
+  if(tab==='leitstelle'){ loadCaregiverSelect(); loadDienste(document.getElementById('planDate').value||undefined); }
+  if(tab==='nachrichten') loadMessages();
+  if(tab==='fahrzeuge')   { fzAdminLoad(); fzLoadPfleger(); }
+  if(tab==='startseite')  loadStartseiteBlocks();
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+/* ── Backup ── */
+function adminBackup(){
+  window.location.href='/api/admin/backup';
+}
+
+/* ── Logout ── */
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+  fetch('/api/admin/logout',{method:'POST',credentials:'same-origin'})
+    .finally(()=>{ NursyAuth.clear('admin'); window.location.replace('admin-login.html?logout=1'); });
+});
+
+/* ════════════════════════════════
+   DASHBOARD
+════════════════════════════════ */
+function loadDashboard(){
+  fetch('/api/admin/stats').then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    const s=d.stats;
+    document.getElementById('s-cg-total').textContent  = s.cg_total;
+    document.getElementById('s-cg-active').textContent = s.cg_active;
+    document.getElementById('s-cg-locked').textContent = s.cg_locked;
+    document.getElementById('s-pat').textContent       = s.pat_total;
+    document.getElementById('s-req').textContent       = s.req_pending;
+    document.getElementById('s-dienste').textContent   = s.dienste_today;
+    document.getElementById('s-pat-app').textContent   = s.pat_total;
+    document.getElementById('s-cg-app').textContent    = s.cg_total;
+    document.getElementById('s-match-verb').textContent = s.match_verbindungen ?? '–';
+    document.getElementById('s-match-anf').textContent  = s.match_anfragen    ?? '–';
+  });
+
+  const today=new Date().toISOString().slice(0,10);
+  fetch('/api/admin/dienste?datum='+today).then(r=>r.json()).then(d=>{
+    const el=document.getElementById('dash-dienste-today');
+    if(!d.ok||!d.dienste.length){ el.innerHTML='<div class="empty-state">Keine Dienste für heute eingetragen.</div>'; return; }
+    el.innerHTML=d.dienste.map(di=>dienstItemHtml(di,false)).join('');
+  });
+
+  fetch('/api/admin/messages').then(r=>r.json()).then(d=>{
+    const el=document.getElementById('dash-messages');
+    const aktiv=(d.messages||[]).filter(m=>m.aktiv);
+    if(!aktiv.length){ el.innerHTML='<div class="empty-state">Keine aktiven Meldungen.</div>'; return; }
+    el.innerHTML=aktiv.map(m=>msgItemHtml(m,false)).join('');
+  });
+}
+loadDashboard();
+
+/* ════════════════════════════════
+   PFLEGEKRÄFTE
+════════════════════════════════ */
+let allCG=[], editCgId=null;
+
+function initials(v,n){ return ((v||'').charAt(0)+(n||'').charAt(0)).toUpperCase()||'?'; }
+
+function cgRowHtml(c){
+  const since=(c.created_at||'').slice(0,10);
+  const statusLbl=c.status==='locked'
+    ? '<span class="status-lbl status-lbl--locked">Gesperrt</span>'
+    : '<span class="status-lbl status-lbl--active">Aktiv</span>';
+  const planLbl=c.plan==='plus'
+    ? '<span class="status-lbl status-lbl--plus">Plus</span>'
+    : '<span class="status-lbl">Normal</span>';
+  const vCount = c.verbindungen_count||0;
+  const matchBadge = vCount>0
+    ? `<span class="status-lbl" style="background:#dcfce7;color:#15803d;">🔗 ${vCount} Patient${vCount!==1?'en':''}</span>`
+    : '';
+  const sub2 = [c.bezirk, c.qualifikation, c.dienstnummer].filter(Boolean).join(' · ');
+  return `<div class="row-item">
+    <div class="row-av">${initials(c.vorname,c.nachname)}</div>
+    <div class="row-info">
+      <div class="row-info__name">${esc(c.vorname+' '+c.nachname)}</div>
+      <div class="row-info__sub">${esc(c.email||'–')} &middot; seit ${since}</div>
+      ${sub2?`<div class="row-info__sub" style="margin-top:1px;">${esc(sub2)}</div>`:''}
+    </div>
+    <div class="row-labels">${statusLbl}${planLbl}${matchBadge}</div>
+    <div class="row-actions">
+      <button class="a-btn a-btn--sm" onclick="openCgModal('${c.id}')">Bearbeiten</button>
+      <button class="a-btn a-btn--danger a-btn--sm" onclick="deleteCg('${c.id}','${esc(c.vorname+' '+c.nachname)}')">Löschen</button>
+    </div>
+  </div>`;
+}
+
+function loadCaregivers(){
+  fetch('/api/admin/caregivers').then(r=>r.json()).then(d=>{
+    allCG=d.caregivers||[];
+    renderCG(allCG);
+    populateCgSelect(allCG);
+  });
+}
+
+function renderCG(list){
+  const el=document.getElementById('cgList');
+  if(!list.length){ el.innerHTML='<div class="empty-state">Keine Pflegekräfte registriert.</div>'; return; }
+  el.innerHTML=list.map(cgRowHtml).join('');
+}
+
+document.getElementById('cgSearch').addEventListener('input',function(){
+  const q=this.value.toLowerCase();
+  renderCG(allCG.filter(c=>(c.vorname+' '+c.nachname+' '+c.email).toLowerCase().includes(q)));
+});
+
+/* Modal */
+function openCgModal(id){
+  editCgId=id;
+  const c=allCG.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('cgModalTitle').textContent=c.vorname+' '+c.nachname;
+  document.getElementById('cg-status').value=c.status||'active';
+  document.getElementById('cg-plan').value=c.plan||'normal';
+  document.getElementById('cg-notes').value=c.notes||'';
+  // Verbundene Patienten anzeigen
+  const infoEl=document.getElementById('cgModalInfo');
+  const vArr=c.verbindungen||[];
+  const emailLine=`<div style="font-size:.78rem;color:#555;margin-bottom:10px;">E-Mail (Login): <strong>${esc(c.email||'–')}</strong></div>`;
+  if(vArr.length){
+    infoEl.innerHTML=emailLine+`<div style="font-size:.72rem;font-weight:800;color:#15803d;text-transform:uppercase;margin-bottom:6px;">🔗 Verbundene Patienten (${vArr.length})</div>`
+      +vArr.map(v=>`<div style="font-size:.8rem;padding:6px 0;border-bottom:1px solid #f0f4fb;">
+        <strong>${esc(v.vorname+' '+v.nachname)}</strong>
+        <span style="color:#555;margin-left:6px;">${esc(v.email||'')}</span>
+        <span style="color:#94a3b8;margin-left:6px;font-size:.72rem;">seit ${(v.verbunden_am||'').slice(0,10)}</span>
+      </div>`).join('');
+  } else {
+    infoEl.innerHTML=emailLine+'<div style="font-size:.78rem;color:#94a3b8;">Keine aktiven Matching-Verbindungen.</div>';
+  }
+  document.getElementById('cgModal').hidden=false;
+}
+document.getElementById('cgModalCancel').addEventListener('click',()=>{ document.getElementById('cgModal').hidden=true; });
+document.getElementById('cgModalBg').addEventListener('click',      ()=>{ document.getElementById('cgModal').hidden=true; });
+document.getElementById('cgModalSave').addEventListener('click',()=>{
+  if(!editCgId) return;
+  fetch('/api/admin/caregivers/'+editCgId+'/status',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      status:document.getElementById('cg-status').value,
+      plan:document.getElementById('cg-plan').value,
+      notes:document.getElementById('cg-notes').value
+    })
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ document.getElementById('cgModal').hidden=true; toast('Gespeichert'); loadCaregivers(); }
+    else toast('Fehler: '+(d.error||''));
+  });
+});
+
+function deleteCg(id,name){
+  if(!confirm('Pflegekraft "'+name+'" löschen?\nDiese Aktion ist nicht rückgängig.')) return;
+  fetch('/api/admin/caregivers/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Gelöscht'); loadCaregivers(); }
+    else toast('Fehler: '+(d.error||''));
+  });
+}
+
+/* ════════════════════════════════
+   KLIENTEN
+════════════════════════════════ */
+let allKL = [], _klLoaded = false;
+
+const hgLabels = {
+  pflege:'Pflege & Betreuung', wundversorgung:'Wundversorgung',
+  medikamente:'Medikamentengabe', mobilisation:'Mobilisation',
+  palliativ:'Palliativpflege', demenz:'Demenzbetreuung',
+  sonstiges:'Sonstiges'
+};
+const reqStatusLabels = { pending:'Offen', active:'Aktiv', matched:'Vermittelt', closed:'Abgeschlossen', cancelled:'Storniert' };
+const reqStatusColors = { pending:'#d97706', active:'#2563eb', matched:'#16a34a', closed:'#6b7280', cancelled:'#dc2626' };
+
+function klRowHtml(k) {
+  const since  = (k.created_at||'').slice(0,10);
+  const ort    = [k.plz, k.ort].filter(Boolean).join(' ');
+  const hg     = hgLabels[k.hauptgrund] || k.hauptgrund || '–';
+  const total  = k.anfragen_total;
+  const pend   = k.anfragen_pending;
+  const badge  = total > 0
+    ? `<span class="status-lbl ${pend>0?'status-lbl--active':'status-lbl--locked'}"
+               style="background:${pend>0?'#fef3c7':'#f0fdf4'};color:${pend>0?'#92400e':'#15803d'}">
+         ${total} Anfrage${total!==1?'n':''}${pend>0?' · '+pend+' offen':''}
+       </span>`
+    : `<span class="status-lbl" style="background:#f1f5f9;color:#64748b">Keine Anfragen</span>`;
+  const mv = k.matching_verbindung;
+  const ma = k.matching_anfrage;
+  const matchBadge = mv
+    ? `<span class="status-lbl" style="background:#dcfce7;color:#15803d;">🔗 Verbunden: ${esc(mv.vorname+' '+mv.nachname)}</span>`
+    : ma
+      ? `<span class="status-lbl" style="background:#fef9c3;color:#92400e;">📋 Match-Anfrage aktiv (${ma.modus==='offen'?'Offen':'Gezielt'})</span>`
+      : '';
+  return `<div class="row-item">
+    <div class="row-av" style="background:#e0e7ff;color:#4338ca;">${initials(k.vorname,k.nachname)}</div>
+    <div class="row-info">
+      <div class="row-info__name">${esc(k.vorname+' '+k.nachname)}</div>
+      <div class="row-info__sub">${esc(k.email||'–')}${ort?' · '+esc(ort):''} · seit ${since}</div>
+      <div class="row-info__sub" style="margin-top:2px;">${esc(hg)}</div>
+    </div>
+    <div class="row-labels">${badge}${matchBadge}</div>
+    <div class="row-actions">
+      <button class="a-btn a-btn--sm" onclick="openKlModal('${k.id}')">Details</button>
+      <button class="a-btn a-btn--danger a-btn--sm" onclick="deleteKl('${k.id}','${esc(k.vorname+' '+k.nachname)}')">Löschen</button>
+    </div>
+  </div>`;
+}
+
+function renderKL(list) {
+  const el = document.getElementById('klList');
+  if (!list.length) { el.innerHTML = '<div class="empty-state">Keine Klienten registriert.</div>'; return; }
+  el.innerHTML = list.map(klRowHtml).join('');
+}
+
+function loadKlienten() {
+  fetch('/api/admin/klienten', {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    allKL = d.klienten || [];
+    _klLoaded = true;
+    renderKL(allKL);
+  }).catch(()=>{ document.getElementById('klList').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
+}
+
+document.getElementById('klSearch').addEventListener('input', function(){
+  if (!_klLoaded) return;
+  const q = this.value.toLowerCase();
+  renderKL(allKL.filter(k=>(k.vorname+' '+k.nachname+' '+(k.email||'')+' '+(k.ort||'')).toLowerCase().includes(q)));
+});
+
+function openKlModal(id) {
+  const k = allKL.find(x=>x.id===id);
+  if (!k) return;
+  document.getElementById('klModalTitle').textContent = k.vorname + ' ' + k.nachname;
+  const adr = [k.address, k.plz, k.ort, k.bezirk].filter(Boolean).join(', ');
+  let angh = '–';
+  try {
+    const arr = JSON.parse(k.angehoerige||'[]');
+    angh = Array.isArray(arr) && arr.length
+      ? arr.map(a=>(a.name||'')+(a.tel?' ('+a.tel+')':'')).join(', ')
+      : '–';
+  } catch(e){}
+  const hg = hgLabels[k.hauptgrund] || k.hauptgrund || '–';
+  let anfrHtml = '';
+  if (k.anfragen && k.anfragen.length) {
+    anfrHtml = k.anfragen.map(a=>{
+      const col = reqStatusColors[a.status]||'#6b7280';
+      const lbl = reqStatusLabels[a.status]||a.status;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0f4fb;">
+        <div style="font-size:.78rem;">
+          <span style="font-weight:700;">${esc(a.pflegestufe||'Keine Pflegestufe')}</span>
+          ${a.frequenz?'<span style="opacity:.6;margin-left:6px;">· '+esc(a.frequenz)+'</span>':''}
+          <div style="font-size:.7rem;color:#64748b;margin-top:1px;">${(a.created_at||'').slice(0,10)}</div>
+        </div>
+        <span style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;
+                     background:${col}22;color:${col}">${esc(lbl)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    anfrHtml = '<div style="color:#64748b;font-size:.82rem;">Keine Anfragen vorhanden.</div>';
+  }
+  const mv2 = k.matching_verbindung;
+  const ma2 = k.matching_anfrage;
+  let matchHtml = '';
+  if (mv2) {
+    matchHtml = `<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:.7rem;font-weight:800;color:#15803d;text-transform:uppercase;margin-bottom:6px;">🔗 Aktive Matching-Verbindung</div>
+      <div style="font-size:.84rem;font-weight:700;">${esc(mv2.vorname+' '+mv2.nachname)}</div>
+      <div style="font-size:.78rem;color:#555;margin-top:2px;">${esc(mv2.email||'–')} &nbsp;·&nbsp; Verbunden seit ${(mv2.verbunden_am||'').slice(0,10)}</div>
+    </div>`;
+  } else if (ma2) {
+    const modusLbl = ma2.modus==='offen' ? 'Offene Anfrage (für alle Pflegekräfte sichtbar)' : 'Gezielte Anfrage (an bestimmte Pflegekraft)';
+    matchHtml = `<div style="background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:.7rem;font-weight:800;color:#92400e;text-transform:uppercase;margin-bottom:4px;">📋 Match-Anfrage aktiv</div>
+      <div style="font-size:.82rem;color:#555;">${esc(modusLbl)}</div>
+    </div>`;
+  }
+  document.getElementById('klModalBody').innerHTML = `
+    ${matchHtml}
+    <div style="display:grid;gap:10px;font-size:.84rem;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><div style="font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">E-Mail (Login)</div><div>${esc(k.email||'–')}</div></div>
+        <div><div style="font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Geburtsdatum</div><div>${esc(k.birth||'–')}</div></div>
+        <div><div style="font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Adresse</div><div>${esc(adr||'–')}</div></div>
+        <div><div style="font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Häufigkeit</div><div>${esc(k.haeufigkeit||'–')}</div></div>
+        <div><div style="font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Hauptgrund</div><div>${esc(hg)}</div></div>
+        <div><div style="font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:2px;">Angehörige</div><div>${esc(angh)}</div></div>
+      </div>
+    </div>
+    <div style="font-weight:800;font-size:.82rem;color:#0f1a33;margin-bottom:10px;">
+      Pflege-Anfragen (${k.anfragen_total})
+    </div>
+    ${anfrHtml}`;
+  document.getElementById('klModal').hidden = false;
+}
+
+document.getElementById('klModalClose').addEventListener('click', ()=>{ document.getElementById('klModal').hidden=true; });
+document.getElementById('klModalBg').addEventListener('click',    ()=>{ document.getElementById('klModal').hidden=true; });
+
+function deleteKl(id, name) {
+  if (!confirm('Klient "'+name+'" und alle zugehörigen Anfragen löschen?\nDiese Aktion ist nicht rückgängig.')) return;
+  fetch('/api/admin/klienten/'+id, {method:'DELETE',credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    if (d.ok) { toast('Gelöscht'); loadKlienten(); }
+    else toast('Fehler: '+(d.error||''));
+  });
+}
+
+/* ── App Klienten (care_accepted_patients) ── */
+let _allAppKL = [];
+let _appKlLoaded = false;
+
+function esc3(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderAppKL(list) {
+  const el = document.getElementById('appKlList');
+  document.getElementById('appKlBadge').textContent = '(' + _allAppKL.length + ')';
+  if (!list.length) { el.innerHTML = '<div class="empty-state">Keine App-Klienten vorhanden.</div>'; return; }
+  el.innerHTML = list.map(k => {
+    const pName = esc3(k.pat_name || '–');
+    const cgName = esc3((k.cg_name || '').trim() || '–');
+    const cgDnr  = k.cg_dienstnummer ? ' · ' + esc3(k.cg_dienstnummer) : '';
+    const addr   = k.pat_address ? `<span style="opacity:.65;">📍 ${esc3(k.pat_address)}</span>` : '';
+    const hg     = k.pat_hauptgrund ? `<span style="opacity:.65;">· ${esc3(k.pat_hauptgrund)}</span>` : '';
+    const seit   = (k.accepted_at || '').slice(0, 10);
+    const pid    = esc3(k.patient_id || k.id);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;gap:12px;">
+      <div style="min-width:0;">
+        <div style="font-weight:700;font-size:.88rem;color:#0f1a33;">${pName}</div>
+        <div style="font-size:.75rem;color:#64748b;margin-top:2px;">👤 ${cgName}${cgDnr}</div>
+        <div style="font-size:.68rem;color:#94a3b8;font-family:monospace;margin-top:1px;">ID: ${pid}</div>
+        <div style="font-size:.72rem;color:#94a3b8;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;">${addr}${hg}
+          <span>Seit: ${seit}</span>
+        </div>
+      </div>
+      <button onclick="deleteAppKlAdmin('${esc3(k.id)}','${pName}')"
+        style="flex-shrink:0;background:none;border:1.5px solid #fecaca;color:#b91c1c;border-radius:8px;padding:5px 12px;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+        Entfernen
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function loadAppKLAdmin() {
+  fetch('/api/admin/app-klienten', {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+    _allAppKL = d.klienten || [];
+    _appKlLoaded = true;
+    renderAppKL(_allAppKL);
+  }).catch(() => { document.getElementById('appKlList').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
+}
+
+document.getElementById('appKlSearch').addEventListener('input', function(){
+  if (!_appKlLoaded) return;
+  const q = this.value.toLowerCase();
+  renderAppKL(q ? _allAppKL.filter(k=>((k.pat_name||'')+' '+(k.cg_name||'')).toLowerCase().includes(q)) : _allAppKL);
+});
+
+function deleteAppKlAdmin(id, name) {
+  if (!confirm('Klient "'+name+'" aus der Pfleger-App entfernen?')) return;
+  fetch('/api/admin/app-klienten/'+encodeURIComponent(id), {method:'DELETE',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if (d.ok) { toast('Entfernt'); loadAppKLAdmin(); }
+      else toast('Fehler: '+(d.error||''));
+    });
+}
+
+/* ════════════════════════════════
+   LEITSTELLE / DIENSTE
+════════════════════════════════ */
+const typLabels={ bereitschaft:'Bereitschaft', akuteinsatz:'Akuteinsatz', heimbesuch:'Heimbesuch', transport:'Transport' };
+
+function dienstItemHtml(di,showDel=true){
+  const lbl=typLabels[di.typ]||di.typ;
+  const fz=di.fahrzeug?`<span class="dienst-item__meta">Fahrzeug: ${esc(di.fahrzeug)}</span>`:'';
+  const note=di.notiz?`<span class="dienst-item__meta">${esc(di.notiz)}</span>`:'';
+  const del=showDel
+    ?`<button class="a-btn a-btn--danger a-btn--sm dienst-item__del" onclick="deleteDienst('${di.id}')">Entfernen</button>`
+    :'';
+  return `<div class="dienst-item">
+    <div class="dienst-item__top">
+      <span class="dienst-item__name">${esc(di.caregiver_name)}</span>
+      <span class="dienst-item__time">${esc(di.von)} – ${esc(di.bis)}</span>
+      <span class="status-lbl">${lbl}</span>
+    </div>
+    <div class="dienst-item__bottom">
+      <span class="dienst-item__meta">${esc(di.datum)}</span>
+      ${fz}${note}
+      ${del}
+    </div>
+  </div>`;
+}
+
+function populateCgSelect(list){
+  const sel=document.getElementById('df-cg');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Pflegekraft auswählen…</option>';
+  list.filter(c=>c.status!=='locked').forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c.id; o.textContent=c.vorname+' '+c.nachname;
+    sel.appendChild(o);
+  });
+  if(cur) sel.value=cur;
+}
+
+function loadCaregiverSelect(){
+  if(allCG.length){ populateCgSelect(allCG); return; }
+  fetch('/api/admin/caregivers').then(r=>r.json()).then(d=>{ allCG=d.caregivers||[]; populateCgSelect(allCG); });
+}
+
+function loadDienste(datum){
+  const el=document.getElementById('dienstList');
+  const url=datum?'/api/admin/dienste?datum='+datum:'/api/admin/dienste';
+  el.innerHTML='<div class="empty-state">Wird geladen…</div>';
+  fetch(url).then(r=>r.json()).then(d=>{
+    if(!d.ok||!d.dienste.length){ el.innerHTML='<div class="empty-state">Keine Dienste gefunden.</div>'; return; }
+    el.innerHTML=d.dienste.map(di=>dienstItemHtml(di,true)).join('');
+  });
+}
+
+document.getElementById('dienstSaveBtn').addEventListener('click',()=>{
+  const sel=document.getElementById('df-cg');
+  const cgName=sel.options[sel.selectedIndex]?.text||'';
+  const body={
+    caregiver_id:sel.value, caregiver_name:cgName,
+    datum:document.getElementById('df-date').value,
+    von:document.getElementById('df-von').value,
+    bis:document.getElementById('df-bis').value,
+    typ:document.getElementById('df-typ').value,
+    fahrzeug:document.getElementById('df-fz').value,
+    notiz:document.getElementById('df-notiz').value
+  };
+  if(!body.caregiver_id||!body.datum||!body.von||!body.bis){
+    toast('Bitte Pflegekraft, Datum und Zeiten angeben'); return;
+  }
+  fetch('/api/admin/dienste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){
+        toast('Dienst gespeichert');
+        document.getElementById('df-notiz').value='';
+        document.getElementById('df-fz').value='';
+        document.getElementById('planDate').value=body.datum;
+        loadDienste(body.datum);
+      } else toast('Fehler: '+(d.error||''));
+    });
+});
+
+document.getElementById('planDate').addEventListener('change',function(){ loadDienste(this.value); });
+document.getElementById('planAllBtn').addEventListener('click',()=>{ document.getElementById('planDate').value=''; loadDienste(); });
+
+function deleteDienst(id){
+  if(!confirm('Dienst löschen?')) return;
+  fetch('/api/admin/dienste/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Entfernt'); loadDienste(document.getElementById('planDate').value||undefined); }
+    else toast('Fehler');
+  });
+}
+
+(function(){
+  const t=new Date().toISOString().slice(0,10);
+  document.getElementById('df-date').value=t;
+  document.getElementById('planDate').value=t;
+})();
+
+/* ════════════════════════════════
+   MELDUNGEN
+════════════════════════════════ */
+function msgItemHtml(m,showDel=true){
+  const dotCls=m.typ==='warn'?'msg-item__typ--warn':m.typ==='ok'?'msg-item__typ--ok':'';
+  const date=(m.created_at||'').slice(0,10);
+  const del=showDel
+    ?`<button class="a-btn a-btn--danger a-btn--sm msg-item__del" onclick="deleteMsg('${m.id}')">Löschen</button>`
+    :'';
+  const typLabel=m.typ==='warn'?'Warnung':m.typ==='ok'?'Positiv':'Info';
+  return `<div class="msg-item">
+    <div class="msg-item__typ ${dotCls}"></div>
+    <div class="msg-item__body">
+      <div class="msg-item__text">${esc(m.text)}</div>
+      <div class="msg-item__date">${typLabel} &middot; ${date}</div>
+    </div>
+    ${del}
+  </div>`;
+}
+
+function loadMessages(){
+  fetch('/api/admin/messages').then(r=>r.json()).then(d=>{
+    const el=document.getElementById('msgList');
+    if(!d.ok||!d.messages.length){ el.innerHTML='<div class="empty-state">Keine aktiven Meldungen.</div>'; return; }
+    el.innerHTML=d.messages.map(m=>msgItemHtml(m,true)).join('');
+  });
+}
+
+document.getElementById('msgSaveBtn').addEventListener('click',()=>{
+  const text=document.getElementById('msg-text').value.trim();
+  const typ=document.getElementById('msg-typ').value;
+  if(!text){ toast('Bitte Text eingeben'); return; }
+  fetch('/api/admin/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,typ})})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast('Meldung gesendet'); document.getElementById('msg-text').value=''; loadMessages(); }
+      else toast('Fehler');
+    });
+});
+
+function deleteMsg(id){
+  fetch('/api/admin/messages/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Meldung gelöscht'); loadMessages(); }
+  });
+}
+
+/* ════════════════════════════════
+   BENUTZER-VERWALTUNG
+════════════════════════════════ */
+function loadBenutzer(){
+  loadLsUsers();
+  loadPflegerList();
+}
+
+/* ── Leitstelle-Benutzer ── */
+function showLsCreateForm(){ document.getElementById('lsCreateForm').style.display=''; }
+function hideLsCreateForm(){ document.getElementById('lsCreateForm').style.display='none'; }
+
+function loadLsUsers(){
+  fetch('/api/admin/leitstelle-users').then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    const el=document.getElementById('lsUserList');
+    if(!d.users.length){
+      el.innerHTML='<p style="padding:16px;color:var(--muted);font-size:.85rem;">Noch keine Leitstellen-Benutzer angelegt.</p>';
+      return;
+    }
+    el.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.84rem;">'+
+      '<thead><tr style="border-bottom:2px solid #e8edf5;">'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">Name</th>'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">E-Mail</th>'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">Rolle</th>'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">Angelegt</th>'+
+      '<th style="padding:10px 16px;"></th>'+
+      '</tr></thead><tbody>'+
+      d.users.map(u=>`<tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:10px 16px;font-weight:700;">${esc(u.vorname+' '+u.nachname)}</td>
+        <td style="padding:10px 16px;color:var(--muted);">${esc(u.email)}</td>
+        <td style="padding:10px 16px;"><span style="background:#eff6ff;color:#1d4ed8;font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:20px;">${esc(u.rolle)}</span></td>
+        <td style="padding:10px 16px;color:var(--muted);font-size:.78rem;">${esc((u.created_at||'').slice(0,10))}</td>
+        <td style="padding:10px 16px;text-align:right;">
+          <button class="a-btn a-btn--sm" style="color:#b91c1c;border-color:#fca5a5;" onclick="deleteLsUser('${esc(u.id)}','${esc(u.vorname+' '+u.nachname)}')">Löschen</button>
+        </td>
+      </tr>`).join('')+
+      '</tbody></table>';
+  });
+}
+
+function createLsUser(){
+  const errEl=document.getElementById('ls-create-err');
+  errEl.style.display='none';
+  const body={
+    vorname:document.getElementById('ls-vorname').value.trim(),
+    nachname:document.getElementById('ls-nachname').value.trim(),
+    email:document.getElementById('ls-email').value.trim(),
+    password:document.getElementById('ls-password').value,
+    rolle:document.getElementById('ls-rolle').value
+  };
+  fetch('/api/admin/leitstelle-users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){
+        toast('Benutzer angelegt');
+        hideLsCreateForm();
+        ['ls-vorname','ls-nachname','ls-email','ls-password'].forEach(id=>document.getElementById(id).value='');
+        loadLsUsers();
+      } else {
+        errEl.textContent=d.error||'Fehler';
+        errEl.style.display='';
+      }
+    });
+}
+
+function deleteLsUser(id,name){
+  if(!confirm('Benutzer „'+name+'" wirklich löschen?')) return;
+  fetch('/api/admin/leitstelle-users/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Benutzer gelöscht'); loadLsUsers(); }
+  });
+}
+
+/* ── Pfleger-Konten ── */
+function showPflegerForm(){ document.getElementById('pflegerCreateForm').style.display=''; }
+function hidePflegerForm(){ document.getElementById('pflegerCreateForm').style.display='none'; }
+
+function loadPflegerList(){
+  fetch('/api/admin/caregivers').then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    const el=document.getElementById('pfUserList');
+    if(!d.caregivers.length){
+      el.innerHTML='<p style="padding:16px;color:var(--muted);font-size:.85rem;">Noch keine Pfleger-Konten.</p>';
+      return;
+    }
+    el.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.84rem;">'+
+      '<thead><tr style="border-bottom:2px solid #e8edf5;">'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">Name</th>'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">E-Mail</th>'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">Status</th>'+
+      '<th style="padding:10px 16px;text-align:left;font-weight:700;color:var(--muted);font-size:.75rem;">Angelegt</th>'+
+      '</tr></thead><tbody>'+
+      d.caregivers.map(u=>`<tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:10px 16px;font-weight:700;">${esc(u.vorname+' '+u.nachname)}</td>
+        <td style="padding:10px 16px;color:var(--muted);">${esc(u.email)}</td>
+        <td style="padding:10px 16px;"><span style="background:${u.status==='active'?'#f0fdf4':'#fef2f2'};color:${u.status==='active'?'#166534':'#b91c1c'};font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:20px;">${u.status==='active'?'Aktiv':'Gesperrt'}</span></td>
+        <td style="padding:10px 16px;color:var(--muted);font-size:.78rem;">${esc((u.created_at||'').slice(0,10))}</td>
+      </tr>`).join('')+
+      '</tbody></table>';
+  });
+}
+
+function createPfleger(){
+  const errEl=document.getElementById('pf-create-err');
+  errEl.style.display='none';
+  const body={
+    vorname:document.getElementById('pf-vorname').value.trim(),
+    nachname:document.getElementById('pf-nachname').value.trim(),
+    email:document.getElementById('pf-email').value.trim(),
+    password:document.getElementById('pf-password').value
+  };
+  fetch('/api/admin/pfleger',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){
+        toast('Pfleger-Konto angelegt');
+        hidePflegerForm();
+        ['pf-vorname','pf-nachname','pf-email','pf-password'].forEach(id=>document.getElementById(id).value='');
+        loadPflegerList();
+      } else {
+        errEl.textContent=d.error||'Fehler';
+        errEl.style.display='';
+      }
+    });
+}
+
+/* ════ FAHRZEUGE ADMIN ════ */
+var fzAdminData = [];
+var fzPflegerList = [];
+
+function fzLoadPfleger(){
+  fetch('/api/admin/fahrzeuge/pfleger', {credentials:'same-origin'})
+    .then(r=>r.json())
+    .then(d=>{ if(d.ok) fzPflegerList = d.pfleger || []; })
+    .catch(()=>{});
+}
+
+function fzAdminLoad(){
+  var el = document.getElementById('fzAdminList');
+  if(el) el.innerHTML = '<div class="empty-state">Lade…</div>';
+  fetch('/api/fahrzeuge/alle', {credentials:'same-origin'})
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.ok){ if(el) el.innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; return; }
+      fzAdminData = d.fahrzeuge || [];
+      renderFzAdminList();
+    })
+    .catch(()=>{ if(el) el.innerHTML='<div class="empty-state">Verbindungsfehler.</div>'; });
+}
+
+function renderFzAdminList(){
+  var el = document.getElementById('fzAdminList');
+  if(!el) return;
+  if(!fzAdminData.length){ el.innerHTML='<div class="empty-state">Keine Fahrzeuge vorhanden. Füge oben ein Fahrzeug hinzu.</div>'; return; }
+  var groups = {};
+  fzAdminData.forEach(fz=>{
+    var bl = fz.bundesland || '– kein Bundesland –';
+    if(!groups[bl]) groups[bl] = [];
+    groups[bl].push(fz);
+  });
+  var html = '';
+  Object.keys(groups).sort().forEach(bl=>{
+    html += '<div style="padding:10px 16px 4px;font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-top:1px solid var(--border);">'+esc(bl)+'</div>';
+    groups[bl].forEach(fz=>{
+      var active   = !!fz.aktiv;
+      var hasFahrer = !!(fz.caregiver_name && fz.caregiver_name.trim());
+      var fname    = fz.name;
+
+      // Pfleger dropdown options
+      var pOpts = '<option value="">– Fahrer zuweisen –</option>';
+      fzPflegerList.forEach(p=>{
+        var label = esc(p.name) + (p.qualifikation?' ('+esc(p.qualifikation)+')':'') + ' · ' + esc(p.quelle);
+        pOpts += '<option value="'+esc(p.id)+'" data-name="'+esc(p.name)+'" data-dnr="'+esc(p.dienstnummer)+'">'+label+'</option>';
+      });
+
+      html +=
+        '<div style="border-bottom:1px solid var(--border);">'+
+          // ── Main row ──
+          '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;">'+
+            '<div style="flex:1;min-width:0;">'+
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+                '<strong style="font-size:.92rem;">'+esc(fname)+'</strong>'+
+                '<span style="font-size:.68rem;background:#f1f5f9;color:#475569;border-radius:5px;padding:1px 7px;">'+esc(fz.typ||'HKP')+'</span>'+
+                (!active?'<span style="font-size:.68rem;color:#dc2626;font-weight:700;background:#fee2e2;border-radius:5px;padding:1px 7px;">Inaktiv</span>':'')+
+                (hasFahrer
+                  ? '<span style="font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:5px;padding:2px 8px;font-weight:600;">👤 '+esc(fz.caregiver_name)+'</span>'+
+                    (fz.eingeloggt_seit?'<span style="font-size:.66rem;color:var(--muted);">seit '+esc(fz.eingeloggt_seit)+'</span>':'')
+                  : '<span style="font-size:.68rem;color:#6b7280;background:#f9fafb;border-radius:5px;padding:1px 7px;">Kein Fahrer</span>')+
+              '</div>'+
+              '<div style="font-size:.72rem;color:var(--muted);margin-top:2px;">'+esc(fz.bezirk||'–')+'</div>'+
+            '</div>'+
+            '<div style="display:flex;gap:6px;flex-shrink:0;">'+
+              '<button class="a-btn" style="padding:4px 10px;font-size:.76rem;" onclick="fzAdminToggleEdit(\''+esc(fname)+'\')">Bearbeiten</button>'+
+              '<button class="a-btn" style="padding:4px 10px;font-size:.76rem;color:#dc2626;border-color:#fca5a5;" onclick="fzAdminDelete(\''+esc(fname)+'\')">Löschen</button>'+
+            '</div>'+
+          '</div>'+
+
+          // ── Fahrer-Zuweisung row (always visible) ──
+          '<div style="padding:6px 16px 10px;background:#fafafa;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+            '<span style="font-size:.72rem;color:var(--muted);white-space:nowrap;">Fahrer:</span>'+
+            '<select id="fzFahrer_'+esc(fname)+'" style="flex:1;min-width:200px;max-width:380px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.8rem;">'+pOpts+'</select>'+
+            '<button class="a-btn a-btn--primary" style="padding:4px 12px;font-size:.76rem;" onclick="fzAdminAssignDriver(\''+esc(fname)+'\')">Zuweisen</button>'+
+            (hasFahrer?'<button class="a-btn" style="padding:4px 10px;font-size:.76rem;color:#dc2626;border-color:#fca5a5;" onclick="fzAdminRemoveDriver(\''+esc(fname)+'\')">Abmelden</button>':'')+
+          '</div>';
+
+          // ── Edit form (hidden by default) ──
+          var _allBl = ['Wien','Niederösterreich','Oberösterreich','Steiermark','Tirol','Salzburg','Kärnten','Vorarlberg','Burgenland'];
+          var _curBl = fz.bundesland||'';
+          var _blOpts = '<option value="">– wählen –</option>'+_allBl.map(function(b){ return '<option'+(b===_curBl?' selected':'')+'>'+b+'</option>'; }).join('');
+          var _bzList = (FZ_BEZIRKE[_curBl]||[]);
+          var _bzOpts = '<option value="">– Bezirk wählen –</option>'+_bzList.map(function(b){ return '<option'+(b===fz.bezirk?' selected':'')+'>'+b+'</option>'; }).join('');
+          html +=
+          '<div id="fzEdit_'+esc(fname)+'" style="display:none;padding:10px 16px;background:#f8fafc;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap;align-items:center;flex-direction:row;" class="d-flex">'+
+            '<select id="fzEbl_'+esc(fname)+'" onchange="fzEditUpdateBezirke(this,\''+esc(fname)+'\')" style="width:160px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.82rem;">'+_blOpts+'</select>'+
+            '<select id="fzEbz_'+esc(fname)+'" style="width:180px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.82rem;">'+_bzOpts+'</select>'+
+            '<select id="fzEtyp_'+esc(fname)+'" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:.82rem;">'+
+              ['HKP','Akut','Palliativ','Transport'].map(t=>'<option'+(fz.typ===t?' selected':'')+'>'+t+'</option>').join('')+
+            '</select>'+
+            '<label style="font-size:.78rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="fzEakt_'+esc(fname)+'"'+(active?' checked':'')+'>Aktiv</label>'+
+            '<button class="a-btn a-btn--primary" style="padding:4px 10px;font-size:.78rem;" onclick="fzAdminSave(\''+esc(fname)+'\')">Speichern</button>'+
+            '<button class="a-btn" style="padding:4px 10px;font-size:.78rem;" onclick="fzAdminToggleEdit(\''+esc(fname)+'\')">Abbrechen</button>'+
+          '</div>'+
+        '</div>';
+    });
+  });
+  el.innerHTML = html;
+}
+
+function fzAdminToggleEdit(name){
+  var ed = document.getElementById('fzEdit_'+name);
+  if(!ed) return;
+  ed.style.display = (ed.style.display==='none'||!ed.style.display) ? 'flex' : 'none';
+}
+function fzAdminSave(name){
+  var bl  = (document.getElementById('fzEbl_'+name)||{}).value||'';
+  var bz  = (document.getElementById('fzEbz_'+name)||{}).value||'';
+  var typ = (document.getElementById('fzEtyp_'+name)||{}).value||'HKP';
+  var akt = (document.getElementById('fzEakt_'+name)||{}).checked;
+  fetch('/api/fahrzeuge/'+encodeURIComponent(name), {
+    method:'PUT', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({bundesland:bl, bezirk:bz, typ:typ, aktiv:akt})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Fahrzeug aktualisiert'); fzAdminLoad(); }
+    else toast(d.error||'Fehler', 'error');
+  });
+}
+function fzAdminDelete(name){
+  if(!confirm('Fahrzeug "'+name+'" wirklich löschen?')) return;
+  fetch('/api/fahrzeuge/'+encodeURIComponent(name), {method:'DELETE', credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast('Fahrzeug gelöscht'); fzAdminLoad(); }
+      else toast(d.error||'Fehler', 'error');
+    });
+}
+function fzAdminAssignDriver(name){
+  var sel = document.getElementById('fzFahrer_'+name);
+  if(!sel || !sel.value){ toast('Bitte einen Fahrer wählen', 'error'); return; }
+  var opt  = sel.options[sel.selectedIndex];
+  var cname = opt.dataset.name || opt.text;
+  var dnr   = opt.dataset.dnr  || '';
+  fetch('/api/fahrzeuge/'+encodeURIComponent(name)+'/fahrer', {
+    method:'PUT', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({caregiver_id: sel.value, caregiver_name: cname, dienstnummer: dnr})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ toast('Fahrer zugewiesen'); fzAdminLoad(); }
+    else toast(d.error||'Fehler', 'error');
+  });
+}
+function fzAdminRemoveDriver(name){
+  if(!confirm('Fahrer von "'+name+'" abmelden?')) return;
+  fetch('/api/fahrzeuge/'+encodeURIComponent(name)+'/fahrer', {method:'DELETE', credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast('Fahrer abgemeldet'); fzAdminLoad(); }
+      else toast(d.error||'Fehler', 'error');
+    });
+}
+/* ── Österreich: Bezirke pro Bundesland ── */
+var FZ_BEZIRKE = {
+  'Wien': ['1. Bezirk – Innere Stadt','2. Bezirk – Leopoldstadt','3. Bezirk – Landstraße',
+    '4. Bezirk – Wieden','5. Bezirk – Margareten','6. Bezirk – Mariahilf',
+    '7. Bezirk – Neubau','8. Bezirk – Josefstadt','9. Bezirk – Alsergrund',
+    '10. Bezirk – Favoriten','11. Bezirk – Simmering','12. Bezirk – Meidling',
+    '13. Bezirk – Hietzing','14. Bezirk – Penzing','15. Bezirk – Rudolfsheim-Fünfhaus',
+    '16. Bezirk – Ottakring','17. Bezirk – Hernals','18. Bezirk – Währing',
+    '19. Bezirk – Döbling','20. Bezirk – Brigittenau','21. Bezirk – Floridsdorf',
+    '22. Bezirk – Donaustadt','23. Bezirk – Liesing'],
+  'Niederösterreich': ['Amstetten','Baden','Bruck an der Leitha','Gänserndorf','Gmünd',
+    'Hollabrunn','Horn','Korneuburg','Krems an der Donau (Stadt)','Krems (Land)',
+    'Lilienfeld','Melk','Mistelbach','Mödling','Neunkirchen','St. Pölten (Stadt)',
+    'St. Pölten (Land)','Scheibbs','Tulln','Waidhofen an der Thaya',
+    'Waidhofen an der Ybbs (Stadt)','Wiener Neustadt (Stadt)','Wiener Neustadt (Land)','Zwettl'],
+  'Oberösterreich': ['Linz (Stadt)','Steyr (Stadt)','Wels (Stadt)','Braunau am Inn',
+    'Eferding','Freistadt','Gmunden','Grieskirchen','Kirchdorf an der Krems',
+    'Linz-Land','Perg','Ried im Innkreis','Rohrbach','Schärding','Steyr-Land',
+    'Urfahr-Umgebung','Vöcklabruck','Wels-Land'],
+  'Salzburg': ['Salzburg Stadt','Hallein (Tennengau)','Salzburg-Umgebung (Flachgau)',
+    'St. Johann im Pongau','Tamsweg (Lungau)','Zell am See (Pinzgau)'],
+  'Steiermark': ['Graz (Stadt)','Bruck-Mürzzuschlag','Deutschlandsberg',
+    'Graz-Umgebung','Hartberg-Fürstenfeld','Leibnitz','Leoben','Liezen',
+    'Murau','Murtal','Südoststeiermark','Voitsberg','Weiz'],
+  'Tirol': ['Innsbruck (Stadt)','Imst','Innsbruck-Land','Kitzbühel','Kufstein',
+    'Landeck','Lienz (Osttirol)','Reutte','Schwaz'],
+  'Vorarlberg': ['Bludenz','Bregenz','Dornbirn','Feldkirch'],
+  'Kärnten': ['Klagenfurt (Stadt)','Villach (Stadt)','Feldkirchen','Hermagor',
+    'Klagenfurt Land','St. Veit an der Glan','Spittal an der Drau',
+    'Villach Land','Völkermarkt','Wolfsberg','Weißensee'],
+  'Burgenland': ['Eisenstadt (Stadt)','Rust (Stadt)','Eisenstadt-Umgebung',
+    'Güssing','Jennersdorf','Mattersburg','Neusiedl am See','Oberpullendorf','Oberwart']
+};
+
+function fzUpdateBezirkeCreate(bl) {
+  var sel = document.getElementById('fz-bezirk');
+  if (!sel) return;
+  var list = FZ_BEZIRKE[bl] || [];
+  sel.innerHTML = list.length
+    ? '<option value="">– Bezirk wählen –</option>' + list.map(function(b){ return '<option>'+b+'</option>'; }).join('')
+    : '<option value="">– zuerst Bundesland wählen –</option>';
+}
+
+function fzEditUpdateBezirke(blSel, fname) {
+  var bz = document.getElementById('fzEbz_' + fname);
+  if (!bz) return;
+  var list = FZ_BEZIRKE[blSel.value] || [];
+  bz.innerHTML = '<option value="">– Bezirk wählen –</option>' + list.map(function(b){ return '<option>'+b+'</option>'; }).join('');
+}
+
+function fzAdminAdd(){
+  var name = (document.getElementById('fz-name')||{}).value.trim().toUpperCase();
+  var typ  = (document.getElementById('fz-typ')||{}).value;
+  var bl   = (document.getElementById('fz-bundesland')||{}).value;
+  var bz   = (document.getElementById('fz-bezirk')||{}).value;
+  if(!name){ toast('Bitte Fahrzeugnummer eingeben', 'error'); return; }
+  if(!bl){ toast('Bitte Bundesland wählen', 'error'); return; }
+  fetch('/api/fahrzeuge', {
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name:name, typ:typ, bundesland:bl, bezirk:bz})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      toast('Fahrzeug "'+name+'" hinzugefügt');
+      document.getElementById('fz-name').value='';
+      document.getElementById('fz-bundesland').value='';
+      fzUpdateBezirkeCreate('');
+      fzAdminLoad();
+    } else toast(d.error||'Fehler', 'error');
+  });
+}
+function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+/* ════════════════════════════════
+   STARTSEITE CONTENT-BLÖCKE
+════════════════════════════════ */
+var sbData = [];
+var sbEditId = null;
+
+var sbTypLabels = {
+  info:    'ℹ️ Info',
+  news:    '📰 News',
+  werbung: '📢 Werbung',
+  wichtig: '⚠️ Wichtig',
+  bild:    '🖼️ Bild'
+};
+var sbTypColors = {
+  info:    '#3f6fe8',
+  news:    '#0891b2',
+  werbung: '#d97706',
+  wichtig: '#dc2626',
+  bild:    '#7c3aed'
+};
+
+function loadStartseiteBlocks(){
+  fetch('/api/admin/startseite-blocks', {credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      sbData = d.blocks || [];
+      renderSbList();
+    }).catch(()=>{ document.getElementById('sbList').innerHTML='<div class="empty-state">Verbindungsfehler.</div>'; });
+}
+
+function renderSbList(){
+  var el = document.getElementById('sbList');
+  if(!el) return;
+  if(!sbData.length){ el.innerHTML='<div class="empty-state">Noch keine Blöcke angelegt. Klicke auf „+ Neuer Block" um zu beginnen.</div>'; return; }
+  el.innerHTML = sbData.map(function(b){
+    var col = sbTypColors[b.typ] || '#6b7280';
+    var lbl = sbTypLabels[b.typ] || b.typ;
+    var imgHtml = b.bild_url
+      ? '<img src="'+esc(b.bild_url)+'" alt="" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-top:8px;" onerror="this.style.display=\'none\'">'
+      : '';
+    var linkHtml = (b.link_text && b.link_url)
+      ? '<div style="margin-top:6px;"><a href="'+esc(b.link_url)+'" target="_blank" style="font-size:.78rem;color:'+col+';font-weight:700;text-decoration:underline;">'+esc(b.link_text)+' →</a></div>'
+      : '';
+    return '<div style="display:flex;flex-direction:column;gap:0;padding:14px 16px;border-bottom:1px solid var(--border);">'+
+      '<div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;">'+
+        '<span style="flex-shrink:0;font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:6px;background:'+col+'18;color:'+col+';border:1px solid '+col+'33;">'+lbl+'</span>'+
+        (b.titel?'<strong style="flex:1;min-width:0;font-size:.88rem;color:#0f1a33;">'+esc(b.titel)+'</strong>':'<span style="flex:1;min-width:0;font-size:.82rem;color:#94a3b8;font-style:italic;">(kein Titel)</span>')+
+        '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">'+
+          '<span style="font-size:.75rem;font-weight:700;color:'+(b.aktiv?'#16a34a':'#94a3b8')+'">'+(b.aktiv?'● Aktiv':'○ Inaktiv')+'</span>'+
+          '<button class="a-btn a-btn--sm" onclick="sbToggle(\''+b.id+'\')">'+(b.aktiv?'Deaktivieren':'Aktivieren')+'</button>'+
+          '<button class="a-btn a-btn--sm" onclick="sbOpenModal(\''+b.id+'\')">✎ Bearbeiten</button>'+
+          '<button class="a-btn a-btn--sm a-btn--danger" onclick="sbDelete(\''+b.id+'\',\''+esc(b.titel||'Block')+'\')">Löschen</button>'+
+        '</div>'+
+      '</div>'+
+      (b.inhalt?'<div style="font-size:.82rem;color:#374151;margin-top:6px;line-height:1.5;">'+esc(b.inhalt)+'</div>':'')+
+      imgHtml+
+      linkHtml+
+      '<div style="font-size:.7rem;color:#cbd5e1;margin-top:4px;">Reihenfolge: '+b.reihenfolge+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function sbOpenModal(id){
+  sbEditId = id;
+  var b = id ? sbData.find(function(x){return x.id===id;}) : null;
+  document.getElementById('sbModalTitle').textContent = b ? 'Block bearbeiten' : 'Neuer Block';
+  document.getElementById('sb-typ').value       = b ? (b.typ||'info') : 'info';
+  document.getElementById('sb-titel').value     = b ? (b.titel||'') : '';
+  document.getElementById('sb-inhalt').value    = b ? (b.inhalt||'') : '';
+  document.getElementById('sb-bild-url').value  = b ? (b.bild_url||'') : '';
+  document.getElementById('sb-link-text').value = b ? (b.link_text||'') : '';
+  document.getElementById('sb-link-url').value  = b ? (b.link_url||'') : '';
+  document.getElementById('sb-reihenfolge').value = b ? (b.reihenfolge||0) : 0;
+  document.getElementById('sb-aktiv').checked   = b ? !!b.aktiv : true;
+  document.getElementById('sbModal').hidden = false;
+}
+
+function sbCloseModal(){
+  document.getElementById('sbModal').hidden = true;
+  sbEditId = null;
+}
+
+document.getElementById('sbModalCancel').addEventListener('click', sbCloseModal);
+document.getElementById('sbModalBg').addEventListener('click', sbCloseModal);
+
+document.getElementById('sbModalSave').addEventListener('click', function(){
+  var payload = {
+    typ:         document.getElementById('sb-typ').value,
+    titel:       document.getElementById('sb-titel').value.trim(),
+    inhalt:      document.getElementById('sb-inhalt').value.trim(),
+    bild_url:    document.getElementById('sb-bild-url').value.trim(),
+    link_text:   document.getElementById('sb-link-text').value.trim(),
+    link_url:    document.getElementById('sb-link-url').value.trim(),
+    reihenfolge: parseInt(document.getElementById('sb-reihenfolge').value)||0,
+    aktiv:       document.getElementById('sb-aktiv').checked
+  };
+  var url    = sbEditId ? '/api/admin/startseite-blocks/'+sbEditId : '/api/admin/startseite-blocks';
+  var method = sbEditId ? 'PUT' : 'POST';
+  fetch(url, {method:method, credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast(sbEditId?'Block aktualisiert':'Block gespeichert'); sbCloseModal(); loadStartseiteBlocks(); }
+      else toast(d.error||'Fehler beim Speichern');
+    });
+});
+
+function sbToggle(id){
+  fetch('/api/admin/startseite-blocks/'+id+'/toggle', {method:'POST', credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast(d.aktiv?'Block aktiviert':'Block deaktiviert'); loadStartseiteBlocks(); }
+    });
+}
+
+function sbDelete(id, titel){
+  if(!confirm('Block "'+titel+'" wirklich löschen?')) return;
+  fetch('/api/admin/startseite-blocks/'+id, {method:'DELETE', credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok){ toast('Block gelöscht'); loadStartseiteBlocks(); }
+      else toast(d.error||'Fehler');
+    });
+}
+
+function goToBilling(){
+  var tok = '';
+  try{ tok = NursyAuth.get('admin'); }catch(e){}
+  fetch('/api/admin/billing-zugang', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', 'X-Nursy-Token': tok }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){ window.location.href = 'billing.html'; }
+    else { window.location.href = 'billing-login.html'; }
+  })
+  .catch(function(){ window.location.href = 'billing-login.html'; });
+}
+</script>
+</body>
+</html>

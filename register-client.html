@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nursy – Registrierung Klient</title><link rel="stylesheet" href="styles.css" />
+<style>
+  .ang-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;padding:13px 16px;border:1.5px solid #e5e7eb;border-radius:11px;background:#fafafa;transition:all .13s;margin-bottom:4px}
+  .ang-toggle:hover{border-color:#93c5fd;background:#f8fbff}
+  .ang-toggle input{display:none}
+  .ang-toggle__box{width:20px;height:20px;border:2px solid #d1d5db;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .13s}
+  .ang-toggle--on{border-color:#3f6fe8;background:#eff2fd}
+  .ang-toggle--on .ang-toggle__box{background:#3f6fe8;border-color:#3f6fe8}
+  .ang-toggle--on .ang-toggle__box::after{content:'';display:block;width:5px;height:10px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+  .ang-toggle__label{font-size:.9rem;font-weight:600;color:#374151}
+  .ang-toggle--on .ang-toggle__label{color:#1d4ed8}
+  .ang-wrap{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:11px;padding:18px 16px;margin-top:10px}
+  .ang-wrap .field__label{font-size:.72rem;font-weight:700;color:#374151;letter-spacing:.04em;text-transform:uppercase}
+
+  /* ── Anmelderollen ── */
+  .role-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1.5px solid #e5e7eb;width:100%;box-sizing:border-box;overflow:hidden}
+  .role-section__title{font-size:.72rem;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px}
+  .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;box-sizing:border-box}
+  @media(max-width:540px){.role-grid{grid-template-columns:1fr}}
+  .role-btn{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:13px 14px;border:2px solid #e5e7eb;border-radius:12px;
+    background:#fff;cursor:pointer;text-align:left;font-family:inherit;
+    transition:border-color .13s,background .13s;
+    width:100%;box-sizing:border-box;min-width:0;
+  }
+  .role-btn:hover{border-color:#93c5fd;background:#f8fbff}
+  .role-btn.selected{border-color:#3f6fe8;background:#eff2fd}
+  .role-btn__icon{font-size:1.4rem;line-height:1;flex-shrink:0;margin-top:1px}
+  .role-btn__text{min-width:0;flex:1}
+  .role-btn__label{font-size:.88rem;font-weight:700;color:#1e293b;display:block;word-break:break-word}
+  .role-btn.selected .role-btn__label{color:#1d4ed8}
+  .role-btn__sub{font-size:.72rem;color:#6b7280;margin-top:2px;display:block;word-break:break-word}
+  .role-extra{display:none;margin-top:12px;padding:14px 16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:11px;width:100%;box-sizing:border-box;overflow:hidden}
+  .role-extra.visible{display:block}
+  .role-extra .control{width:100%;box-sizing:border-box;max-width:100%}
+</style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert’s</a>
+      <a href="index.html#login">Login</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+<section class="section">
+  <div class="section__head">
+    <h2>Stammdaten bearbeiten</h2>
+  </div>
+  <div class="reg-steps">
+    <div class="reg-step reg-step--active"><div class="reg-step__num">1</div><div class="reg-step__label">Stammdaten</div></div>
+    <div class="reg-step__line"></div>
+    <div class="reg-step"><div class="reg-step__num">2</div><div class="reg-step__label">E-Mail</div></div>
+    <div class="reg-step__line"></div>
+    <div class="reg-step"><div class="reg-step__num">3</div><div class="reg-step__label">Pflegebedarf</div></div>
+  </div>
+
+  <div class="card">
+    <form class="form" data-demo-register="client">
+
+      <!-- Wer meldet sich an? -->
+      <div class="role-section">
+        <p class="role-section__title">Wer meldet sich an?</p>
+        <div class="role-grid">
+          <button class="role-btn selected" type="button" data-role="betroffene">
+            <span class="role-btn__icon">🧑</span>
+            <span class="role-btn__text">
+              <span class="role-btn__label">Ich bin der/die Betroffene</span>
+              <span class="role-btn__sub">Klient meldet sich selbst an</span>
+            </span>
+          </button>
+          <button class="role-btn" type="button" data-role="angehoerige">
+            <span class="role-btn__icon">👨‍👩‍👧</span>
+            <span class="role-btn__text">
+              <span class="role-btn__label">Ich bin Angehöriger</span>
+              <span class="role-btn__sub">Anmeldung für eine nahestehende Person</span>
+            </span>
+          </button>
+          <button class="role-btn" type="button" data-role="entlassung">
+            <span class="role-btn__icon">🏥</span>
+            <span class="role-btn__text">
+              <span class="role-btn__label">Entlassungsmanagement</span>
+              <span class="role-btn__sub">Krankenhaus / Reha / Einrichtung</span>
+            </span>
+          </button>
+          <button class="role-btn" type="button" data-role="sachwalter">
+            <span class="role-btn__icon">⚖️</span>
+            <span class="role-btn__text">
+              <span class="role-btn__label">Sachwalter / Vertreter</span>
+              <span class="role-btn__sub">Rechtliche Vertretung der betroffenen Person</span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Angehöriger: Beziehung -->
+        <div class="role-extra" id="roleExtraAngehoerige">
+          <label class="field__label" for="roleBeziehung">Beziehung zur betroffenen Person</label>
+          <select class="control" id="roleBeziehung" style="margin-top:6px;">
+            <option value="">— bitte wählen —</option>
+            <option value="ehepartner">Ehepartner/in / Lebenspartner/in</option>
+            <option value="elternteil">Elternteil</option>
+            <option value="kind">Kind</option>
+            <option value="geschwister">Geschwister</option>
+            <option value="sonstige">Sonstige Verwandte / Bekannte</option>
+          </select>
+        </div>
+
+        <!-- Entlassungsmanagement: Einrichtung -->
+        <div class="role-extra" id="roleExtraEntlassung">
+          <label class="field__label" for="roleEinrichtung">Einrichtung / Institution</label>
+          <input class="control" id="roleEinrichtung" type="text" placeholder="Einrichtung / Institution" style="margin-top:6px;" />
+        </div>
+
+        <!-- Sachwalter: Art -->
+        <div class="role-extra" id="roleExtraSachwalter">
+          <label class="field__label" for="roleSachwalterArt">Art der Vertretung</label>
+          <select class="control" id="roleSachwalterArt" style="margin-top:6px;">
+            <option value="">— bitte wählen —</option>
+            <option value="gerichtlich">Gerichtlich bestellter Erwachsenenvertreter</option>
+            <option value="gewaehlter">Gewählter Erwachsenenvertreter</option>
+            <option value="vorsorge">Vorsorgevollmacht</option>
+            <option value="gesetzlich">Gesetzlicher Vertreter (Elternteil)</option>
+            <option value="sonstige">Sonstige Vollmacht</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-error" role="alert"></div>
+
+      <!-- Klientendaten-Überschrift -->
+      <div style="margin-bottom:16px;padding:12px 16px;background:#f0f6ff;border:1.5px solid rgba(63,111,232,.18);border-radius:11px;">
+        <div style="font-size:.78rem;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Klientendaten</div>
+        <div style="font-size:.82rem;color:#6b7280;line-height:1.5;">Hier bitte die Daten der Person eingeben, welche die Leistung in Anspruch nimmt.</div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="field__label" for="c-vn">Vorname</label>
+          <input class="control" id="c-vn" type="text" placeholder="Vorname" required />
+          <div class="help">Wie sollen wir dich ansprechen?</div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="c-nn">Nachname</label>
+          <input class="control" id="c-nn" type="text" placeholder="Nachname" required />
+          <div class="help">Für die korrekte Zuordnung.</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="field">
+        <label class="field__label" for="c-gender">Geschlecht</label>
+        <select class="control" id="c-gender" required>
+          <option value="">— bitte wählen —</option>
+          <option value="f">Weiblich</option>
+          <option value="m">Männlich</option>
+          <option value="d">Divers</option>
+        </select>
+        <div class="help">Wird für die Profildarstellung verwendet.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      
+      <div class="field">
+        <label class="field__label" for="c-str">Straße & Hausnummer</label>
+        <input class="control" id="c-str" type="text" placeholder="Straße & Hausnummer" required />
+        <div class="help">Wird für Einsätze und Abrechnung benötigt.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="field__label" for="c-plz">PLZ</label>
+          <input class="control" id="c-plz" type="text" inputmode="numeric" placeholder="PLZ" required autocomplete="postal-code" />
+          <div class="help">Postleitzahl.</div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="c-ort">Wohnort</label>
+          <input class="control" id="c-ort" type="text" placeholder="Wohnort" required />
+          <div class="help">Ort für Matching.</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="field">
+        <label class="field__label" for="c-bezirk">Bezirk</label>
+        <input class="control" id="c-bezirk" type="text" placeholder="wird automatisch ermittelt" readonly tabindex="-1" style="background:#f9fafb;color:#6b7280;cursor:default;" />
+        <div class="help">Wird anhand der PLZ automatisch befüllt.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="field">
+        <label class="field__label" for="c-email">E-Mail-Adresse</label>
+        <input class="control" id="c-email" type="email" placeholder="E-Mail-Adresse" required autocomplete="off" />
+        <div class="help">Dorthin senden wir den Bestätigungslink.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="field__label" for="c-pw">Passwort</label>
+          <input class="control" id="c-pw" type="password" placeholder="Passwort" minlength="8" required autocomplete="new-password" />
+          <div class="help">Mindestens 8 Zeichen.</div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="c-pw2">Passwort wiederholen</label>
+          <input class="control" id="c-pw2" type="password" placeholder="Passwort wiederholen" minlength="8" required autocomplete="new-password" />
+          <div class="help">Zur Sicherheit bitte wiederholen.</div>
+        </div>
+      </div>
+
+      <div style="height:18px"></div>
+
+      <!-- Angehörige -->
+      <div style="margin-bottom:18px">
+        <div style="font-size:.78rem;font-weight:700;color:#374151;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">Angehörige</div>
+        <label class="ang-toggle" id="angToggle">
+          <input type="checkbox" id="ang-vorhanden">
+          <div class="ang-toggle__box"></div>
+          <span class="ang-toggle__label">Angehörige vorhanden</span>
+        </label>
+
+        <div class="ang-wrap" id="angWrap" style="display:none">
+          <div class="grid2" style="margin-bottom:10px">
+            <div class="field">
+              <label class="field__label" for="ang-vn">Vorname</label>
+              <input class="control" id="ang-vn" type="text" placeholder="Vorname" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="ang-nn">Nachname</label>
+              <input class="control" id="ang-nn" type="text" placeholder="Nachname" />
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:10px">
+            <label class="field__label" for="ang-verh">Verhältnis zum Klienten</label>
+            <select class="control" id="ang-verh">
+              <option value="">— bitte wählen —</option>
+              <option value="kind">Kind</option>
+              <option value="partner">Partner / Ehepartner</option>
+              <option value="geschwister">Geschwister</option>
+              <option value="elternteil">Elternteil</option>
+              <option value="enkel">Enkel</option>
+              <option value="freund">Freund / Bekannter</option>
+              <option value="betreuer">Gesetzlicher Betreuer</option>
+              <option value="sonstiges">Sonstiges</option>
+            </select>
+          </div>
+
+          <div class="field" style="margin-bottom:10px">
+            <label class="field__label" for="ang-str">Straße & Hausnummer</label>
+            <input class="control" id="ang-str" type="text" placeholder="Straße & Hausnummer" />
+          </div>
+
+          <div class="grid2" style="margin-bottom:10px">
+            <div class="field">
+              <label class="field__label" for="ang-plz">PLZ</label>
+              <input class="control" id="ang-plz" type="text" inputmode="numeric" placeholder="PLZ" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="ang-ort">Ort</label>
+              <input class="control" id="ang-ort" type="text" placeholder="Ort" />
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label class="field__label" for="ang-tel">Telefonnummer</label>
+              <input class="control" id="ang-tel" type="tel" placeholder="Telefonnummer" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="ang-email">E-Mail</label>
+              <input class="control" id="ang-email" type="email" placeholder="E-Mail" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="control btn primary" type="submit" id="regClientSubmit">Speichern</button>
+
+      <p class="note" style="margin-top:12px;">
+        Bereits registriert? <a href="login-client.html">Anmelden</a>
+      </p>
+    </form>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script src="plz-bezirk.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  // ── Rollenwahl ──────────────────────────────────────────
+  var roleBtns = document.querySelectorAll('.role-btn');
+  var extraMap = {
+    angehoerige: document.getElementById('roleExtraAngehoerige'),
+    entlassung:  document.getElementById('roleExtraEntlassung'),
+    sachwalter:  document.getElementById('roleExtraSachwalter'),
+  };
+
+  // Mapping roleBeziehung → ang-verh Optionswerte
+  var beziehungMap = {
+    ehepartner: 'partner',
+    elternteil: 'elternteil',
+    kind:       'kind',
+    geschwister:'geschwister',
+    sonstige:   'sonstiges',
+  };
+
+  function syncAngehoerige(beziehungVal){
+    var angCb     = document.getElementById('ang-vorhanden');
+    var angToggle = document.getElementById('angToggle');
+    var angWrap   = document.getElementById('angWrap');
+    var angVerh   = document.getElementById('ang-verh');
+    if(!angCb || !angWrap) return;
+    // Checkbox aktivieren und Bereich aufklappen
+    angCb.checked = true;
+    if(angToggle) angToggle.classList.add('ang-toggle--on');
+    angWrap.style.display = '';
+    // Verhältnis übernehmen
+    if(angVerh && beziehungVal && beziehungMap[beziehungVal]){
+      angVerh.value = beziehungMap[beziehungVal];
+    }
+  }
+
+  function resetAngehoerige(){
+    var angCb     = document.getElementById('ang-vorhanden');
+    var angToggle = document.getElementById('angToggle');
+    var angWrap   = document.getElementById('angWrap');
+    if(!angCb) return;
+    angCb.checked = false;
+    if(angToggle) angToggle.classList.remove('ang-toggle--on');
+    if(angWrap)   angWrap.style.display = 'none';
+  }
+
+  roleBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      roleBtns.forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      Object.values(extraMap).forEach(function(el){ if(el) el.classList.remove('visible'); });
+      var role = btn.dataset.role;
+      if(extraMap[role]) extraMap[role].classList.add('visible');
+      // Wenn nicht Angehöriger: Sektion wieder schließen
+      if(role !== 'angehoerige') resetAngehoerige();
+      // Wenn Angehöriger sofort aufklappen (Checkbox öffnet sich, Beziehung folgt per Dropdown)
+      if(role === 'angehoerige') syncAngehoerige('');
+    });
+  });
+
+  // Wenn Beziehung im Dropdown geändert wird → Verhältnis live übernehmen
+  var roleBeziehungEl = document.getElementById('roleBeziehung');
+  if(roleBeziehungEl){
+    roleBeziehungEl.addEventListener('change', function(){
+      syncAngehoerige(this.value);
+    });
+  }
+
+  /* ── Hilfsfunktion ── */
+  function safeParse(raw){ try{ return JSON.parse(raw); }catch(e){ return null; } }
+
+  /* ── Edit-Modus: vorhandene Daten laden ── */
+  var existingId = '';
+  try{ existingId = localStorage.getItem('nursy_current_patient_id') || localStorage.getItem('nursy_pending_patient_id') || ''; }catch(e){}
+  var isEditMode = !!existingId;
+
+  if(isEditMode){
+    /* Stepper und Titel anpassen */
+    var stepperEl = document.querySelector('.reg-steps');
+    if(stepperEl) stepperEl.style.display = 'none';
+    var h2El = document.querySelector('.section__head h2');
+    if(h2El) h2El.textContent = 'Stammdaten bearbeiten';
+    /* Passwort-Pflicht aufheben */
+    var pwEl  = document.getElementById('c-pw');
+    var pw2El = document.getElementById('c-pw2');
+    if(pwEl)  { pwEl.removeAttribute('required');  pwEl.placeholder  = 'Leer lassen = unverändert'; }
+    if(pw2El) { pw2El.removeAttribute('required'); pw2El.placeholder = 'Leer lassen = unverändert'; }
+    /* Felder aus localStorage vorbelegen (keyed + Fallback) */
+    var regData = safeParse(localStorage.getItem('nursy_registration_data_v1_' + existingId)) || safeParse(localStorage.getItem('nursy_registration_data_v1')) || {};
+    function setVal(id, val){ var el = document.getElementById(id); if(el && val) el.value = val; }
+    setVal('c-vn',     regData.vorname);
+    setVal('c-nn',     regData.nachname);
+    setVal('c-gender', regData.gender);
+    setVal('c-str',    regData.address);
+    setVal('c-plz',    regData.plz);
+    setVal('c-ort',    regData.ort);
+    setVal('c-bezirk', regData.bezirk);
+    setVal('c-email',  regData.email);
+    /* Bezirk-Farbe */
+    var bezEl2 = document.getElementById('c-bezirk');
+    if(bezEl2 && bezEl2.value) bezEl2.style.color = '#111827';
+    /* Auch vom Server laden (frische Daten) */
+    fetch('/api/patient/data/' + existingId)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || !d.ok || !d.patient) return;
+        var p = d.patient;
+        setVal('c-vn',     p.vorname);
+        setVal('c-nn',     p.nachname);
+        setVal('c-gender', p.gender);
+        setVal('c-str',    p.address);
+        setVal('c-plz',    p.plz);
+        setVal('c-ort',    p.ort);
+        setVal('c-bezirk', p.bezirk);
+        setVal('c-email',  p.email);
+        if(bezEl2 && bezEl2.value) bezEl2.style.color = '#111827';
+        /* Angehörige vorbelegen */
+        var angList = p.angehoerige || [];
+        if(angList.length){
+          var firstAng = angList[0];
+          var angCbEl = document.getElementById('ang-vorhanden');
+          var angTgl  = document.getElementById('angToggle');
+          var angWrp  = document.getElementById('angWrap');
+          if(angCbEl){ angCbEl.checked = true; }
+          if(angTgl)  angTgl.classList.add('ang-toggle--on');
+          if(angWrp)  angWrp.style.display = '';
+          setVal('ang-vn',   firstAng.vorname);
+          setVal('ang-nn',   firstAng.nachname);
+          setVal('ang-verh', firstAng.verh);
+          setVal('ang-tel',  firstAng.tel);
+          setVal('ang-email',firstAng.email);
+        }
+      })
+      .catch(function(){});
+    /* Submit-Button-Text */
+    var submitBtn = document.getElementById('regClientSubmit');
+    if(submitBtn) submitBtn.textContent = 'Änderungen speichern';
+    /* Hinweistext anpassen */
+    var note = document.querySelector('p.note');
+    if(note) note.innerHTML = '<a href="dashboard-client.html">← Zurück zum Dashboard</a>';
+  }
+
+  var plz = document.getElementById('c-plz');
+  var bez = document.getElementById('c-bezirk');
+  if(plz && bez){
+    plz.addEventListener('input', function(){
+      var v = this.value.trim();
+      var result = (v.length === 4 && typeof getBezirkFromPLZ === 'function') ? getBezirkFromPLZ(v) : '';
+      bez.value = result;
+      bez.style.color = result ? '#111827' : '#6b7280';
+    });
+  }
+
+  var angToggle = document.getElementById('angToggle');
+  var angWrap   = document.getElementById('angWrap');
+  var angCb     = document.getElementById('ang-vorhanden');
+  if(angToggle && angWrap && angCb){
+    angToggle.addEventListener('click', function(){
+      angCb.checked = !angCb.checked;
+      angToggle.classList.toggle('ang-toggle--on', angCb.checked);
+      angWrap.style.display = angCb.checked ? '' : 'none';
+    });
+  }
+
+  /* API registration for patient */
+  var clientForm = document.querySelector('form[data-demo-register="client"]');
+  if(clientForm){
+    clientForm.addEventListener('submit', async function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      var btn    = document.getElementById('regClientSubmit');
+      var errBox = clientForm.querySelector('.form-error');
+      var pw     = (document.getElementById('c-pw')||{}).value || '';
+      var pw2    = (document.getElementById('c-pw2')||{}).value || '';
+      if(pw && pw !== pw2){
+        if(errBox){ errBox.textContent = 'Die Passwörter stimmen nicht überein.'; errBox.style.display='block'; }
+        return;
+      }
+      if(btn) btn.disabled = true;
+      var angData = [];
+      if(angCb && angCb.checked){
+        angData.push({
+          vorname:  (document.getElementById('ang-vn')||{}).value || '',
+          nachname: (document.getElementById('ang-nn')||{}).value || '',
+          verh:     (document.getElementById('ang-verh')||{}).value || '',
+          tel:      (document.getElementById('ang-tel')||{}).value || '',
+          email:    (document.getElementById('ang-email')||{}).value || ''
+        });
+      }
+      var formPayload = {
+        vorname:     document.getElementById('c-vn').value.trim(),
+        nachname:    document.getElementById('c-nn').value.trim(),
+        gender:      document.getElementById('c-gender').value,
+        address:     document.getElementById('c-str').value.trim(),
+        plz:         document.getElementById('c-plz').value.trim(),
+        ort:         document.getElementById('c-ort').value.trim(),
+        bezirk:      (document.getElementById('c-bezirk')||{}).value || '',
+        email:       document.getElementById('c-email').value.trim(),
+        angehoerige: angData
+      };
+      if(pw) formPayload.password = pw;
+
+      /* ── Edit-Modus: PUT an Server + localStorage ── */
+      if(isEditMode){
+        try{
+          await fetch('/api/patient/data/' + existingId, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(formPayload)
+          });
+        }catch(err){}
+        try{
+          var _profileData = { firstName: formPayload.vorname, lastName: formPayload.nachname, street: formPayload.address, zip: formPayload.plz, city: formPayload.ort, email: formPayload.email };
+          localStorage.setItem('nursy_registration_data_v1_' + existingId, JSON.stringify(formPayload));
+          localStorage.setItem('nursy_profile_client_v1_'    + existingId, JSON.stringify(_profileData));
+          localStorage.setItem('nursy_registration_data_v1', JSON.stringify(formPayload));
+          localStorage.setItem('nursy_profile_client_v1',    JSON.stringify(_profileData));
+        }catch(e){}
+        window.location.href = 'dashboard-client.html';
+        return;
+      }
+
+      /* ── Neuregistrierung: POST ── */
+      try{
+        var resp = await fetch('/api/register/patient', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(formPayload)
+        });
+        var data = await resp.json();
+        if(!resp.ok || !data.ok){
+          if(errBox){ errBox.textContent = data.error || 'Registrierung fehlgeschlagen.'; errBox.style.display='block'; }
+          if(btn) btn.disabled = false;
+          return;
+        }
+        try{
+          var _newId = data.id || '';
+          var _prof2 = { firstName: formPayload.vorname, lastName: formPayload.nachname, street: formPayload.address, zip: formPayload.plz, city: formPayload.ort, email: formPayload.email };
+          localStorage.setItem('nursy_pending_patient_id', _newId);
+          localStorage.setItem('nursy_pending_patient_name', data.name || '');
+          /* Keyed (mit neuer ID) + ungekey-ter Fallback */
+          localStorage.setItem('nursy_registration_data_v1_' + _newId, JSON.stringify(formPayload));
+          localStorage.setItem('nursy_profile_client_v1_'    + _newId, JSON.stringify(_prof2));
+          localStorage.setItem('nursy_registration_data_v1', JSON.stringify(formPayload));
+          localStorage.setItem('nursy_profile_client_v1',    JSON.stringify(_prof2));
+        }catch(e){}
+        window.location.href = 'register-client-need.html';
+      }catch(err){
+        if(errBox){ errBox.textContent = 'Verbindungsfehler. Bitte versuche es erneut.'; errBox.style.display='block'; }
+        if(btn) btn.disabled = false;
+      }
+    }, true);
+  }
+}());
+</script>
+</body>
+</html>

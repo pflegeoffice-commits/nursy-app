@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nursy – Registrierung Pflegekraft</title><link rel="stylesheet" href="styles.css" />    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Nursy Startseite">
+      <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+      <span class="brand__text">
+        <strong>Nursy</strong>
+        <span>Fürsorge mit Herz</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="functions.html">Funktionen</a>
+      <a href="how.html">So funktioniert’s</a>
+      <a href="index.html#login">Login</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+<section class="section">
+  <div class="section__head">
+    <h2>Registrierung – Pflegekraft</h2>
+  </div>
+  <div class="reg-steps">
+    <div class="reg-step reg-step--active"><div class="reg-step__num">1</div><div class="reg-step__label">Stammdaten</div></div>
+    <div class="reg-step__line"></div>
+    <div class="reg-step"><div class="reg-step__num">2</div><div class="reg-step__label">E-Mail</div></div>
+    <div class="reg-step__line"></div>
+    <div class="reg-step"><div class="reg-step__num">3</div><div class="reg-step__label">Profil</div></div>
+    <div class="reg-step__line"></div>
+    <div class="reg-step"><div class="reg-step__num">4</div><div class="reg-step__label">Verfügbarkeit</div></div>
+  </div>
+
+  <div class="card">
+    <form class="form" data-demo-register="care">
+      <div class="form-error" role="alert"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="field__label" for="p-vn">Vorname</label>
+          <input class="control" id="p-vn" type="text" placeholder="Vorname" required />
+          <div class="help">Wie sollen wir dich ansprechen?</div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="p-nn">Nachname</label>
+          <input class="control" id="p-nn" type="text" placeholder="Nachname" required />
+          <div class="help">Für die korrekte Zuordnung.</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="field">
+        <label class="field__label" for="p-gender">Geschlecht</label>
+        <select class="control" id="p-gender" required>
+          <option value="">— bitte wählen —</option>
+          <option value="f">Weiblich</option>
+          <option value="m">Männlich</option>
+          <option value="d">Divers</option>
+        </select>
+        <div class="help">Wird für die Profildarstellung verwendet.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      
+      <div class="field">
+        <label class="field__label" for="p-str">Straße & Hausnummer</label>
+        <input class="control" id="p-str" type="text" placeholder="Straße &amp; Hausnummer" required />
+        <div class="help">Wird für Abrechnung und Nachweise benötigt.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="field__label" for="p-plz">PLZ</label>
+          <input class="control" id="p-plz" type="text" inputmode="numeric" placeholder="PLZ" required autocomplete="postal-code" />
+          <div class="help">Postleitzahl.</div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="p-ort">Wohnort</label>
+          <input class="control" id="p-ort" type="text" placeholder="Wohnort" required />
+          <div class="help">Ort für Matching.</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="field">
+        <label class="field__label" for="p-bezirk">Bezirk</label>
+        <input class="control" id="p-bezirk" type="text" placeholder="wird automatisch ermittelt" readonly tabindex="-1" style="background:#f9fafb;color:#6b7280;cursor:default;" />
+        <div class="help">Wird anhand der PLZ automatisch befüllt.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="field">
+        <label class="field__label" for="p-email">E-Mail-Adresse</label>
+        <input class="control" id="p-email" type="email" placeholder="name@beispiel.at" required />
+        <div class="help">Dorthin senden wir den Bestätigungslink.</div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="field__label" for="p-pw">Passwort</label>
+          <input class="control" id="p-pw" type="password" placeholder="mind. 8 Zeichen" minlength="8" required />
+          <div class="help">Mindestens 8 Zeichen.</div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="p-pw2">Passwort wiederholen</label>
+          <input class="control" id="p-pw2" type="password" placeholder="Passwort erneut eingeben" minlength="8" required />
+          <div class="help">Zur Sicherheit bitte wiederholen.</div>
+        </div>
+      </div>
+
+      <div style="height:18px"></div>
+
+      <button class="control btn primary" type="submit" id="regSubmit">Registrieren</button>
+
+      <p class="note" style="margin-top:12px;">
+        Bereits registriert? <a href="login-care.html">Anmelden</a>
+      </p>
+    </form>
+  </div>
+</section>
+</main>
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="muted">© Nursy – Fürsorge mit Herz</span>
+    <div class="footer__links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script src="plz-bezirk.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  var plz = document.getElementById('p-plz');
+  var bez = document.getElementById('p-bezirk');
+  if(plz && bez){
+    plz.addEventListener('input', function(){
+      var v = this.value.trim();
+      var result = (v.length === 4 && typeof getBezirkFromPLZ === 'function') ? getBezirkFromPLZ(v) : '';
+      bez.value = result;
+      bez.style.color = result ? '#111827' : '#6b7280';
+    });
+  }
+
+  /* API registration — overrides demo handler from script.js */
+  var form = document.querySelector('form[data-demo-register="care"]');
+  if(form){
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      var btn = document.getElementById('regSubmit');
+      var errBox = form.querySelector('.form-error');
+      var pw  = document.getElementById('p-pw').value;
+      var pw2 = document.getElementById('p-pw2').value;
+      if(pw !== pw2){
+        if(errBox){ errBox.textContent = 'Die Passwörter stimmen nicht überein.'; errBox.style.display='block'; }
+        return;
+      }
+      if(btn) btn.disabled = true;
+      try{
+        var resp = await fetch('/api/register/care', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            vorname:  document.getElementById('p-vn').value.trim(),
+            nachname: document.getElementById('p-nn').value.trim(),
+            gender:   document.getElementById('p-gender').value,
+            address:  document.getElementById('p-str').value.trim(),
+            plz:      document.getElementById('p-plz').value.trim(),
+            ort:      document.getElementById('p-ort').value.trim(),
+            bezirk:   (document.getElementById('p-bezirk')||{}).value || '',
+            email:    document.getElementById('p-email').value.trim(),
+            password: pw
+          })
+        });
+        var data = await resp.json();
+        if(!resp.ok || !data.ok){
+          if(errBox){ errBox.textContent = data.error || 'Registrierung fehlgeschlagen.'; errBox.style.display='block'; }
+          if(btn) btn.disabled = false;
+          return;
+        }
+        try{ localStorage.setItem('nursy_current_user', JSON.stringify(data.user)); }catch(err){}
+        window.location.href = 'dashboard-care.html';
+      }catch(err){
+        if(errBox){ errBox.textContent = 'Verbindungsfehler. Bitte versuche es erneut.'; errBox.style.display='block'; }
+        if(btn) btn.disabled = false;
+      }
+    }, true); /* capture=true → runs before script.js handler */
+  }
+}());
+</script>
+</body>
+</html>

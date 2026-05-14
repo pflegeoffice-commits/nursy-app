@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meine Verträge – Nursy</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body { background:var(--bg,#f0f4f8); min-height:100vh; margin:0; font-family:'Inter',sans-serif; }
+.vt-header { background:#fff; border-bottom:1px solid #e2e8f0; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.vt-header h1 { margin:0; font-size:1.1rem; font-weight:900; color:#0f1a33; }
+.vt-header .sub { font-size:.72rem; color:#7a8faa; margin-top:1px; }
+.vt-back { font-size:.78rem; color:#2563eb; text-decoration:none; font-weight:700; padding:6px 12px; border:1.5px solid #bfdbfe; border-radius:8px; background:#eff6ff; }
+.vt-body { max-width:700px; margin:0 auto; padding:20px 16px; }
+
+/* Upload card */
+.vt-upload { background:#fff; border-radius:14px; border:1.5px dashed #93c5fd; padding:22px 20px; margin-bottom:22px; }
+.vt-upload h2 { font-size:.92rem; font-weight:800; color:#1e3a5f; margin:0 0 14px; }
+.vt-upload .f-row { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+.vt-upload label { font-size:.78rem; font-weight:700; color:#374151; }
+.vt-upload input[type=text], .vt-upload input[type=file] {
+  padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:8px;
+  font-size:.9rem; font-family:inherit; outline:none; width:100%; box-sizing:border-box;
+  transition:border-color .15s;
+}
+.vt-upload input[type=text]:focus { border-color:#2563eb; }
+.vt-upload input[type=file] { padding:7px 10px; background:#f8fafc; cursor:pointer; }
+.btn-upload { background:#1d4ed8; color:#fff; border:none; border-radius:9px; padding:10px 22px;
+  font-size:.88rem; font-weight:800; cursor:pointer; width:100%; margin-top:4px; transition:background .15s; }
+.btn-upload:hover { background:#1a40c0; }
+.btn-upload:disabled { background:#93c5fd; cursor:not-allowed; }
+
+/* Contract list */
+.vt-card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:16px 18px; margin-bottom:12px; }
+.vt-card__head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.vt-card__title { font-size:.95rem; font-weight:800; color:#0f1a33; margin-bottom:3px; }
+.vt-card__meta { font-size:.72rem; color:#7a8faa; }
+.vt-card__badge { display:inline-block; background:#e0f2fe; color:#0369a1; border-radius:20px;
+  padding:2px 10px; font-size:.7rem; font-weight:700; margin-left:6px; }
+.vt-card__badge--signed { background:#dcfce7; color:#15803d; }
+.vt-card__actions { display:flex; gap:7px; flex-wrap:wrap; margin-top:12px; }
+.btn-sm { padding:6px 13px; border-radius:8px; font-size:.78rem; font-weight:700; cursor:pointer; border:1.5px solid; transition:all .15s; }
+.btn-link   { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+.btn-link:hover { background:#dbeafe; }
+.btn-sigs   { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.btn-sigs:hover { background:#dcfce7; }
+.btn-dl     { background:#f8fafc; color:#374151; border-color:#e2e8f0; }
+.btn-dl:hover { background:#f1f5f9; }
+.btn-del    { background:#fff5f5; color:#dc2626; border-color:#fecaca; }
+.btn-del:hover { background:#fee2e2; }
+
+/* Signaturen modal */
+.vt-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100;
+  display:none; align-items:center; justify-content:center; padding:16px; }
+.vt-overlay.active { display:flex; }
+.vt-modal { background:#fff; border-radius:16px; width:100%; max-width:480px; max-height:85vh;
+  overflow:hidden; display:flex; flex-direction:column; }
+.vt-modal__hdr { padding:16px 18px 14px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; }
+.vt-modal__hdr h3 { margin:0; font-size:.95rem; font-weight:800; color:#0f1a33; }
+.vt-modal__close { background:none; border:none; font-size:1.2rem; cursor:pointer; color:#7a8faa; padding:4px; }
+.vt-modal__body { padding:16px 18px; overflow-y:auto; flex:1; }
+.sig-row { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid #f1f5f9; }
+.sig-row:last-child { border-bottom:none; }
+.sig-row__name { font-weight:700; font-size:.88rem; color:#0f1a33; }
+.sig-row__meta { font-size:.72rem; color:#7a8faa; margin-top:2px; }
+.sig-row__thumb { width:64px; height:36px; border:1px solid #e2e8f0; border-radius:6px; object-fit:contain; background:#f8fafc; flex-shrink:0; }
+.empty-state { text-align:center; padding:30px 0; color:#94a3b8; font-size:.85rem; }
+
+/* Link modal */
+.link-box { background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:10px; padding:12px 14px; word-break:break-all; font-size:.8rem; color:#0369a1; font-weight:600; margin:10px 0; }
+.btn-copy { background:#0ea5e9; color:#fff; border:none; border-radius:8px; padding:8px 18px; font-size:.82rem; font-weight:800; cursor:pointer; width:100%; }
+.btn-copy:hover { background:#0284c7; }
+
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#1e293b; color:#fff; padding:10px 20px; border-radius:10px; font-size:.85rem;
+  font-weight:700; opacity:0; transition:all .3s; pointer-events:none; z-index:9999; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="vt-header">
+  <div>
+    <h1>📄 Meine Verträge</h1>
+    <div class="sub">PDFs hochladen · Signatur-Link generieren · Patienten digital unterschreiben lassen</div>
+  </div>
+  <a href="dashboard-care.html" class="vt-back">← Dashboard</a>
+</div>
+
+<div class="vt-body">
+
+  <!-- Upload -->
+  <div class="vt-upload">
+    <h2>➕ Neuen Vertrag hochladen</h2>
+    <div class="f-row">
+      <label for="vtTitel">Bezeichnung des Vertrags</label>
+      <input type="text" id="vtTitel" placeholder="z. B. Betreuungsvertrag Standard 2024">
+    </div>
+    <div class="f-row">
+      <label for="vtDatei">PDF-Datei auswählen</label>
+      <input type="file" id="vtDatei" accept=".pdf">
+    </div>
+    <button class="btn-upload" id="uploadBtn" onclick="vtUpload()">📤 Vertrag hochladen</button>
+  </div>
+
+  <!-- Liste -->
+  <div id="vtListe"><div class="empty-state">Lade Verträge…</div></div>
+
+</div>
+
+<!-- Signaturen Modal -->
+<div class="vt-overlay" id="sigOverlay" onclick="if(event.target===this)closeSigModal()">
+  <div class="vt-modal">
+    <div class="vt-modal__hdr">
+      <h3 id="sigModalTitle">Signaturen</h3>
+      <button class="vt-modal__close" onclick="closeSigModal()">✕</button>
+    </div>
+    <div class="vt-modal__body" id="sigModalBody"></div>
+  </div>
+</div>
+
+<!-- Link Modal -->
+<div class="vt-overlay" id="linkOverlay" onclick="if(event.target===this)closeLinkModal()">
+  <div class="vt-modal">
+    <div class="vt-modal__hdr">
+      <h3>🔗 Signatur-Link</h3>
+      <button class="vt-modal__close" onclick="closeLinkModal()">✕</button>
+    </div>
+    <div class="vt-modal__body">
+      <p style="font-size:.85rem;color:#374151;margin:0 0 8px;">Diesen Link am Smartphone oder Tablet des Patienten öffnen. Nach der Unterschrift ist der Link einmalig verwendet.</p>
+      <div class="link-box" id="linkText"></div>
+      <button class="btn-copy" onclick="copyLink()">📋 Link kopieren</button>
+      <button class="btn-sm btn-link" style="margin-top:8px;width:100%;text-align:center;display:block;" onclick="openLink()">🌐 Link direkt öffnen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var _vtCurrentLink = '';
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2800); }
+
+function fmt(dt){ if(!dt) return '–'; var d=dt.replace('T',' ').slice(0,16); return d; }
+
+function loadVertraege(){
+  fetch('/api/care/vertraege',{credentials:'include'})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d.ok){ document.getElementById('vtListe').innerHTML='<div class="empty-state">Nicht angemeldet.</div>'; return; }
+    var list=d.vertraege||[];
+    if(!list.length){ document.getElementById('vtListe').innerHTML='<div class="empty-state">Noch keine Verträge hochgeladen.</div>'; return; }
+    document.getElementById('vtListe').innerHTML=list.map(function(v){
+      var badge=v.signatur_anzahl>0
+        ?'<span class="vt-card__badge vt-card__badge--signed">'+v.signatur_anzahl+' Unterschrift'+(v.signatur_anzahl!==1?'en':'')+'</span>'
+        :'<span class="vt-card__badge">Noch keine Signaturen</span>';
+      return '<div class="vt-card">'
+        +'<div class="vt-card__head">'
+          +'<div>'
+            +'<div class="vt-card__title">📄 '+esc(v.titel)+badge+'</div>'
+            +'<div class="vt-card__meta">Hochgeladen: '+fmt(v.erstellt_am)+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div class="vt-card__actions">'
+          +'<button class="btn-sm btn-link" onclick="genLink(\''+v.id+'\')">🔗 Signatur-Link erstellen</button>'
+          +(v.signatur_anzahl>0?'<button class="btn-sm btn-sigs" onclick="showSigs(\''+v.id+'\',\''+esc(v.titel)+'\')">✍️ Signaturen ('+v.signatur_anzahl+')</button>':'')
+          +'<a class="btn-sm btn-dl" href="/api/care/vertraege/'+v.id+'/download" download>⬇️ PDF</a>'
+          +'<button class="btn-sm btn-del" onclick="delVertrag(\''+v.id+'\',\''+esc(v.titel)+'\')">🗑️ Löschen</button>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  })
+  .catch(function(){ document.getElementById('vtListe').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
+}
+
+function vtUpload(){
+  var titel=document.getElementById('vtTitel').value.trim();
+  var file=document.getElementById('vtDatei').files[0];
+  if(!titel){ toast('Bitte Bezeichnung eingeben'); return; }
+  if(!file){ toast('Bitte PDF auswählen'); return; }
+  var btn=document.getElementById('uploadBtn');
+  btn.disabled=true; btn.textContent='⏳ Wird hochgeladen…';
+  var fd=new FormData();
+  fd.append('titel',titel);
+  fd.append('datei',file);
+  fetch('/api/care/vertraege',{method:'POST',body:fd,credentials:'include'})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    btn.disabled=false; btn.textContent='📤 Vertrag hochladen';
+    if(d.ok){
+      toast('✅ Vertrag hochgeladen');
+      document.getElementById('vtTitel').value='';
+      document.getElementById('vtDatei').value='';
+      loadVertraege();
+    } else {
+      toast('Fehler: '+(d.error||'Unbekannt'));
+    }
+  })
+  .catch(function(){
+    btn.disabled=false; btn.textContent='📤 Vertrag hochladen';
+    toast('Verbindungsfehler');
+  });
+}
+
+function genLink(vid){
+  fetch('/api/care/vertraege/'+vid+'/signatur-link',{method:'POST',credentials:'include'})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d.ok){ toast('Fehler: '+(d.error||'')); return; }
+    var url=window.location.origin+'/vertrag-signieren.html?t='+d.token;
+    _vtCurrentLink=url;
+    document.getElementById('linkText').textContent=url;
+    document.getElementById('linkOverlay').classList.add('active');
+  })
+  .catch(function(){ toast('Verbindungsfehler'); });
+}
+
+function copyLink(){
+  navigator.clipboard.writeText(_vtCurrentLink).then(function(){ toast('✅ Link kopiert!'); }).catch(function(){
+    var ta=document.createElement('textarea'); ta.value=_vtCurrentLink;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); toast('✅ Link kopiert!');
+  });
+}
+
+function openLink(){
+  window.open(_vtCurrentLink,'_blank');
+}
+
+function closeLinkModal(){
+  document.getElementById('linkOverlay').classList.remove('active');
+}
+
+function showSigs(vid, titel){
+  document.getElementById('sigModalTitle').textContent='✍️ Signaturen – '+titel;
+  document.getElementById('sigModalBody').innerHTML='<div class="empty-state">Lade…</div>';
+  document.getElementById('sigOverlay').classList.add('active');
+  fetch('/api/care/vertrag-signaturen/'+vid,{credentials:'include'})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var sigs=(d.signaturen||[]).filter(function(s){ return s.patient_name; });
+    if(!sigs.length){
+      document.getElementById('sigModalBody').innerHTML='<div class="empty-state">Noch keine Signaturen.</div>';
+      return;
+    }
+    document.getElementById('sigModalBody').innerHTML=sigs.map(function(s){
+      return '<div class="sig-row">'
+        +(s.unterschrift_data?'<img class="sig-row__thumb" src="'+s.unterschrift_data+'" alt="Unterschrift">':'')
+        +'<div>'
+          +'<div class="sig-row__name">'+esc(s.patient_name)+'</div>'
+          +'<div class="sig-row__meta">'+fmt(s.signiert_am)+(s.ip_adresse?' · IP: '+esc(s.ip_adresse):'')+'</div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  })
+  .catch(function(){ document.getElementById('sigModalBody').innerHTML='<div class="empty-state">Fehler.</div>'; });
+}
+
+function closeSigModal(){
+  document.getElementById('sigOverlay').classList.remove('active');
+}
+
+function delVertrag(vid, titel){
+  if(!confirm('Vertrag "'+titel+'" wirklich löschen?')) return;
+  fetch('/api/care/vertraege/'+vid,{method:'DELETE',credentials:'include'})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){ toast('Vertrag gelöscht'); loadVertraege(); }
+    else toast('Fehler: '+(d.error||''));
+  });
+}
+
+loadVertraege();
+</script>
+</body>
+</html>

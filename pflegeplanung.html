@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nursy – Pflegeplanung</title>
+  <link rel="stylesheet" href="styles.css?v=20260211">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body data-page="pflegeplanung">
+
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="index.html" aria-label="Nursy Start">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Hauptnavigation">
+        <a href="index.html#funktionen">Funktionen</a>
+        <a href="index.html#so">So funktioniert’s</a>
+        <a href="login.html">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pp-wrap">
+    <div class="container">
+      <div class="pp-panel">
+
+        <div class="pp-head">
+          <div class="left">
+            <h1 class="page-title">Pflegeplanung</h1>
+            <div id="patBlock" style="margin-top:6px;"></div>
+          </div>
+
+          <div class="right mob-col">
+            <button type="button" class="control btn" id="openPatModal">Patient auswählen</button>
+            <a class="control btn" href="dashboard-care.html">Zurück</a>
+          </div>
+        </div>
+
+        <section aria-label="Planungsoptionen">
+          <div class="pp-row">
+            <div>
+              <strong>Aus der Anamnese übernehmen</strong>
+              <span>Automatische Vorschläge aus dem Anamnesebogen.</span>
+            </div>
+            <button class="control btn pp-action" type="button" data-open="anam">Öffnen</button>
+          </div>
+
+          <div class="pp-row">
+            <div>
+              <strong>Vorlagen für die Planung</strong>
+              <span>Vordefinierte Pflegeplanungen zur schnellen Auswahl.</span>
+            </div>
+            <button class="control btn pp-action" type="button" data-open="templates">Öffnen</button>
+          </div>
+
+          <div class="pp-row">
+            <div>
+              <strong>Freie Planung</strong>
+              <span>Eigene Pflegeplanung erstellen und speichern.</span>
+            </div>
+            <button class="control btn pp-action" type="button" data-open="free">Öffnen</button>
+          </div>
+
+          <div class="pp-row" id="wundRow">
+            <div>
+              <strong>Wundversorgung planen</strong>
+              <span id="wundRowSub">Wundversorgung mit Material und Frequenz erfassen.</span>
+            </div>
+            <button class="control btn" type="button" id="wundToggleBtn">Öffnen</button>
+          </div>
+
+          <div id="wundPlanForm" style="display:none;padding:16px 20px 20px;border-top:1px solid var(--border);background:rgba(255,255,255,.55);border-radius:0 0 14px 14px;margin-top:-8px;">
+            <div style="display:grid;gap:14px;">
+              <div>
+                <label style="font-size:13px;font-weight:700;display:block;margin-bottom:6px;" for="wundMaterial">Wunde versorgt mit</label>
+                <input id="wundMaterial" class="control" type="text" placeholder="z. B. Hydrokolloide, sterile Kompressen, Silberauflage …" style="width:100%;">
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:700;display:block;margin-bottom:6px;" for="wundFreq">Häufigkeit</label>
+                <select id="wundFreq" class="control" style="width:100%;">
+                  <option value="1× täglich">1× täglich</option>
+                  <option value="2× täglich">2× täglich</option>
+                  <option value="alle 2 Tage">alle 2 Tage</option>
+                  <option value="Nach Bedarf">Nach Bedarf</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:700;display:block;margin-bottom:6px;" for="wundZeit">Uhrzeit</label>
+                <input id="wundZeit" class="control" type="text" placeholder="z. B. 11:00" value="11:00" style="width:100%;">
+              </div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button class="control btn" type="button" id="wundPlanCancel">Abbrechen</button>
+                <button class="control btn primary" type="button" id="wundPlanSave">Speichern</button>
+              </div>
+              <div id="wundPlanSaved" style="display:none;color:#2f8f4e;font-size:13px;font-weight:700;">✓ Wundversorgungsplan gespeichert.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="pp-current" aria-label="Aktuelle Planung">
+          <div class="pp-current-head">
+            <h2>Aktuelle Planung</h2>
+            <div class="pp-current-actions">
+              <a href="#" class="pp-link" id="btnEvaluate">Evaluieren</a>
+              <button class="control btn" type="button" id="btnEdit">Bearbeiten</button>
+              <button class="control btn btn--danger" type="button" id="btnAbsetzen">Absetzen</button>
+            </div>
+          </div>
+
+          <div class="pp-table-wrap">
+          <table class="pp-table" id="planTable">
+            <thead>
+              <tr>
+                <th class="pp-col-date">Geplant am</th>
+                <th>Diagnose</th>
+                <th>Maßnahme</th>
+                <th>Ziel</th>
+                <th class="pp-col-date pp-col-date--right">Evaluation am</th>
+              </tr>
+            </thead>
+            <tbody id="planBody"></tbody>
+          </table>
+          </div>
+
+          <div class="pp-empty" id="emptyHint" style="display:none;">Noch keine aktuelle Planung vorhanden.</div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Details Modal (lightweight) -->
+  <div id="ppModal" class="modal" hidden>
+    <div class="modal__backdrop" data-close="1"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="ppModalTitle">
+      <div class="modal__head">
+        <h3 id="ppModalTitle">Planungsdetails</h3>
+        <button class="iconbtn" type="button" id="ppModalX" aria-label="Schließen">×</button>
+      </div>
+      <div class="modal__body" style="grid-template-columns:1fr;">
+        <p id="ppModalPlanned"><b>Geplant am:</b> —</p>
+        <p id="ppModalEval"><b>Evaluation am:</b> —</p>
+
+        <p id="ppModalDiag"><b>Diagnose:</b> —</p>
+        <p id="ppModalMass"><b>Maßnahme:</b> —</p>
+        <p id="ppModalZiel"><b>Ziel:</b> —</p>
+      </div>
+      <div class="modal__actions">
+        <button class="control btn" type="button" id="ppModalClose">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal root (wird von pflegeplanung.js befüllt) -->
+  <div id="modalRoot" aria-live="polite"></div>
+
+  <script src="patient-selector.js"></script>
+  <script>
+    initPatientSelector({ container: 'patBlock', openBtnId: 'openPatModal' });
+  </script>
+  <script src="pflegeplanung.js?v=20260211"></script>
+  <script>
+  (function(){
+    const WUND_KEY_PREFIX = 'nursy_pp_wund_v1_';
+    function getWundKey(){ return WUND_KEY_PREFIX + (getCurrentPatientId()||'default'); }
+    function loadWundPlan(){
+      try{ return JSON.parse(localStorage.getItem(getWundKey())||'null'); }catch(e){ return null; }
+    }
+    function saveWundPlan(plan){
+      try{ localStorage.setItem(getWundKey(), JSON.stringify(plan)); }catch(e){}
+    }
+
+    const toggleBtn  = document.getElementById('wundToggleBtn');
+    const form       = document.getElementById('wundPlanForm');
+    const cancelBtn  = document.getElementById('wundPlanCancel');
+    const saveBtn    = document.getElementById('wundPlanSave');
+    const savedMsg   = document.getElementById('wundPlanSaved');
+    const rowSub     = document.getElementById('wundRowSub');
+    const matInput   = document.getElementById('wundMaterial');
+    const freqSel    = document.getElementById('wundFreq');
+    const zeitInput  = document.getElementById('wundZeit');
+
+    function updateRowSub(){
+      const p = loadWundPlan();
+      if(p && p.material){
+        rowSub.textContent = 'Versorgt mit: ' + p.material + ' · ' + p.frequenz + ' · ' + p.zeit + ' Uhr';
+        rowSub.style.color = '#2f8f4e';
+        toggleBtn.textContent = 'Bearbeiten';
+      } else {
+        rowSub.textContent = 'Wundversorgung mit Material und Frequenz erfassen.';
+        rowSub.style.color = '';
+        toggleBtn.textContent = 'Öffnen';
+      }
+    }
+
+    function fillForm(){
+      const p = loadWundPlan();
+      if(p){
+        matInput.value  = p.material || '';
+        freqSel.value   = p.frequenz || '1× täglich';
+        zeitInput.value = p.zeit     || '11:00';
+      }
+    }
+
+    toggleBtn.addEventListener('click', function(){
+      const isOpen = form.style.display !== 'none';
+      form.style.display = isOpen ? 'none' : '';
+      if(!isOpen){ fillForm(); savedMsg.style.display = 'none'; }
+    });
+
+    cancelBtn.addEventListener('click', function(){ form.style.display = 'none'; });
+
+    saveBtn.addEventListener('click', function(){
+      const material = matInput.value.trim();
+      if(!material){ matInput.focus(); return; }
+      saveWundPlan({ material, frequenz: freqSel.value, zeit: zeitInput.value.trim() || '11:00' });
+      savedMsg.style.display = '';
+      updateRowSub();
+      setTimeout(function(){ form.style.display = 'none'; savedMsg.style.display = 'none'; }, 1400);
+    });
+
+    updateRowSub();
+  }());
+  </script>
+
+  <script>
+  /* ═══════════════════════════════════════════════════
+     PLAN-AKTIONEN: Persistenz · Bearbeiten · Evaluieren · Absetzen
+  ═══════════════════════════════════════════════════ */
+  (function(){
+    'use strict';
+
+    /* ── API-backed Plan-Persistenz ── */
+    let _ppPlans = [];
+    function loadPlans(){ return _ppPlans.slice(); }
+    function savePlans(p){
+      _ppPlans = (p || []).slice();
+      const pid = (typeof getCurrentPatientId==='function') ? getCurrentPatientId() : '';
+      if(!pid) return;
+      fetch('/api/care/pflegeplanung/' + encodeURIComponent(pid), {
+        method:'PUT', credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({plaene: _ppPlans})
+      }).catch(function(){});
+    }
+    function _ppFetchPlans(){
+      const pid = (typeof getCurrentPatientId==='function') ? getCurrentPatientId() : '';
+      if(!pid){ _ppPlans=[]; renderPlans(); return; }
+      fetch('/api/care/pflegeplanung/' + encodeURIComponent(pid), { credentials:'include' })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          _ppPlans = (d && d.ok && Array.isArray(d.plaene)) ? d.plaene : [];
+          renderPlans();
+        })
+        .catch(function(){ _ppPlans=[]; renderPlans(); });
+    }
+
+    function esc(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+    let selectedId   = null;
+    let isRendering  = false;
+
+    /* ── Render ─────────────────────────────────── */
+    function renderPlans(){
+      const body = document.getElementById('planBody');
+      const hint = document.getElementById('emptyHint');
+      if(!body) return;
+      isRendering = true;
+      body.innerHTML = '';
+      selectedId = null;
+      const plans = loadPlans();
+      if(!plans.length){
+        if(hint) hint.style.display='';
+      } else {
+        if(hint) hint.style.display='none';
+        plans.forEach(function(p){
+          const tr = document.createElement('tr');
+          tr.className = 'pp-click' + (p.abgesetzt ? ' pp-plan-abgesetzt' : '');
+          tr.dataset.planId = p.id;
+          tr.title = p.abgesetzt ? 'Abgesetzt' : 'Klicken zum Auswählen';
+          tr.innerHTML =
+            '<td class="pp-date" data-label="Geplant am">'+esc(p.geplantAm||'—')+'</td>'+
+            '<td data-label="Diagnose">'+esc(p.diagnose||'')+(p.abgesetzt?'&nbsp;<span class="pp-badge-abgesetzt">abgesetzt</span>':'')+'</td>'+
+            '<td data-label="Maßnahme">'+esc(p.massnahme||'')+'</td>'+
+            '<td data-label="Ziel">'+esc(p.ziel||'')+'</td>'+
+            '<td class="pp-date pp-date--right" data-label="Evaluation am">'+esc(p.evalAm||'—')+(p.evalNote?'<br><span style="font-size:.72rem;color:#6b7280;">'+esc(p.evalNote)+'</span>':'')+'</td>';
+          body.appendChild(tr);
+        });
+        wireRowClicks();
+      }
+      isRendering = false;
+    }
+
+    /* ── Zeilenauswahl ───────────────────────────── */
+    function wireRowClicks(){
+      const body = document.getElementById('planBody');
+      if(!body) return;
+      body.querySelectorAll('tr[data-plan-id]').forEach(function(tr){
+        tr.addEventListener('click', function(){
+          body.querySelectorAll('tr').forEach(function(r){ r.classList.remove('pp-row-selected'); });
+          tr.classList.add('pp-row-selected');
+          selectedId = tr.dataset.planId;
+        });
+      });
+    }
+
+    /* ── MutationObserver: neue Zeilen speichern ─── */
+    const planBody = document.getElementById('planBody');
+    if(planBody){
+      const obs = new MutationObserver(function(mutations){
+        if(isRendering) return;
+        let hasNew = false;
+        mutations.forEach(function(m){
+          m.addedNodes.forEach(function(node){
+            if(node.nodeType===1 && !node.dataset.planId){
+              node.dataset.planId = 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+              hasNew = true;
+            }
+          });
+        });
+        if(!hasNew) return;
+        const rows = Array.from(planBody.querySelectorAll('tr[data-plan-id]'));
+        const plans = rows.map(function(tr){
+          const tds = tr.querySelectorAll('td');
+          return {
+            id:        tr.dataset.planId,
+            geplantAm: tds[0] ? tds[0].textContent.trim() : '—',
+            diagnose:  tds[1] ? tds[1].textContent.trim() : '',
+            massnahme: tds[2] ? tds[2].textContent.trim() : '',
+            ziel:      tds[3] ? tds[3].textContent.trim() : '',
+            evalAm:    tds[4] ? tds[4].textContent.trim() : '—',
+            abgesetzt: tr.classList.contains('pp-plan-abgesetzt')
+          };
+        });
+        savePlans(plans);
+        wireRowClicks();
+        const hint = document.getElementById('emptyHint');
+        if(hint) hint.style.display = plans.length ? 'none' : '';
+      });
+      obs.observe(planBody, { childList: true });
+    }
+
+    /* ── Patienten-Wechsel → neu laden ─────────────── */
+    window.addEventListener('nursy:patientChanged', _ppFetchPlans);
+
+    /* ── Initialer Render ─────────────────────────── */
+    _ppFetchPlans();
+
+    /* ── Modal-Hilfsfunktion ──────────────────────── */
+    function openActionModal(html, onReady){
+      const root = document.getElementById('modalRoot');
+      if(!root) return;
+      root.innerHTML = html;
+      document.documentElement.classList.add('pp-modal-open');
+      const close = function(){
+        root.innerHTML = '';
+        document.documentElement.classList.remove('pp-modal-open');
+      };
+      root.querySelectorAll('[data-close]').forEach(function(el){ el.addEventListener('click', close); });
+      const x = root.querySelector('.pp-modal__close');
+      if(x) x.addEventListener('click', close);
+      if(onReady) onReady(root, close);
+    }
+
+    function requireSelection(){
+      if(!selectedId){ alert('Bitte zuerst eine Zeile in der Tabelle auswählen.'); return false; }
+      return true;
+    }
+
+    /* ── BEARBEITEN ───────────────────────────────── */
+    const btnEdit = document.getElementById('btnEdit');
+    if(btnEdit){
+      btnEdit.addEventListener('click', function(){
+        if(!requireSelection()) return;
+        const plans = loadPlans();
+        const plan  = plans.find(function(p){ return p.id===selectedId; });
+        if(!plan) return;
+        if(plan.abgesetzt){ alert('Eine abgesetzte Planung kann nicht bearbeitet werden.'); return; }
+        openActionModal(
+          '<div class="pp-modal pp-modal--active" role="dialog" aria-modal="true">'+
+          '<div class="pp-modal__backdrop" data-close></div>'+
+          '<div class="pp-modal__panel pp-action-panel">'+
+            '<div class="pp-modal__header"><h3 class="pp-modal__title">Planung bearbeiten</h3>'+
+            '<button class="pp-modal__close" aria-label="Schließen">&times;</button></div>'+
+            '<div class="pp-modal__body pp-action-body">'+
+              '<label class="pp-label">Diagnose / Problem</label>'+
+              '<textarea class="pp-ta" id="editDiag" rows="3">'+esc(plan.diagnose)+'</textarea>'+
+              '<label class="pp-label">Maßnahme</label>'+
+              '<textarea class="pp-ta" id="editMass" rows="3">'+esc(plan.massnahme)+'</textarea>'+
+              '<label class="pp-label">Pflegeziel</label>'+
+              '<textarea class="pp-ta" id="editZiel" rows="3">'+esc(plan.ziel)+'</textarea>'+
+            '</div>'+
+            '<div class="pp-modal__footer">'+
+              '<button class="pp-btn" data-close>Abbrechen</button>'+
+              '<button class="pp-btn pp-btn--primary" id="editSaveBtn">Speichern</button>'+
+            '</div>'+
+          '</div></div>',
+          function(root, close){
+            root.querySelector('#editSaveBtn').addEventListener('click', function(){
+              const diag = root.querySelector('#editDiag').value.trim();
+              const mass = root.querySelector('#editMass').value.trim();
+              const ziel = root.querySelector('#editZiel').value.trim();
+              const plans2 = loadPlans();
+              const idx = plans2.findIndex(function(p){ return p.id===selectedId; });
+              if(idx>=0){
+                plans2[idx].diagnose  = diag;
+                plans2[idx].massnahme = mass;
+                plans2[idx].ziel      = ziel;
+                savePlans(plans2);
+                renderPlans();
+              }
+              close();
+            });
+          }
+        );
+      });
+    }
+
+    /* ── EVALUIEREN ───────────────────────────────── */
+    const btnEval = document.getElementById('btnEvaluate');
+    if(btnEval){
+      btnEval.addEventListener('click', function(e){
+        e.preventDefault();
+        if(!requireSelection()) return;
+        const plans = loadPlans();
+        const plan  = plans.find(function(p){ return p.id===selectedId; });
+        if(!plan) return;
+        const today = new Date().toISOString().split('T')[0];
+        openActionModal(
+          '<div class="pp-modal pp-modal--active" role="dialog" aria-modal="true">'+
+          '<div class="pp-modal__backdrop" data-close></div>'+
+          '<div class="pp-modal__panel pp-action-panel">'+
+            '<div class="pp-modal__header"><h3 class="pp-modal__title">Evaluierung eintragen</h3>'+
+            '<button class="pp-modal__close" aria-label="Schließen">&times;</button></div>'+
+            '<div class="pp-modal__body pp-action-body">'+
+              '<div class="pp-action-context"><span class="pp-label">Diagnose</span><span>'+esc(plan.diagnose)+'</span></div>'+
+              '<label class="pp-label">Evaluierungsdatum</label>'+
+              '<input class="control" type="date" id="evalDateInp" value="'+today+'" style="width:100%;">'+
+              '<label class="pp-label">Ergebnis / Bewertung</label>'+
+              '<textarea class="pp-ta" id="evalNote" rows="4" placeholder="z. B. Ziel erreicht · Maßnahme fortführen …">'+esc(plan.evalNote||'')+'</textarea>'+
+            '</div>'+
+            '<div class="pp-modal__footer">'+
+              '<button class="pp-btn" data-close>Abbrechen</button>'+
+              '<button class="pp-btn pp-btn--primary" id="evalSaveBtn">Speichern</button>'+
+            '</div>'+
+          '</div></div>',
+          function(root, close){
+            root.querySelector('#evalSaveBtn').addEventListener('click', function(){
+              const dateVal = root.querySelector('#evalDateInp').value;
+              if(!dateVal){ alert('Bitte ein Datum wählen.'); return; }
+              const parts = dateVal.split('-');
+              const formatted = parts[2]+'.'+parts[1]+'.'+parts[0];
+              const note = root.querySelector('#evalNote').value.trim();
+              const plans2 = loadPlans();
+              const idx = plans2.findIndex(function(p){ return p.id===selectedId; });
+              if(idx>=0){
+                plans2[idx].evalAm   = formatted;
+                plans2[idx].evalNote = note || '';
+                savePlans(plans2);
+                renderPlans();
+              }
+              close();
+            });
+          }
+        );
+      });
+    }
+
+    /* ── ABSETZEN ─────────────────────────────────── */
+    const btnAbsetzen = document.getElementById('btnAbsetzen');
+    if(btnAbsetzen){
+      btnAbsetzen.addEventListener('click', function(){
+        if(!requireSelection()) return;
+        const plans = loadPlans();
+        const plan  = plans.find(function(p){ return p.id===selectedId; });
+        if(!plan) return;
+        if(plan.abgesetzt){ alert('Diese Planung ist bereits abgesetzt.'); return; }
+        openActionModal(
+          '<div class="pp-modal pp-modal--active" role="dialog" aria-modal="true">'+
+          '<div class="pp-modal__backdrop" data-close></div>'+
+          '<div class="pp-modal__panel pp-action-panel">'+
+            '<div class="pp-modal__header"><h3 class="pp-modal__title">Planung absetzen</h3>'+
+            '<button class="pp-modal__close" aria-label="Schließen">&times;</button></div>'+
+            '<div class="pp-modal__body pp-action-body">'+
+              '<div class="pp-action-context"><span class="pp-label">Diagnose</span><span>'+esc(plan.diagnose)+'</span></div>'+
+              '<label class="pp-label">Begründung (optional)</label>'+
+              '<textarea class="pp-ta" id="absGrund" rows="4" placeholder="z. B. Ziel erreicht · Zustand verändert …"></textarea>'+
+            '</div>'+
+            '<div class="pp-modal__footer">'+
+              '<button class="pp-btn" data-close>Abbrechen</button>'+
+              '<button class="pp-btn pp-btn--danger" id="absSaveBtn">Planung absetzen</button>'+
+            '</div>'+
+          '</div></div>',
+          function(root, close){
+            root.querySelector('#absSaveBtn').addEventListener('click', function(){
+              const grund = root.querySelector('#absGrund').value.trim();
+              const plans2 = loadPlans();
+              const idx = plans2.findIndex(function(p){ return p.id===selectedId; });
+              if(idx>=0){
+                plans2[idx].abgesetzt = true;
+                if(grund) plans2[idx].absGrund = grund;
+                savePlans(plans2);
+                selectedId = null;
+                renderPlans();
+              }
+              close();
+            });
+          }
+        );
+      });
+    }
+
+  }());
+  </script>
+</body>
+</html>

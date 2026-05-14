@@ -1,0 +1,1334 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nursy – Dokumentation</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .doc-page{ padding:24px 0 40px; }
+    .doc-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:16px;
+    }
+    .doc-head__title h1{ margin:0 0 6px; font-size:34px; }
+    .doc-head__title p{ margin:0; color:var(--muted); }
+    .doc-active{
+      margin-top:10px;
+      display:inline-flex;
+      align-items:center;
+      min-height:40px;
+      padding:0 14px;
+      border-radius:999px;
+      border:var(--border);
+      background:rgba(255,255,255,.78);
+      font-weight:800;
+    }
+    .doc-toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:nowrap;
+      align-items:center;
+    }
+    .doc-toolbar .control{ white-space:nowrap; }
+
+    .doc-panel{ padding:18px; }
+    .doc-filter-row{ margin-bottom:16px; max-width:280px; }
+    .doc-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-bottom:16px;
+    }
+
+    .doc-list{ display:grid; gap:12px; }
+    .doc-entry{
+      background:rgba(255,255,255,.82);
+      border:var(--border);
+      border-radius:16px;
+      padding:14px;
+    }
+    .doc-entry__meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:8px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .doc-entry__patient{ font-weight:800; color:var(--text); }
+    .doc-entry__text{ line-height:1.5; color:var(--text); white-space:pre-wrap; }
+    .doc-empty{
+      padding:16px;
+      border-radius:14px;
+      border:var(--border);
+      background:rgba(255,255,255,.55);
+      color:var(--muted);
+    }
+
+    .doc-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid rgba(15,26,51,.10);
+      background:rgba(15,26,51,.04);
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .doc-badge--group{
+      background:rgba(63,111,232,.10);
+      border-color:rgba(63,111,232,.22);
+      color:#0f2f6a;
+    }
+    .doc-badge--plan{
+      background:rgba(63,198,192,.12);
+      border-color:rgba(63,198,192,.28);
+      color:#0b6b67;
+    }
+    .doc-badge--important{
+      background:rgba(220,38,38,.12);
+      border-color:rgba(220,38,38,.26);
+      color:#b91c1c;
+    }
+
+    .doc-modal[hidden]{ display:none; }
+    .doc-modal{
+      position:fixed;
+      inset:0;
+      z-index:1000;
+      padding:10px;
+      overflow:auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+    .doc-modal__backdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(11,27,58,.42);
+      backdrop-filter:blur(5px);
+    }
+    .doc-modal__panel{
+      position:relative;
+      width:min(760px, calc(100% - 28px));
+      margin:0 auto;
+      background:#fff;
+      border-radius:20px;
+      border:1px solid rgba(11,27,58,.12);
+      box-shadow:0 30px 90px rgba(11,27,58,.22);
+      overflow:hidden;
+      height:min(92vh, 980px);
+      max-height:min(92vh, 980px);
+      display:flex;
+      flex-direction:column;
+      flex:0 0 auto;
+    }
+    .doc-modal__head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:18px 22px;
+      border-bottom:1px solid rgba(11,27,58,.10);
+      background:linear-gradient(180deg,#ffffff,#f8fbff);
+    }
+    .doc-modal__head h3{ margin:0; font-size:22px; }
+    .doc-modal__body{
+      padding:18px 22px 12px;
+      overflow-y:auto;
+      max-height:none;
+      min-height:0;
+      flex:1 1 auto;
+      display:grid;
+      gap:16px;
+    }
+
+    .doc-card{
+      border:1px solid rgba(11,27,58,.08);
+      border-radius:16px;
+      background:rgba(247,250,255,.76);
+      padding:14px;
+      display:grid;
+      gap:12px;
+    }
+    .doc-card[hidden]{ display:none !important; }
+    .doc-card__title{
+      font-size:13px;
+      font-weight:800;
+      color:rgba(11,27,58,.72);
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+
+    .doc-field{
+      display:grid;
+      gap:6px;
+    }
+    .doc-field label{
+      font-size:13px;
+      color:rgba(11,27,58,.72);
+    }
+    .doc-field .control{
+      width:100%;
+      min-width:0;
+      display:block;
+      box-sizing:border-box;
+      background:#fff;
+    }
+
+    .doc-field select.control,
+    .doc-field input.control{
+      height:48px;
+      padding:0 14px;
+      line-height:48px;
+    }
+
+    #docDate.control,
+    #docTime.control{
+      -webkit-appearance:none;
+      appearance:none;
+      text-align:left;
+    }
+
+    #docDate.control::-webkit-date-and-time-value,
+    #docTime.control::-webkit-date-and-time-value{
+      text-align:left;
+    }
+
+    #docDate.control::-webkit-datetime-edit,
+    #docTime.control::-webkit-datetime-edit{
+      padding:0;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      width:100%;
+    }
+
+    .doc-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .doc-stack{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      gap:14px;
+      align-items:start;
+    }
+
+    .doc-stack .doc-field{
+      min-width:0;
+      width:100%;
+    }
+
+    .doc-stack .control{
+      width:100%;
+    }
+
+    textarea.control{
+      min-height:160px;
+      padding:14px 16px;
+      resize:vertical;
+      font-family:inherit;
+      line-height:1.5;
+    }
+
+    .doc-toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:14px;
+      color:var(--text);
+    }
+    .doc-toggle input{
+      width:18px;
+      height:18px;
+      accent-color:var(--primary);
+    }
+
+    .doc-plan-wrap[hidden]{ display:none; }
+    .doc-plan-list{
+      display:grid;
+      gap:8px;
+    }
+    .doc-plan-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid rgba(15,26,51,.08);
+      border-radius:12px;
+      background:#fff;
+    }
+    .doc-plan-item input{ margin-top:2px; }
+    .doc-plan-item__main{ display:grid; gap:2px; }
+    .doc-plan-item__title{ font-weight:800; color:var(--text); }
+    .doc-plan-item__sub{ font-size:12px; color:var(--muted); }
+    .doc-plan-empty{
+      font-size:13px;
+      color:var(--muted);
+      padding:10px 0 0;
+    }
+
+    /* ── Wound selection items ── */
+    .doc-wund-list{ display:grid; gap:8px; }
+    .doc-wund-item{
+      position:relative;
+      padding:10px 12px;
+      border:2px solid rgba(15,26,51,.10);
+      border-radius:12px;
+      background:#fff;
+      cursor:pointer;
+      user-select:none;
+      transition:border-color .15s, background .15s, box-shadow .15s;
+    }
+    .doc-wund-item:hover{ border-color:rgba(63,111,232,.35); background:#f5f8ff; }
+    .doc-wund-item.selected{
+      border-color:#3f6fe8;
+      background:#eef3ff;
+      box-shadow:0 0 0 3px rgba(63,111,232,.12);
+    }
+    .doc-wund-item__check{
+      position:absolute;
+      top:9px; right:10px;
+      width:22px; height:22px;
+      border-radius:50%;
+      border:2px solid rgba(15,26,51,.18);
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:900; color:transparent;
+      background:#fff;
+      transition:background .15s, border-color .15s, color .15s;
+    }
+    .doc-wund-item.selected .doc-wund-item__check{
+      background:#3f6fe8; border-color:#3f6fe8; color:#fff;
+    }
+    .doc-wund-item__title{ font-size:13px; font-weight:800; color:#1e3a8a; margin-bottom:3px; padding-right:30px; }
+    .doc-wund-item__meta{ font-size:11px; color:#6b7280; line-height:1.5; }
+    .doc-wund-item__desc{ font-size:11px; color:#374151; margin-top:3px; font-style:italic; }
+    .doc-wund-hint{ font-size:12px; color:var(--muted); margin-bottom:6px; }
+
+    .doc-modal__actions{
+      display:flex;
+      gap:10px;
+      padding:14px 22px 22px;
+      border-top:1px solid rgba(11,27,58,.08);
+      background:#fff;
+      flex:0 0 auto;
+      position:sticky;
+      bottom:0;
+      z-index:5;
+      padding-bottom:max(22px, env(safe-area-inset-bottom));
+    }
+    .doc-modal__actions .btn{ flex:1; }
+
+    .doc-entry{
+      position:relative;
+      background:rgba(255,255,255,.82);
+      border:var(--border);
+      border-radius:16px;
+      padding:14px 14px 56px;
+    }
+    .doc-entry__edited{
+      margin-top:8px;
+      font-size:12px;
+      color:rgba(15,26,51,.48);
+      font-style:italic;
+    }
+    .doc-entry__actions{
+      position:absolute;
+      right:14px;
+      bottom:12px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .doc-btn{
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(15,26,51,.12);
+      background:rgba(255,255,255,.78);
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+      color:rgba(15,26,51,.78);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+    }
+    .doc-btn:hover{
+      background:rgba(63,111,232,.08);
+      border-color:rgba(63,111,232,.25);
+    }
+    .doc-btn.edit{
+      color:#1b2a55;
+    }
+    .doc-btn.delete{
+      color:#b91c1c;
+      border-color:rgba(220,38,38,.22);
+    }
+    .doc-btn.delete:hover{
+      background:rgba(220,38,38,.10);
+      border-color:rgba(220,38,38,.28);
+    }
+
+
+    @media (max-width: 760px){
+      .doc-head{ flex-direction:column; }
+      .doc-grid,
+      .doc-row,
+      .doc-stack{ grid-template-columns:1fr; }
+      .doc-toolbar{ width:100%; }
+      .doc-toolbar .control{ flex:1; min-width:0; }
+      .doc-modal__panel{
+        width:min(96vw, 760px);
+        margin:0 auto;
+        height:92vh;
+        max-height:92vh;
+      }
+      .doc-modal__body{
+        padding:14px;
+        max-height:none;
+      }
+      .doc-modal__actions{
+        padding:14px;
+        padding-bottom:max(14px, env(safe-area-inset-bottom));
+      }
+    }
+  
+    @media (orientation: landscape){
+      .doc-modal{
+        padding:8px;
+      }
+      .doc-modal__panel{
+        height:88vh;
+        max-height:88vh;
+      }
+    }
+
+    /* ── Wound summary panel ── */
+    .wund-panel{
+      margin-bottom:14px;
+      background:#fff;
+      border:var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .wund-panel__head{
+      display:flex;align-items:center;gap:10px;
+      padding:12px 16px;
+      background:linear-gradient(135deg,#eef3ff,#f5f8ff);
+      border-bottom:1px solid rgba(63,111,232,.12);
+      cursor:pointer;user-select:none;
+    }
+    .wund-panel__head:hover{background:linear-gradient(135deg,#e5edff,#edf2ff)}
+    .wund-panel__title{font-size:14px;font-weight:800;color:#1e3a8a;flex:1}
+    .wund-panel__meta{font-size:12px;color:#6b7280}
+    .wund-panel__chevron{font-size:11px;color:#6b7280;transition:transform .2s}
+    .wund-panel.collapsed .wund-panel__chevron{transform:rotate(-90deg)}
+    .wund-panel__body{display:grid;gap:0}
+    .wund-panel.collapsed .wund-panel__body{display:none}
+    .wund-panel__empty{padding:14px 16px;font-size:13px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .wund-panel__new{
+      display:inline-flex;align-items:center;gap:5px;
+      height:30px;padding:0 12px;border-radius:8px;
+      border:1px solid rgba(63,111,232,.28);background:#fff;
+      color:#3f6fe8;font-size:12px;font-weight:700;cursor:pointer;
+      font-family:inherit;white-space:nowrap;text-decoration:none;
+    }
+    .wund-panel__new:hover{background:#eef3ff}
+
+    /* wound row */
+    .wund-row{
+      display:flex;align-items:flex-start;gap:10px;
+      padding:11px 16px;
+      border-bottom:1px solid rgba(63,111,232,.08);
+      transition:background .1s;
+    }
+    .wund-row:last-child{border-bottom:none}
+    .wund-row:hover{background:#fafbff}
+    .wund-row.done{background:#f0faf4}
+    .wund-row.done:hover{background:#e8f7ee}
+    .wund-row__num{
+      width:24px;height:24px;border-radius:50%;
+      background:#3f6fe8;color:#fff;
+      font-size:11px;font-weight:900;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .wund-row.done .wund-row__num{background:#2f8f4e}
+    .wund-row__info{flex:1;min-width:0}
+    .wund-row__name{font-size:13px;font-weight:700;color:#1e3a8a;word-break:break-word;line-height:1.35}
+    .wund-row.done .wund-row__name{color:#1a6b3e}
+    .wund-row__sub{font-size:11px;color:#6b7280;margin-top:2px;line-height:1.4;word-break:break-word}
+    .wund-row__done-badge{
+      font-size:10px;font-weight:800;
+      background:#2f8f4e;color:#fff;
+      border-radius:999px;padding:2px 8px;flex-shrink:0;white-space:nowrap;
+    }
+    .wund-row__actions{display:flex;gap:6px;flex-shrink:0}
+    .wund-row__btn{
+      height:28px;padding:0 10px;border-radius:7px;
+      border:1px solid rgba(63,111,232,.24);background:#fff;
+      color:#3f6fe8;font-size:11px;font-weight:700;
+      cursor:pointer;font-family:inherit;white-space:nowrap;
+      transition:background .1s,color .1s;
+      text-decoration:none;display:inline-flex;align-items:center;
+    }
+    .wund-row__btn:hover{background:#3f6fe8;color:#fff;border-color:#3f6fe8}
+    .wund-row__btn.finish{
+      border-color:rgba(47,143,78,.3);color:#2f8f4e;
+    }
+    .wund-row__btn.finish:hover{background:#2f8f4e;color:#fff;border-color:#2f8f4e}
+    .wund-row__btn.undo{
+      border-color:rgba(150,150,150,.25);color:#6b7280;
+    }
+    .wund-row__btn.undo:hover{background:#f1f5f9;color:#374151}
+    .wund-panel__footer{
+      padding:10px 16px;
+      border-top:1px solid rgba(63,111,232,.08);
+      display:flex;justify-content:flex-end;
+    }
+
+    @media (max-width: 640px){
+      .doc-toolbar{
+        flex-direction:column;
+        align-items:stretch;
+        width:100%;
+      }
+      .doc-toolbar .control{
+        width:100%;
+        text-align:center;
+        min-height:44px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        white-space:normal;
+      }
+      /* Wund-Zeile: Aktionen in zweite Zeile */
+      .wund-row{flex-wrap:wrap;gap:6px 10px;padding:11px 12px}
+      .wund-row__num{margin-top:2px}
+      .wund-row__info{flex:1 1 calc(100% - 44px);min-width:0}
+      .wund-row__done-badge{order:3;flex-basis:100%;margin-left:34px;border-radius:6px;padding:3px 10px;text-align:center}
+      .wund-row__actions{order:4;flex-basis:calc(100% - 34px);margin-left:34px;gap:8px;flex-shrink:1;min-width:0}
+      .wund-row__btn{flex:1;justify-content:center;text-align:center;min-height:40px;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+    }
+
+  </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#0f2744">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="dashboard-care.html">
+        <img class="brand__dot" src="nursy-logo.png" alt="Nursy" />
+        <span class="brand__text">
+          <strong>Nursy</strong>
+          <span>Fürsorge mit Herz</span>
+        </span>
+      </a>
+      <nav class="nav">
+        <a href="dashboard-care.html">Dashboard</a>
+        <a href="vitalzeichen.html">Vitalzeichen</a>
+        <a href="durchfuehrungsnachweis.html">Durchführungsnachweis</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container doc-page">
+    <div class="doc-head">
+      <div class="doc-head__title">
+        <h1>Dokumentation</h1>
+        <div id="patBlock"></div>
+      </div>
+      <div class="doc-toolbar">
+        <a class="control btn" href="dokumentation-wunden.html" id="openWoundDoc">Wunddokumentation</a>
+        <button class="control btn primary" id="openDocModal" type="button">Neuer Eintrag</button>
+        <button class="control btn" id="openPatModal" type="button">Patient auswählen</button>
+        <button class="control btn" type="button" onclick="location.href='dashboard-care.html'">Zurück</button>
+      </div>
+    </div>
+
+    <!-- Wound summary panel -->
+    <div class="wund-panel" id="wundPanel">
+      <div class="wund-panel__head" id="wundPanelHead">
+        <span class="wund-panel__title">Wunddokumentation</span>
+        <span class="wund-panel__meta" id="wundPanelMeta"></span>
+        <span class="wund-panel__chevron">▼</span>
+      </div>
+      <div class="wund-panel__body" id="wundPanelBody"></div>
+    </div>
+
+    <section class="card doc-panel">
+      <div class="doc-filter-row">
+        <div class="field">
+          <label class="field__label" for="filterType">Filter</label>
+          <select id="filterType" class="control">
+            <option value="alle">Alle Einträge</option>
+            <option value="allgemein">Nur allgemein</option>
+            <option value="planung">Nur planungsspezifisch</option>
+            <option value="wunddoku">Nur Wunddoku</option>
+            <option value="important">Nur wichtige</option>
+          </select>
+        </div>
+      </div>
+      <div id="docList" class="doc-list"></div>
+      <div id="docEmpty" class="doc-empty" hidden>Noch keine Einträge vorhanden.</div>
+    </section>
+  </main>
+
+  <div id="docModal" class="doc-modal" hidden>
+    <div class="doc-modal__backdrop" id="docModalBackdrop"></div>
+    <div class="doc-modal__panel">
+      <div class="doc-modal__head">
+        <h3 id="docModalTitle">Neuer Dokumentationseintrag</h3>
+        <button class="iconbtn" id="closeDocModal" type="button">×</button>
+      </div>
+
+      <div class="doc-modal__body">
+        <section class="doc-card">
+          <div class="doc-card__title">1. Bezug</div>
+
+          <div class="doc-field">
+            <label for="docPatient">Patient</label>
+            <select id="docPatient" class="control"></select>
+          </div>
+
+          <div class="doc-row">
+            <div class="doc-field">
+              <label for="docType">Art des Eintrags</label>
+              <select id="docType" class="control">
+                <option value="allgemein">Allgemein</option>
+                <option value="planung">Bezieht sich auf Planung</option>
+                <option value="wunddoku">Bezieht sich auf Wunddokumentation</option>
+              </select>
+            </div>
+
+            <div class="doc-field">
+              <label for="docGroup">Gruppe</label>
+              <select id="docGroup" class="control">
+                <option value="Pfleger">Pfleger</option>
+                <option value="Physio">Physio</option>
+                <option value="Arzt">Arzt</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-card doc-plan-wrap" id="docPlanWrap" hidden>
+          <div class="doc-card__title">2. Aktuelle Planung des Patienten</div>
+          <div id="docPlanList" class="doc-plan-list"></div>
+          <div id="docPlanEmpty" class="doc-plan-empty" hidden>Für diesen Patienten ist aktuell keine Planung gespeichert.</div>
+        </section>
+
+        <section class="doc-card" id="docWundWrap" hidden>
+          <div class="doc-card__title">2. Gespeicherte Wunddokumentation</div>
+          <div id="docWundList"></div>
+          <div id="docWundEmpty" hidden style="color:var(--muted);font-size:.84rem">Keine Wunddokumentation gespeichert. <a href="dokumentation-wunden.html">Jetzt dokumentieren →</a></div>
+        </section>
+
+        <section class="doc-card">
+          <div class="doc-card__title">3. Zeit & Inhalt</div>
+
+          <div class="doc-stack">
+            <div class="doc-field">
+              <label for="docDate">Datum</label>
+              <input id="docDate" class="control" type="date">
+            </div>
+
+            <div class="doc-field">
+              <label for="docTime">Zeit</label>
+              <input id="docTime" class="control" type="time">
+            </div>
+          </div>
+
+          <div class="doc-field">
+            <label for="docText">Eintrag</label>
+            <textarea id="docText" class="control" placeholder="Dokumentation eingeben ..."></textarea>
+          </div>
+
+          <label class="doc-toggle">
+            <input id="docImportant" type="checkbox">
+            Wichtigen Eintrag hervorheben
+          </label>
+        </section>
+      </div>
+
+      <div class="doc-modal__actions">
+        <button class="control btn" id="cancelDocModal" type="button">Schließen</button>
+        <button class="control btn primary" id="saveDocEntry" type="button">Eintrag speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="patient-selector.js"></script>
+  <script>
+    (function(){
+      const KEY = 'nursy_dokumentation_v5';
+      const CURRENT_ID_KEY = 'nursy_current_patient_id';
+      const CURRENT_NAME_KEY = 'nursy_current_patient_name';
+      const CURRENT_BIRTH_KEY = 'nursy_current_patient_birth';
+
+      function safeJSON(raw, fallback){
+        try{
+          const parsed = JSON.parse(raw);
+          return parsed ?? fallback;
+        }catch(e){
+          return fallback;
+        }
+      }
+
+      function loadPatients(){
+        const accepted = safeJSON(localStorage.getItem(window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1'), []);
+        const acc = Array.isArray(accepted) ? accepted : [];
+        if(acc.length) return acc;
+        const legacy = safeJSON(localStorage.getItem('nursy_patients_v1'), []);
+        if(Array.isArray(legacy) && legacy.length) return legacy;
+        return [];
+      }
+
+      /* Patienten- und Wunddoku-Listen beim Start vom Server synchronisieren */
+      (function syncFromApi(){
+        fetch('/api/care/meine-patienten', {credentials:'include'})
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){
+            if(!d || !d.ok || !Array.isArray(d.patients)) return;
+            if(d.caregiver_id && window.setCareUid) window.setCareUid(d.caregiver_id);
+            var _dk = window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1';
+            try{ localStorage.setItem(_dk, JSON.stringify(d.patients)); }catch(e){}
+          }).catch(function(){});
+      })();
+
+      const patientPlanDefaults = {};
+
+      const patients = loadPatients().map(function(p, index){
+        return {
+          id: p.id || ('p' + (index + 1)),
+          name: p.name || ('Patient ' + (index + 1)),
+          birth: p.birth || p.birthDate || p.dob || '',
+          address: p.address || ''
+        };
+      });
+
+      function getCurrentPatientId(){
+        const currentId = localStorage.getItem(CURRENT_ID_KEY);
+        return currentId || (patients[0] ? patients[0].id : '');
+      }
+
+      function getCurrentPatient(){
+        return patients.find(function(p){ return p.id === getCurrentPatientId(); }) || null;
+      }
+
+      function setCurrentPatient(patient){
+        if(!patient) return;
+        localStorage.setItem(CURRENT_ID_KEY, patient.id || '');
+        localStorage.setItem(CURRENT_NAME_KEY, patient.name || '');
+        localStorage.setItem(CURRENT_BIRTH_KEY, patient.birth || '');
+        updateActivePatientInfo();
+      }
+
+      function getPlansForPatient(patientId){
+        const customKey = 'nursy_plan_' + patientId;
+        const storedPlans = safeJSON(localStorage.getItem(customKey), null);
+        if(Array.isArray(storedPlans) && storedPlans.length){
+          return storedPlans.map(function(item){
+            if(typeof item === 'string') return { title:item, subtitle:'gespeicherte Planung' };
+            return {
+              title: item.measure || item.title || 'Maßnahme',
+              subtitle: item.goal || item.frequency || item.note || 'gespeicherte Planung'
+            };
+          });
+        }
+        return patientPlanDefaults[patientId] || [];
+      }
+
+      const seed = [];
+
+      function formatEditedLabel(value){
+        if(!value) return '';
+        const date = new Date(value);
+        if(Number.isNaN(date.getTime())) return '';
+        const day = date.toLocaleDateString('de-DE');
+        const time = date.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+        return 'Bearbeitet am ' + day + ' um ' + time;
+      }
+
+      function loadEntries(){
+        const storedEntries = safeJSON(localStorage.getItem(KEY), null);
+        const list = Array.isArray(storedEntries) ? storedEntries : seed.slice();
+        return list.map(function(entry, index){
+          return Object.assign({}, entry, {
+            id: entry.id || ('doc_' + index + '_' + Date.now())
+          });
+        });
+      }
+
+      function saveEntries(list){
+        try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){}
+      }
+
+      let entries = loadEntries();
+
+      /* ── Backend-API Hilfsfunktionen ────────────────────────────────────── */
+      function _apiDokFetch(patId){
+        var url = '/api/care/dokumentation' + (patId ? '?patient_id=' + encodeURIComponent(patId) : '');
+        fetch(url, { credentials:'include' })
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){
+            if(!d || !d.ok || !Array.isArray(d.eintraege) || !d.eintraege.length) return;
+            var mapped = d.eintraege.map(function(r){
+              return {
+                id: r.id, patientId: r.patient_id, patientName: r.patient_name,
+                birth: r.birth, type: r.typ, plan: r.plan, group: r.grp,
+                date: r.datum, time: r.uhrzeit, text: r.text,
+                important: !!r.important,
+                wundRefs: safeJSON(r.wund_refs, []),
+                updatedAt: r.updated_at
+              };
+            });
+            var apiIds = new Set(mapped.map(function(e){ return e.id; }));
+            var localOnly = entries.filter(function(e){
+              return !apiIds.has(e.id) && String(e.id).indexOf('seed_') === 0;
+            });
+            entries = mapped.concat(localOnly);
+            saveEntries(entries);
+            render();
+          })
+          .catch(function(){});
+      }
+
+      function _apiDokSave(entry){
+        fetch('/api/care/dokumentation', {
+          method:'POST', credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(entry)
+        }).catch(function(){});
+      }
+
+      function _apiDokUpdate(entry){
+        fetch('/api/care/dokumentation/' + encodeURIComponent(entry.id), {
+          method:'PUT', credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(entry)
+        }).catch(function(){});
+      }
+
+      function _apiDokDelete(id){
+        fetch('/api/care/dokumentation/' + encodeURIComponent(id), {
+          method:'DELETE', credentials:'include'
+        }).catch(function(){});
+      }
+
+      const filterType = document.getElementById('filterType');
+      const docList = document.getElementById('docList');
+      const docEmpty = document.getElementById('docEmpty');
+
+      const docModal = document.getElementById('docModal');
+      const openDocModal = document.getElementById('openDocModal');
+      const closeDocModal = document.getElementById('closeDocModal');
+      const cancelDocModal = document.getElementById('cancelDocModal');
+      const docModalBackdrop = document.getElementById('docModalBackdrop');
+      const docModalTitle = document.getElementById('docModalTitle');
+
+      const docPatient = document.getElementById('docPatient');
+      const docType = document.getElementById('docType');
+      const docPlanWrap = document.getElementById('docPlanWrap');
+      const docPlanList = document.getElementById('docPlanList');
+      const docPlanEmpty = document.getElementById('docPlanEmpty');
+      const docWundWrap = document.getElementById('docWundWrap');
+      const docWundList = document.getElementById('docWundList');
+      const docWundEmpty = document.getElementById('docWundEmpty');
+      let selectedWundIds = new Set();
+      const docGroup = document.getElementById('docGroup');
+      const docDate = document.getElementById('docDate');
+      const docTime = document.getElementById('docTime');
+      const docText = document.getElementById('docText');
+      const docImportant = document.getElementById('docImportant');
+      const saveDocEntry = document.getElementById('saveDocEntry');
+
+      let editingEntryId = null;
+
+      function updateActivePatientInfo(){ /* chip from patient-selector.js handles display */ }
+
+      function fillPatients(select, withAll){
+        select.innerHTML = '';
+        if(withAll){
+          const all = document.createElement('option');
+          all.value = 'alle';
+          all.textContent = 'Alle Patienten';
+          select.appendChild(all);
+        }
+        patients.forEach(function(p){
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.name + (p.birth ? ' · ' + p.birth : '');
+          select.appendChild(opt);
+        });
+        select.value = getCurrentPatientId();
+      }
+
+      function renderPlanList(){
+        const isPlan  = docType.value === 'planung';
+        const isWund  = docType.value === 'wunddoku';
+        docPlanWrap.hidden = !isPlan;
+        docWundWrap.hidden = !isWund;
+
+        if(isPlan){
+          const plans = getPlansForPatient(docPatient.value);
+          docPlanList.innerHTML = '';
+          docPlanEmpty.hidden = plans.length !== 0;
+          plans.forEach(function(plan, index){
+            const row = document.createElement('label');
+            row.className = 'doc-plan-item';
+            row.innerHTML =
+              '<input type="radio" name="docPlanRadio" value="' + plan.title.replace(/"/g,'&quot;') + '" ' + (index===0?'checked':'') + '>' +
+              '<div class="doc-plan-item__main">' +
+                '<div class="doc-plan-item__title">' + plan.title + '</div>' +
+                '<div class="doc-plan-item__sub">' + (plan.subtitle||'') + '</div>' +
+              '</div>';
+            docPlanList.appendChild(row);
+          });
+        }
+
+        if(isWund){
+          docWundList.innerHTML = '';
+          docWundList.className = 'doc-wund-list';
+          selectedWundIds = new Set();
+          var raw = null;
+          try{ raw = JSON.parse(localStorage.getItem('nursy_wunddoku_v1')); }catch(e){}
+          if(!raw || !Array.isArray(raw.wounds) || raw.wounds.length === 0){
+            docWundEmpty.hidden = false;
+            return;
+          }
+          docWundEmpty.hidden = true;
+          var savedDate = raw.savedAt ? new Date(raw.savedAt).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'}) : '';
+          /* hint */
+          var hint = document.createElement('div');
+          hint.className = 'doc-wund-hint';
+          hint.textContent = 'Wunde(n) antippen um auszuwählen – mehrere möglich:';
+          docWundList.appendChild(hint);
+          raw.wounds.forEach(function(w){
+            var item = document.createElement('div');
+            item.className = 'doc-wund-item';
+            item.dataset.wundnr = w.nr;
+            var metaParts = [];
+            if(w.art) metaParts.push('Art: ' + w.art);
+            if(w.seitWann) metaParts.push('Seit: ' + w.seitWann);
+            if(w.verbandswechsel) metaParts.push('Verband: ' + w.verbandswechsel);
+            if(w.versorgtMit) metaParts.push('Versorgt mit: ' + w.versorgtMit);
+            if(savedDate) metaParts.push('Dokumentiert: ' + savedDate);
+            item.innerHTML =
+              '<div class="doc-wund-item__check">✓</div>' +
+              '<div class="doc-wund-item__title">Wunde ' + w.nr + ' – ' + w.localisation + '</div>' +
+              (metaParts.length ? '<div class="doc-wund-item__meta">' + metaParts.join(' &nbsp;·&nbsp; ') + '</div>' : '') +
+              (w.beschreibung ? '<div class="doc-wund-item__desc">' + w.beschreibung + '</div>' : '');
+            item.addEventListener('click', function(){
+              var nr = Number(item.dataset.wundnr);
+              if(selectedWundIds.has(nr)){ selectedWundIds.delete(nr); item.classList.remove('selected'); }
+              else { selectedWundIds.add(nr); item.classList.add('selected'); }
+            });
+            docWundList.appendChild(item);
+          });
+        }
+      }
+
+      function getSelectedPlan(){
+        const checked = document.querySelector('input[name="docPlanRadio"]:checked');
+        return checked ? checked.value : '';
+      }
+
+      function resetForm(){
+        const current = getCurrentPatient();
+        editingEntryId = null;
+        selectedWundIds = new Set();
+        if(docModalTitle) docModalTitle.textContent = 'Neuer Dokumentationseintrag';
+        if(saveDocEntry) saveDocEntry.textContent = 'Eintrag speichern';
+        if(current) docPatient.value = current.id;
+        docType.value = 'allgemein';
+        docGroup.value = 'Pfleger';
+        docText.value = '';
+        docImportant.checked = false;
+
+        const now = new Date();
+        docDate.value = now.toISOString().slice(0,10);
+        docTime.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+        renderPlanList();
+      }
+
+      function setSelectedPlan(planTitle){
+        const radios = document.querySelectorAll('input[name="docPlanRadio"]');
+        let found = false;
+        radios.forEach(function(radio, index){
+          const shouldCheck = !!planTitle ? radio.value === planTitle : index === 0;
+          radio.checked = shouldCheck;
+          if(shouldCheck) found = true;
+        });
+        if(!found && radios[0]) radios[0].checked = true;
+      }
+
+      function openModal(){
+        resetForm();
+        docModal.hidden = false;
+      }
+
+      function openEditModal(entryId){
+        const entry = entries.find(function(item){ return item.id === entryId; });
+        if(!entry) return;
+
+        editingEntryId = entry.id;
+        if(docModalTitle) docModalTitle.textContent = 'Dokumentation bearbeiten';
+        if(saveDocEntry) saveDocEntry.textContent = 'Änderungen speichern';
+
+        docPatient.value = entry.patientId;
+        docType.value = entry.type;
+        docGroup.value = entry.group;
+        docDate.value = entry.date;
+        docTime.value = entry.time;
+        docText.value = entry.text || '';
+        docImportant.checked = !!entry.important;
+        renderPlanList();
+        if(entry.type === 'planung'){
+          setSelectedPlan(entry.plan);
+        }
+
+        docModal.hidden = false;
+      }
+
+      function closeModal(){
+        docModal.hidden = true;
+      }
+
+      function deleteEntry(entryId){
+        const entry = entries.find(function(item){ return item.id === entryId; });
+        if(!entry) return;
+        const ok = window.confirm('Eintrag von ' + entry.patientName + ' am ' + entry.date + ' um ' + entry.time + ' wirklich löschen?');
+        if(!ok) return;
+
+        entries = entries.filter(function(item){ return item.id !== entryId; });
+        saveEntries(entries);
+        _apiDokDelete(entryId);
+        render();
+      }
+
+      function render(){
+        const typeVal = filterType ? filterType.value : 'alle';
+        const currentPatId = getCurrentPatientId();
+        let visible = entries.filter(function(e){ return e.patientId === currentPatId; });
+        if(typeVal === 'allgemein')  visible = visible.filter(function(e){ return e.type === 'allgemein'; });
+        if(typeVal === 'planung')    visible = visible.filter(function(e){ return e.type === 'planung'; });
+        if(typeVal === 'wunddoku')   visible = visible.filter(function(e){ return e.type === 'wunddoku'; });
+        if(typeVal === 'important')  visible = visible.filter(function(e){ return !!e.important; });
+
+        visible.sort(function(a,b){
+          return (b.date + ' ' + b.time).localeCompare(a.date + ' ' + a.time);
+        });
+
+        docList.innerHTML = '';
+        if(visible.length === 0){
+          const pat = getCurrentPatient();
+          docEmpty.textContent = pat
+            ? 'Für ' + pat.name + ' sind noch keine Einträge vorhanden.'
+            : 'Kein Patient ausgewählt.';
+        }
+        docEmpty.hidden = visible.length !== 0;
+
+        visible.forEach(function(e){
+          const el = document.createElement('article');
+          el.className = 'doc-entry';
+          el.innerHTML = `
+            <div class="doc-entry__meta">
+              <span>${e.date} · ${e.time}</span>
+              <span class="doc-badge doc-badge--group">${e.group}</span>
+              ${e.type === 'planung'
+                ? `<span class="doc-badge doc-badge--plan">${e.plan}</span>`
+                : e.type === 'wunddoku'
+                ? `<span class="doc-badge doc-badge--plan">Wunddokumentation${Array.isArray(e.wundRefs) && e.wundRefs.length ? ' · ' + e.wundRefs.map(function(w){ return 'Wunde '+w.nr; }).join(', ') : ''}</span>`
+                : `<span class="doc-badge">Allgemein</span>`}
+              ${e.important ? `<span class="doc-badge doc-badge--important">Wichtig</span>` : ``}
+            </div>
+            <div class="doc-entry__text">${e.text}</div>
+            ${e.updatedAt ? `<div class="doc-entry__edited">${formatEditedLabel(e.updatedAt)}</div>` : ``}
+            <div class="doc-entry__actions">
+              <button class="doc-btn edit" type="button" data-action="edit" data-id="${e.id}">Bearbeiten</button>
+              <button class="doc-btn delete" type="button" data-action="delete" data-id="${e.id}">Löschen</button>
+            </div>
+          `;
+          docList.appendChild(el);
+        });
+      }
+
+      function saveEntry(){
+        const patient = patients.find(function(p){ return p.id === docPatient.value; }) || patients[0];
+        /* collect selected wound data */
+        var wundRefs = [];
+        if(docType.value === 'wunddoku' && selectedWundIds.size > 0){
+          var wdRaw = null;
+          try{ wdRaw = JSON.parse(localStorage.getItem('nursy_wunddoku_v1')); }catch(e){}
+          if(wdRaw && Array.isArray(wdRaw.wounds)){
+            wdRaw.wounds.forEach(function(w){
+              if(selectedWundIds.has(w.nr)){
+                wundRefs.push({ nr:w.nr, localisation:w.localisation, art:w.art||'', versorgtMit:w.versorgtMit||'' });
+              }
+            });
+          }
+        }
+        const entry = {
+          id: editingEntryId || ('doc_' + Date.now()),
+          patientId: patient.id,
+          patientName: patient.name,
+          birth: patient.birth,
+          type: docType.value,
+          plan: docType.value === 'planung' ? getSelectedPlan() : '',
+          wundRefs: docType.value === 'wunddoku' ? wundRefs : [],
+          group: docGroup.value,
+          date: docDate.value || new Date().toISOString().slice(0,10),
+          time: docTime.value || '08:00',
+          text: docText.value.trim(),
+          important: docImportant.checked
+        };
+
+        if(!entry.text){
+          alert('Bitte zuerst einen Dokumentationseintrag eingeben.');
+          return;
+        }
+
+        if(entry.type === 'planung' && !entry.plan){
+          alert('Bitte eine Maßnahme aus der Planung auswählen.');
+          return;
+        }
+
+        if(entry.type === 'wunddoku' && wundRefs.length === 0){
+          alert('Bitte mindestens eine Wunde auswählen.');
+          return;
+        }
+
+        if(editingEntryId){
+          entry.updatedAt = new Date().toISOString();
+          entries = entries.map(function(item){
+            return item.id === editingEntryId ? entry : item;
+          });
+          _apiDokUpdate(entry);
+        }else{
+          entries.unshift(entry);
+          _apiDokSave(entry);
+        }
+
+        saveEntries(entries);
+        setCurrentPatient(patient);
+        closeModal();
+        render();
+      }
+
+      if(saveDocEntry) saveDocEntry.addEventListener('click', saveEntry);
+
+      [closeDocModal, cancelDocModal, docModalBackdrop].forEach(function(el){
+        if(el) el.addEventListener('click', closeModal);
+      });
+
+      if(openDocModal) openDocModal.addEventListener('click', openModal);
+
+      if(docList) docList.addEventListener('click', function(event){
+        const button = event.target.closest('[data-action]');
+        if(!button) return;
+
+        const entryId = button.getAttribute('data-id');
+        const action = button.getAttribute('data-action');
+
+        if(action === 'edit') openEditModal(entryId);
+        if(action === 'delete') deleteEntry(entryId);
+      });
+      docType.addEventListener('change', renderPlanList);
+      docPatient.addEventListener('change', function(){
+        const patient = patients.find(function(p){ return p.id === docPatient.value; });
+        if(patient) setCurrentPatient(patient);
+        renderPlanList();
+      });
+      if(filterType) filterType.addEventListener('change', render);
+
+      document.addEventListener('keydown', function(event){
+        if(event.key === 'Escape' && docModal && !docModal.hidden){
+          closeModal();
+        }
+      });
+
+      fillPatients(docPatient, false);
+
+      /* ── Einheitliche Patientenanzeige + Modal ── */
+      initPatientSelector({
+        container: 'patBlock',
+        openBtnId: 'openPatModal',
+        onChange: function(idx) {
+          const sel = getPatient(idx);
+          const patId = sel ? sel.id : '';
+          if(docPatient) docPatient.value = patId;
+          const patient = patients.find(function(p){ return p.id === patId; }) || sel;
+          if(patient) setCurrentPatient(patient);
+          renderPlanList();
+          render();
+          if(patId) _apiDokFetch(patId);
+        }
+      });
+
+      /* Initialzustand aus patient-selector.js übernehmen */
+      const _initSel = getPatient();
+      const _initPatId = _initSel ? _initSel.id : (patients[0] ? patients[0].id : '');
+      if(docPatient && docPatient.value !== _initPatId) docPatient.value = _initPatId;
+      const _initPat = patients.find(function(p){ return p.id === _initPatId; }) || _initSel;
+      if(_initPat) setCurrentPatient(_initPat);
+
+      renderPlanList();
+      resetForm();
+      render();
+      /* Initiale API-Abfrage für aktuellen Patienten */
+      _apiDokFetch(_initPatId);
+
+      /* ── Wound summary panel ── */
+      (function(){
+        const panel     = document.getElementById('wundPanel');
+        const panelHead = document.getElementById('wundPanelHead');
+        const panelBody = document.getElementById('wundPanelBody');
+        const panelMeta = document.getElementById('wundPanelMeta');
+        if(!panel) return;
+
+        function pad(n){ return String(n).padStart(2,'0'); }
+
+        function loadWd(){
+          try{ return JSON.parse(localStorage.getItem('nursy_wunddoku_v1')||'null'); }catch(e){ return null; }
+        }
+        function loadWdFromApi(patId, cb){
+          fetch('/api/care/wunddoku/' + encodeURIComponent(patId||'default'), {credentials:'include'})
+            .then(function(r){ return r.ok ? r.json() : null; })
+            .then(function(d){
+              if(d && d.ok && d.data){
+                try{ localStorage.setItem('nursy_wunddoku_v1', JSON.stringify(d.data)); }catch(e){}
+                if(cb) cb(d.data);
+              }
+            }).catch(function(){});
+        }
+        function saveWd(data){
+          try{ localStorage.setItem('nursy_wunddoku_v1', JSON.stringify(data)); }catch(e){}
+        }
+
+        function renderWundPanel(){
+          const wd = loadWd();
+          panelBody.innerHTML = '';
+
+          if(!wd || !Array.isArray(wd.wounds) || wd.wounds.length === 0){
+            panelMeta.textContent = 'Keine Dokumentation';
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'wund-panel__empty';
+            emptyDiv.innerHTML =
+              '<span>Noch keine Wunden dokumentiert.</span>' +
+              '<a class="wund-panel__new" href="dokumentation-wunden.html">+ Neue Wunddokumentation</a>';
+            panelBody.appendChild(emptyDiv);
+            return;
+          }
+
+          const doneCount = wd.wounds.filter(function(w){ return w.abgeschlossen; }).length;
+          const savedStr  = wd.savedAt ? new Date(wd.savedAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+          panelMeta.textContent = wd.wounds.length + ' Wunde' + (wd.wounds.length !== 1 ? 'n' : '') +
+            (savedStr ? ' · ' + savedStr : '') +
+            (doneCount ? ' · ' + doneCount + ' abgeschlossen' : '');
+
+          wd.wounds.forEach(function(w){
+            const isDone = !!w.abgeschlossen;
+            const row = document.createElement('div');
+            row.className = 'wund-row' + (isDone ? ' done' : '');
+
+            var subParts = [];
+            if(w.art) subParts.push(w.art);
+            if(w.versorgtMit) subParts.push('Versorgt: ' + w.versorgtMit);
+            if(w.verbandswechsel) subParts.push(w.verbandswechsel);
+            if(isDone && w.abgeschlossenAt) subParts.push('Abgeschl. ' + w.abgeschlossenAt);
+
+            row.innerHTML =
+              '<div class="wund-row__num">' + (isDone ? '✓' : w.nr) + '</div>' +
+              '<div class="wund-row__info">' +
+                '<div class="wund-row__name">Wunde ' + w.nr + ' – ' + (w.localisation||'—') + '</div>' +
+                (subParts.length ? '<div class="wund-row__sub">' + subParts.join(' · ') + '</div>' : '') +
+              '</div>' +
+              (isDone ? '<span class="wund-row__done-badge">✓ Abgeschlossen</span>' : '') +
+              '<div class="wund-row__actions">' +
+                '<a class="wund-row__btn" href="dokumentation-wunden.html">Bearbeiten</a>' +
+                (isDone
+                  ? '<button class="wund-row__btn undo" data-wund-undo="' + w.nr + '">Rückgängig</button>'
+                  : '<button class="wund-row__btn finish" data-wund-finish="' + w.nr + '">✓ Abschließen</button>') +
+              '</div>';
+            panelBody.appendChild(row);
+          });
+
+          /* footer with link */
+          const footer = document.createElement('div');
+          footer.className = 'wund-panel__footer';
+          footer.innerHTML = '<a class="wund-panel__new" href="dokumentation-wunden.html">+ Neue Wunddokumentation anlegen</a>';
+          panelBody.appendChild(footer);
+        }
+
+        /* toggle collapse */
+        panelHead.addEventListener('click', function(){
+          panel.classList.toggle('collapsed');
+        });
+
+        /* finish / undo via event delegation */
+        panelBody.addEventListener('click', function(e){
+          /* finish */
+          const finBtn = e.target.closest('[data-wund-finish]');
+          if(finBtn){
+            const nr = Number(finBtn.dataset.wundFinish);
+            const wd = loadWd();
+            if(!wd || !Array.isArray(wd.wounds)) return;
+            const now = new Date();
+            wd.wounds = wd.wounds.map(function(w){
+              if(w.nr === nr){
+                return Object.assign({}, w, {
+                  abgeschlossen: true,
+                  abgeschlossenAt: pad(now.getDate()) + '.' + pad(now.getMonth()+1) + '.' + now.getFullYear() + ', ' + pad(now.getHours()) + ':' + pad(now.getMinutes())
+                });
+              }
+              return w;
+            });
+            saveWd(wd);
+            renderWundPanel();
+            return;
+          }
+          /* undo */
+          const undoBtn = e.target.closest('[data-wund-undo]');
+          if(undoBtn){
+            const nr = Number(undoBtn.dataset.wundUndo);
+            const wd = loadWd();
+            if(!wd || !Array.isArray(wd.wounds)) return;
+            wd.wounds = wd.wounds.map(function(w){
+              if(w.nr === nr){
+                const copy = Object.assign({}, w);
+                delete copy.abgeschlossen;
+                delete copy.abgeschlossenAt;
+                return copy;
+              }
+              return w;
+            });
+            saveWd(wd);
+            renderWundPanel();
+          }
+        });
+
+        renderWundPanel();
+      })();
+
+    })();
+  </script>
+</body>
+</html>

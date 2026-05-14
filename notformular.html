@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nursy – Notformular</title>
+<style>
+:root{
+  --blue:#2d5be3;
+  --text:#1a2540;
+  --muted:#6b7a99;
+  --line:#dde3f0;
+  --bg:#f3f6fc;
+  --card:#fff;
+  --green:#16a34a;
+  --red:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:ui-sans-serif,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:14px;
+  min-height:100vh;
+}
+
+/* ── Screen layout ── */
+.screen-wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px;}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.top-bar h1{font-size:1.25rem;font-weight:900;color:var(--text);}
+.top-bar .logo{font-size:1rem;font-weight:900;color:var(--blue);letter-spacing:-.5px;}
+
+.pat-select-wrap{background:var(--card);border-radius:14px;padding:16px 20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(15,26,51,.06);border:1.5px solid var(--line);}
+.pat-select-wrap label{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;}
+.pat-select-wrap select{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;font-weight:700;color:var(--text);background:#fff;appearance:none;cursor:pointer;outline:none;}
+
+.btn-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.btn{padding:10px 22px;border-radius:10px;border:none;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--line);}
+.btn-outline:hover{background:var(--bg);}
+
+/* ── Form ── */
+.form-page{background:var(--card);border-radius:18px;box-shadow:0 2px 12px rgba(15,26,51,.07);border:1.5px solid var(--line);padding:28px 28px 32px;margin-bottom:16px;}
+.form-page .page-badge{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--blue);margin-bottom:8px;}
+.form-page h2{font-size:1.05rem;font-weight:900;color:var(--text);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--line);}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 16px;}
+@media(max-width:560px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.field .val{font-size:.92rem;font-weight:600;color:var(--text);padding:6px 0;border-bottom:1.5px solid var(--line);min-height:30px;}
+.field .val.empty{color:var(--muted);}
+
+/* Maßnahmen-Tabelle */
+.measures-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.measures-table th{background:#f3f6fc;padding:7px 10px;text-align:left;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border:1px solid var(--line);}
+.measures-table td{padding:7px 10px;border:1px solid var(--line);vertical-align:middle;}
+.measures-table tr:nth-child(even) td{background:#fafbff;}
+.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.dot-done{background:#16a34a;}
+.dot-open{background:#e2e8f0;}
+.dot-check{font-size:1rem;color:#16a34a;font-weight:900;}
+
+/* Vitalzeichen-Tabelle */
+.vital-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px;}
+.vital-table th{background:#f3f6fc;padding:8px 10px;text-align:left;font-size:.7rem;font-weight:800;color:var(--muted);border:1px solid var(--line);}
+.vital-table td{padding:8px 10px;border:1px solid var(--line);}
+.vital-table .write-field{width:100%;border:none;background:transparent;font-size:.85rem;padding:2px 0;font-family:inherit;}
+.vital-table .write-field:focus{outline:none;background:#f8faff;}
+
+/* Notiz-Linien */
+.note-lines{margin-top:8px;}
+.note-line{border-bottom:1px solid var(--line);height:32px;margin-bottom:2px;}
+.note-area{width:100%;min-height:80px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;font-family:inherit;resize:vertical;background:#fafbff;}
+.note-area:focus{outline:none;border-color:var(--blue);}
+
+/* Unterschrift */
+.sig-box{border:1.5px solid var(--line);border-radius:10px;height:80px;margin-top:8px;background:#fafbff;display:flex;align-items:flex-end;padding:8px 14px;}
+.sig-line{width:100%;border-bottom:1.5px solid var(--line);font-size:.7rem;color:var(--muted);padding-top:4px;}
+
+/* Erkrankungen-Chips */
+.erk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.erk-chip{background:#dbeafe;color:#1e40af;border-radius:999px;padding:3px 12px;font-size:.75rem;font-weight:700;}
+.erk-chip.warn{background:#fef3c7;color:#92400e;}
+
+/* Header für Druck */
+.print-header{display:none;}
+
+/* Kein Patient */
+.no-pat{text-align:center;padding:60px 20px;color:var(--muted);}
+.no-pat .icon{font-size:3rem;margin-bottom:12px;}
+
+/* Emergeny badge */
+.emerg-badge{display:inline-block;background:#fee2e2;color:#b91c1c;font-size:.68rem;font-weight:900;text-transform:uppercase;padding:2px 10px;border-radius:999px;margin-left:8px;letter-spacing:.06em;vertical-align:middle;}
+
+/* ── Print styles ── */
+@media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  body{background:#fff !important;font-size:11px;}
+  .no-print{display:none !important;}
+  .screen-wrap{max-width:100%;padding:0;margin:0;}
+  .form-page{border:1px solid #ccc !important;border-radius:0 !important;box-shadow:none !important;padding:16px 20px !important;margin-bottom:8px !important;page-break-inside:avoid;}
+  .pat-select-wrap{display:none !important;}
+  .print-header{display:block !important;text-align:center;border-bottom:2px solid #1a2540;padding-bottom:10px;margin-bottom:14px;}
+  .print-header .ph-title{font-size:16px;font-weight:900;color:#1a2540;}
+  .print-header .ph-sub{font-size:11px;color:#666;margin-top:3px;}
+  .top-bar{display:none !important;}
+  .btn-bar{display:none !important;}
+  .note-area{border:1px solid #ccc !important;background:#fff !important;}
+  .vital-table .write-field{border-bottom:1px solid #ccc;}
+  .measures-table,.vital-table{font-size:9px;}
+  .measures-table th,.measures-table td,.vital-table th,.vital-table td{padding:4px 6px;}
+  h2{font-size:11px !important;padding-bottom:4px !important;margin-bottom:8px !important;}
+  .grid2{gap:8px 16px;}
+  .field .val{font-size:.82rem;padding:3px 0;}
+}
+</style>
+</head>
+<body>
+
+<div class="screen-wrap">
+
+  <!-- Druck-Kopfzeile (nur im Druck sichtbar) -->
+  <div class="print-header" id="printHeader">
+    <div class="ph-title">🏥 Nursy – Notformular</div>
+    <div class="ph-sub" id="printSub"></div>
+  </div>
+
+  <!-- Screen-Header -->
+  <div class="top-bar no-print">
+    <div>
+      <div class="logo">Nursy</div>
+      <h1>Notformular <span style="font-size:.75rem;font-weight:600;color:var(--muted);">Offline-Patientenformular</span></h1>
+    </div>
+    <a href="dashboard-care.html" style="font-size:.82rem;color:var(--blue);text-decoration:none;font-weight:700;">← Dashboard</a>
+  </div>
+
+  <!-- Patientenauswahl -->
+  <div class="pat-select-wrap no-print">
+    <label>Patient auswählen</label>
+    <select id="patSelect" onchange="selectPat(this.value)">
+      <option value="">– Patienten laden…</option>
+    </select>
+  </div>
+
+  <!-- Aktions-Buttons -->
+  <div class="btn-bar no-print" id="btnBar" style="display:none;">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Drucken / PDF speichern</button>
+    <button class="btn btn-outline" onclick="location.reload()">↺ Neu laden</button>
+  </div>
+
+  <!-- Kein Patient -->
+  <div class="no-pat" id="noPatMsg">
+    <div class="icon">📋</div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:6px;">Kein Patient ausgewählt</div>
+    <div style="font-size:.85rem;">Bitte oben einen Patienten aus der Liste wählen.</div>
+  </div>
+
+  <!-- Formular (wird befüllt) -->
+  <div id="formWrap" style="display:none;">
+
+    <!-- 1. Patientendaten -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 1</div>
+      <h2>👤 Patientendaten</h2>
+      <div class="grid2">
+        <div class="field"><label>Nachname</label><div class="val" id="fNachname"></div></div>
+        <div class="field"><label>Vorname</label><div class="val" id="fVorname"></div></div>
+        <div class="field"><label>Geburtsdatum</label><div class="val" id="fGeburt"></div></div>
+        <div class="field"><label>Geschlecht</label><div class="val" id="fGender"></div></div>
+        <div class="field"><label>Sozialversicherungsnummer</label><div class="val" id="fSV"></div></div>
+        <div class="field"><label>Pflegestufe / Hauptgrund</label><div class="val" id="fHauptgrund"></div></div>
+      </div>
+      <div style="margin-top:14px;" class="grid2">
+        <div class="field"><label>Straße & Hausnummer</label><div class="val" id="fStrasse"></div></div>
+        <div class="field"><label>PLZ / Ort</label><div class="val" id="fOrt"></div></div>
+      </div>
+      <div style="margin-top:14px;" class="grid2">
+        <div class="field"><label>Telefon Patient</label><div class="val" id="fTel"></div></div>
+        <div class="field"><label>E-Mail Patient</label><div class="val" id="fEmail"></div></div>
+      </div>
+    </div>
+
+    <!-- 2. Notfallkontakt -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 2</div>
+      <h2>🆘 Notfallkontakt & Angehörige</h2>
+      <div id="fAngehoerige">
+        <div class="no-pat" style="padding:20px;font-size:.85rem;">Keine Angehörigen gespeichert.</div>
+      </div>
+    </div>
+
+    <!-- 3. Medizinische Informationen -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 3</div>
+      <h2>🩺 Medizinische Informationen</h2>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Erkrankungen / Diagnosen</label>
+        <div id="fErkrankungen" class="erk-chips" style="padding-top:4px;"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Allergien</label>
+          <div class="val" id="fAllergien"></div>
+        </div>
+        <div class="field">
+          <label>Häufigkeit der Pflege</label>
+          <div class="val" id="fHaeufigkeit"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Medikamente (Dauermedikation)</label>
+        <div class="val" style="min-height:40px;white-space:pre-wrap;" id="fMedikamente"></div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Wichtige Hinweise / Besonderheiten</label>
+        <div class="val" style="min-height:40px;white-space:pre-wrap;" id="fWichtig"></div>
+      </div>
+    </div>
+
+    <!-- 4. Heutiger Durchführungsnachweis -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 4</div>
+      <h2>✅ Durchführungsnachweis <span id="fDatum" style="font-size:.82rem;font-weight:600;color:var(--muted);"></span></h2>
+      <table class="measures-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th>Maßnahme</th>
+            <th style="width:80px;">Uhrzeit</th>
+            <th style="width:70px;">Status</th>
+            <th style="width:90px;">Abgezeichnet</th>
+            <th>Kommentar</th>
+          </tr>
+        </thead>
+        <tbody id="fMeasures"></tbody>
+      </table>
+    </div>
+
+    <!-- 5. Vitalzeichen -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 5</div>
+      <h2>💉 Vitalzeichen</h2>
+      <table class="vital-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Uhrzeit</th>
+            <th>Wert</th>
+            <th>Einheit</th>
+            <th>Bemerkung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Blutdruck</td><td><input class="write-field" placeholder="z.B. 10:30"></td><td><input class="write-field" placeholder="z.B. 120/80"></td><td>mmHg</td><td><input class="write-field"></td></tr>
+          <tr><td>Puls</td><td><input class="write-field"></td><td><input class="write-field" placeholder="z.B. 72"></td><td>/min</td><td><input class="write-field"></td></tr>
+          <tr><td>Temperatur</td><td><input class="write-field"></td><td><input class="write-field" placeholder="z.B. 36,8"></td><td>°C</td><td><input class="write-field"></td></tr>
+          <tr><td>Blutzucker</td><td><input class="write-field"></td><td><input class="write-field"></td><td>mg/dl</td><td><input class="write-field"></td></tr>
+          <tr><td>Sauerstoffsättigung</td><td><input class="write-field"></td><td><input class="write-field"></td><td>%</td><td><input class="write-field"></td></tr>
+          <tr><td>Atemfrequenz</td><td><input class="write-field"></td><td><input class="write-field"></td><td>/min</td><td><input class="write-field"></td></tr>
+          <tr><td>Gewicht</td><td><input class="write-field"></td><td><input class="write-field"></td><td>kg</td><td><input class="write-field"></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. Notizen & Bemerkungen -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 6</div>
+      <h2>📝 Notizen & Bemerkungen</h2>
+      <textarea class="note-area no-print" placeholder="Beobachtungen, Ereignisse, Besonderheiten…" rows="5"></textarea>
+      <div class="note-lines" style="display:none;" id="printNoteLines">
+        <div class="note-line"></div><div class="note-line"></div><div class="note-line"></div>
+        <div class="note-line"></div><div class="note-line"></div><div class="note-line"></div>
+        <div class="note-line"></div><div class="note-line"></div>
+      </div>
+    </div>
+
+    <!-- 7. Unterschriften -->
+    <div class="form-page">
+      <div class="page-badge">Abschnitt 7</div>
+      <h2>✍️ Unterschriften</h2>
+      <div class="grid2" style="gap:24px;">
+        <div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:8px;">Pflegekraft</div>
+          <div class="sig-box"><div class="sig-line">Datum, Unterschrift Pflegekraft</div></div>
+          <div style="margin-top:10px;" class="field">
+            <label>Name Pflegekraft</label>
+            <div class="val" id="fPfleger"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:8px;">Patient / Angehöriger</div>
+          <div class="sig-box"><div class="sig-line">Datum, Unterschrift Patient / Angehöriger</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hinweis -->
+    <div style="text-align:center;color:var(--muted);font-size:.72rem;margin-top:8px;" class="no-print">
+      Formular ist vertraulich und dient ausschließlich dem internen Pflegenachweis gemäß DSGVO.
+    </div>
+
+  </div><!-- /formWrap -->
+</div><!-- /screen-wrap -->
+
+<script src="script.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var MEASURES = [
+    {id:1,  massnahme:'Morgenbegrüßung / Orientierung', ziel:'Wohlbefinden fördern', uhrzeit:'07:00', zeitpunkt:'früh'},
+    {id:2,  massnahme:'Körperpflege / Ganzkörperwäsche', ziel:'Hautintegrität erhalten', uhrzeit:'07:30', zeitpunkt:'früh'},
+    {id:3,  massnahme:'Mundpflege / Zähneputzen', ziel:'Mundschleimhaut intakt', uhrzeit:'08:00', zeitpunkt:'früh'},
+    {id:4,  massnahme:'Medikamentengabe oral (Morgengabe)', ziel:'Stabile Medikation sicherstellen', uhrzeit:'08:00', zeitpunkt:'früh'},
+    {id:5,  massnahme:'Frühstück / Ernährungsunterstützung', ziel:'Ausreichende Nahrungsaufnahme', uhrzeit:'09:00', zeitpunkt:'früh'},
+    {id:6,  massnahme:'Mobilisation / Transfer', ziel:'Sturz- und Kontrakturprophylaxe', uhrzeit:'10:00', zeitpunkt:'früh'},
+    {id:7,  massnahme:'Vitalzeichenmessung', ziel:'Frühzeitige Abweichungen erkennen', uhrzeit:'10:00', zeitpunkt:'früh'},
+    {id:8,  massnahme:'Wundversorgung', ziel:'Wundheilung fördern', uhrzeit:'11:00', zeitpunkt:'früh'},
+    {id:9,  massnahme:'Mittagessen / Ernährungsunterstützung', ziel:'Ausreichende Nahrungsaufnahme', uhrzeit:'12:00', zeitpunkt:'mittag'},
+    {id:10, massnahme:'Medikamentengabe oral (Mittagsgabe)', ziel:'Stabile Medikation sicherstellen', uhrzeit:'12:00', zeitpunkt:'mittag'},
+    {id:11, massnahme:'Ruhezeit / Lagerung', ziel:'Dekubitusprophylaxe, Erholung', uhrzeit:'13:00', zeitpunkt:'mittag'},
+    {id:12, massnahme:'Aktivierung / Beschäftigung', ziel:'Kognitive Stimulation', uhrzeit:'14:00', zeitpunkt:'mittag'},
+    {id:13, massnahme:'Flüssigkeitszufuhr überwachen', ziel:'Ausreichende Hydrierung', uhrzeit:'15:00', zeitpunkt:'mittag'},
+    {id:14, massnahme:'Abendessen / Ernährungsunterstützung', ziel:'Ausreichende Nahrungsaufnahme', uhrzeit:'16:00', zeitpunkt:'mittag'},
+    {id:15, massnahme:'Prophylaxen (Dekubitus, Sturz, Thrombose)', ziel:'Komplikationsprophylaxe', uhrzeit:'18:00', zeitpunkt:'abend'},
+    {id:16, massnahme:'Medikamentengabe oral (Abendgabe)', ziel:'Stabile Medikation sicherstellen', uhrzeit:'20:00', zeitpunkt:'abend'},
+    {id:17, massnahme:'Abendpflege / Mundpflege', ziel:'Wohlbefinden, Mundschleimhaut intakt', uhrzeit:'20:00', zeitpunkt:'abend'},
+    {id:18, massnahme:'Lagerungswechsel', ziel:'Dekubitusprophylaxe', uhrzeit:'20:00', zeitpunkt:'abend'},
+    {id:19, massnahme:'Schlafförderung / Nachtruhe', ziel:'Erholsamer Schlaf sicherstellen', uhrzeit:'21:00', zeitpunkt:'abend'},
+    {id:20, massnahme:'Sicherheitscheck / Bettgitter', ziel:'Sturzprophylaxe in der Nacht', uhrzeit:'21:30', zeitpunkt:'abend'},
+  ];
+
+  var GENDER_MAP = {'male':'Männlich','female':'Weiblich','männlich':'Männlich','weiblich':'Weiblich','divers':'Divers','m':'Männlich','w':'Weiblich','f':'Weiblich'};
+  var TODAY = new Date().toISOString().slice(0,10);
+  var todayFormatted = new Date().toLocaleDateString('de-AT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  /* ── Patientenliste laden ── */
+  function getPatients(){
+    var key = window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1';
+    try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+  }
+
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function val(v, fallback){ return (v && String(v).trim()) ? v : (fallback||''); }
+
+  /* ── Selector befüllen ── */
+  function populateSelect(){
+    var pats = getPatients();
+    var sel = document.getElementById('patSelect');
+    sel.innerHTML = '<option value="">– Patient wählen –</option>';
+    if(!pats.length){
+      sel.innerHTML = '<option value="">Keine Patienten gespeichert</option>';
+      return;
+    }
+    pats.forEach(function(p,i){
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = (p.name||((p.nachname||'')+ ' '+(p.vorname||'')).trim()||'Patient '+(i+1));
+      sel.appendChild(opt);
+    });
+    /* Wenn nur ein Patient → direkt auswählen */
+    if(pats.length === 1){
+      sel.value = '0';
+      fillForm(pats[0]);
+    }
+  }
+
+  window.selectPat = function(idxStr){
+    if(idxStr === '') { document.getElementById('formWrap').style.display='none'; document.getElementById('noPatMsg').style.display='block'; document.getElementById('btnBar').style.display='none'; return; }
+    var pats = getPatients();
+    var p = pats[parseInt(idxStr,10)];
+    if(p) fillForm(p);
+  };
+
+  /* ── Formular befüllen ── */
+  function fillForm(p){
+    document.getElementById('noPatMsg').style.display='none';
+    document.getElementById('formWrap').style.display='block';
+    document.getElementById('btnBar').style.display='flex';
+
+    var name = p.name || ((p.nachname||'')+' '+(p.vorname||'')).trim() || '–';
+    var parts = name.trim().split(/\s+/);
+    var nachname = p.nachname || parts[0] || '–';
+    var vorname  = p.vorname  || (parts.slice(1).join(' ')||'');
+
+    function sv(id, v){ var el=document.getElementById(id); if(el){ el.textContent=v||''; el.classList.toggle('empty',!v); if(!v)el.textContent='–'; } }
+
+    sv('fNachname', nachname);
+    sv('fVorname',  vorname);
+    sv('fGeburt',   p.geburt||p.birth||'');
+    sv('fGender',   GENDER_MAP[(p.gender||p.geschlecht||'').toLowerCase()]||p.gender||'');
+    sv('fSV',       p.sv||'');
+    sv('fHauptgrund', p.hauptgrund||p.wichtig||'');
+    sv('fHaeufigkeit', p.haeufigkeit||'');
+
+    /* Adresse */
+    var strasse = [p.strasse, p.hausnr].filter(Boolean).join(' ') || p.address || '';
+    var ort     = [p.plz, p.ort].filter(Boolean).join(' ');
+    sv('fStrasse', strasse);
+    sv('fOrt',     ort);
+    sv('fTel',     p.tel||p.telefon||'');
+    sv('fEmail',   p.email||'');
+
+    /* Angehörige */
+    var angEl = document.getElementById('fAngehoerige');
+    var angs = [];
+    if(Array.isArray(p.angehoerige)) angs = p.angehoerige;
+    else if(p.angNachname||p.angTel){ angs=[{name:(p.angNachname||'')+(p.angVorname?' '+p.angVorname:''), beziehung:p.angBez||'', tel:p.angTel||'', email:p.angMail||''}]; }
+    if(angs.length){
+      angEl.innerHTML = angs.map(function(a,i){
+        var aname = a.name||((a.nachname||'')+(a.vorname?' '+a.vorname:''))||'–';
+        return '<div class="grid2" style="margin-bottom:'+(i<angs.length-1?'14':'0')+'px;">'
+          +'<div class="field"><label>Name</label><div class="val">'+esc(aname)+'</div></div>'
+          +'<div class="field"><label>Beziehung</label><div class="val">'+esc(a.beziehung||a.bez||'–')+'</div></div>'
+          +'<div class="field"><label>Telefon <span class="emerg-badge">Notfall</span></label><div class="val">'+esc(a.tel||'–')+'</div></div>'
+          +'<div class="field"><label>E-Mail</label><div class="val">'+esc(a.email||'–')+'</div></div>'
+          +'</div>';
+      }).join('<hr style="border:none;border-top:1px solid var(--line);margin:10px 0;">');
+    } else {
+      angEl.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:8px 0;">Keine Angehörigen gespeichert.</div>';
+    }
+
+    /* Erkrankungen */
+    var erkEl = document.getElementById('fErkrankungen');
+    var erks = Array.isArray(p.erkrankungen) ? p.erkrankungen : [];
+    if(erks.length){
+      erkEl.innerHTML = erks.map(function(e){ return '<span class="erk-chip">'+esc(e)+'</span>'; }).join('');
+    } else {
+      erkEl.innerHTML = '<span style="color:var(--muted);font-size:.85rem;">Keine Erkrankungen eingetragen</span>';
+    }
+    sv('fAllergien',   p.allergien||'');
+    sv('fMedikamente', p.medikamente||'');
+    sv('fWichtig',     p.wichtig||'');
+
+    /* Datum */
+    document.getElementById('fDatum').textContent = '– ' + todayFormatted;
+
+    /* Pfleger-Name */
+    var prof = {};
+    try{ prof = JSON.parse(localStorage.getItem('nursy_profile_care_v1')||'{}'); }catch(e){}
+    var pflName = [prof.firstName||prof.vorname||'', prof.lastName||prof.nachname||''].filter(Boolean).join(' ');
+    sv('fPfleger', pflName||'');
+
+    /* Print-Subzeile */
+    document.getElementById('printSub').textContent = name + ' · ' + todayFormatted;
+
+    /* Maßnahmen */
+    var dfKey = 'nursy_df_v1_' + (p.id||'default') + '_' + TODAY;
+    var dfState = {};
+    try{ dfState = JSON.parse(localStorage.getItem(dfKey)||'{}'); }catch(e){}
+    var tbody = document.getElementById('fMeasures');
+    var GROUP_LABELS = {früh:'🌅 Früh',mittag:'☀️ Mittag',abend:'🌙 Abend'};
+    var lastGroup = '';
+    tbody.innerHTML = MEASURES.map(function(m){
+      var entry = dfState[m.id] || null;
+      var done  = entry && entry.status === 'done';
+      var groupRow = '';
+      if(m.zeitpunkt !== lastGroup){
+        lastGroup = m.zeitpunkt;
+        groupRow = '<tr style="background:#f3f6fc;"><td colspan="6" style="padding:5px 10px;font-size:.7rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;">'+esc(GROUP_LABELS[m.zeitpunkt]||m.zeitpunkt)+'</td></tr>';
+      }
+      var statusCell = done
+        ? '<span style="color:#16a34a;font-weight:800;font-size:.9rem;">✓ Erledigt</span>'
+        : '<span style="color:#94a3b8;font-size:.82rem;">Offen</span>';
+      var tsCell = done && entry.ts ? esc(entry.ts) : '<span style="color:#cbd5e1;font-size:.78rem;">–</span>';
+      var comment = done && entry.comment ? esc(entry.comment) : '';
+      return groupRow
+        + '<tr>'
+        + '<td style="color:var(--muted);font-size:.78rem;font-weight:700;">'+m.id+'</td>'
+        + '<td style="font-weight:600;">'+esc(m.massnahme)+'</td>'
+        + '<td style="color:var(--muted);">'+m.uhrzeit+'</td>'
+        + '<td>'+statusCell+'</td>'
+        + '<td>'+tsCell+'</td>'
+        + '<td style="font-size:.78rem;color:var(--muted);">'+comment+'</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  /* Beim Drucken: Notiz-Textarea ausblenden, Linien zeigen */
+  window.addEventListener('beforeprint', function(){
+    document.querySelectorAll('.note-area').forEach(function(el){ el.style.display='none'; });
+    document.querySelectorAll('#printNoteLines').forEach(function(el){ el.style.display='block'; });
+  });
+  window.addEventListener('afterprint', function(){
+    document.querySelectorAll('.note-area').forEach(function(el){ el.style.display=''; });
+    document.querySelectorAll('#printNoteLines').forEach(function(el){ el.style.display='none'; });
+  });
+
+  /* Start */
+  document.addEventListener('DOMContentLoaded', function(){
+    /* Profil nachladen falls UID noch nicht gesetzt */
+    if(window.setCareUid){
+      try{
+        var prof = JSON.parse(localStorage.getItem('nursy_profile_care_v1')||'{}');
+        if(prof.id) window.setCareUid(prof.id);
+      }catch(e){}
+    }
+    populateSelect();
+  });
+
+  /* URL-Parameter: ?pat=0 direkt öffnen */
+  var urlPat = new URLSearchParams(window.location.search).get('pat');
+  if(urlPat !== null){
+    window.addEventListener('DOMContentLoaded', function(){
+      var sel = document.getElementById('patSelect');
+      sel.value = urlPat;
+      window.selectPat(urlPat);
+    });
+  }
+})();
+</script>
+</body>
+</html>
