@@ -2,7 +2,7 @@ let __currentEdit = null;
 function firstNonCancelled(visits){ return (visits||[]).find(v=>!v.cancelled) || null; }
 document.addEventListener('DOMContentLoaded',()=>{});
 
-// Demo Registrierung / Login / Next Steps
+// Registrierung / Login
 (function(){
   function showError(form, msg){
     const box = form.querySelector('.form-error');
@@ -14,37 +14,25 @@ document.addEventListener('DOMContentLoaded',()=>{});
     }
   }
 
+  // Multi-Schritt-Registrierung: Rolle speichern für Folgeschritte.
+  // Die eigentlichen API-Aufrufe übernehmen die inline-Scripts in
+  // register-care.html (POST /api/register/care) und
+  // register-client.html (POST /api/register/patient).
   document.querySelectorAll('form[data-demo-register]').forEach(form => {
     form.addEventListener('submit', (e) => {
-      e.preventDefault();
       const role = form.getAttribute('data-demo-register');
-      const pw = form.querySelector('input[type="password"][id$="pw"]');
+      const pw  = form.querySelector('input[type="password"][id$="pw"]');
       const pw2 = form.querySelector('input[type="password"][id$="pw2"]');
       if (pw && pw2 && pw.value !== pw2.value){
+        e.preventDefault();
         showError(form, 'Die Passwörter stimmen nicht überein.');
         return;
       }
-      try{ localStorage.setItem('nursy_register_role', role); }catch(e){}
-      try{
-        if (role === 'care'){
-          const data = {
-            firstName: document.getElementById('p-vn')?.value || '',
-            lastName: document.getElementById('p-nn')?.value || '',
-            gender: document.getElementById('p-gender')?.value || '',
-            street: document.getElementById('p-str')?.value || '',
-            zip: document.getElementById('p-plz')?.value || '',
-            city: document.getElementById('p-ort')?.value || '',
-            bezirk: document.getElementById('p-bezirk')?.value || ''
-          };
-          const existing = JSON.parse(localStorage.getItem('nursy_profile_care_v1') || '{}');
-          const fields = Object.assign({}, existing.fields || {}, data);
-          localStorage.setItem('nursy_profile_care_v1', JSON.stringify(Object.assign({}, existing, data, {fields})));
-        }
-      }catch(e){}
-      window.location.href = 'verify-email.html';
+      try{ localStorage.setItem('nursy_register_role', role); }catch(err){}
     });
   });
 
+  // Multi-Schritt-Navigation (Profil → Verfügbarkeit → Dashboard)
   document.querySelectorAll('form[data-demo-next]').forEach(form => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -57,9 +45,9 @@ document.addEventListener('DOMContentLoaded',()=>{});
         try{
           const existing = JSON.parse(localStorage.getItem('nursy_profile_care_v1') || '{}');
           const fields = Object.assign({}, existing.fields || {}, {
-            bio: document.getElementById('p-bio')?.value || '',
+            bio:      document.getElementById('p-bio')?.value || '',
             qualMain: document.getElementById('p-qual-main')?.value || '',
-            qualOther: document.getElementById('p-qual-other')?.value || ''
+            qualOther:document.getElementById('p-qual-other')?.value || ''
           });
           const extras = [];
           document.querySelectorAll('#extrasList .extras__row').forEach(row => {
@@ -70,7 +58,7 @@ document.addEventListener('DOMContentLoaded',()=>{});
             if (name || otherVal) extras.push({name, other: otherVal});
           });
           localStorage.setItem('nursy_profile_care_v1', JSON.stringify(Object.assign({}, existing, {fields, extras})));
-        }catch(e){}
+        }catch(err){}
         window.location.href = 'register-care-availability.html';
         return;
       }
@@ -84,22 +72,23 @@ document.addEventListener('DOMContentLoaded',()=>{});
             data[d] = data[d] || {};
             data[d][s] = inp.value || '';
           });
-          try{ localStorage.setItem('nursy_availability_v1', JSON.stringify(data)); }catch(e){}
-          try{ localStorage.setItem('nursy_availability_compact_v1', JSON.stringify(data)); }catch(e){}
+          try{ localStorage.setItem('nursy_availability_v1', JSON.stringify(data)); }catch(err){}
+          try{ localStorage.setItem('nursy_availability_compact_v1', JSON.stringify(data)); }catch(err){}
         }
         window.location.href = 'dashboard-care.html';
       }
     });
   });
 
+  // Wundkarte (Lokalisation)
   const wzMapWrap = document.getElementById('wzMapWrap');
   if (wzMapWrap){
-    const zones = wzMapWrap.querySelectorAll('.wz-zone');
+    const zones   = wzMapWrap.querySelectorAll('.wz-zone');
     const summary = document.getElementById('wzSummary');
     const selected = {};
     zones.forEach(zone => {
       zone.addEventListener('click', () => {
-        const id = zone.dataset.id;
+        const id    = zone.dataset.id;
         const label = zone.dataset.label;
         if (selected[id]){ delete selected[id]; zone.classList.remove('sel'); }
         else { selected[id] = label; zone.classList.add('sel'); }
@@ -115,23 +104,24 @@ document.addEventListener('DOMContentLoaded',()=>{});
         try{
           const existing = JSON.parse(localStorage.getItem('nursy_profile_care_v1') || '{}');
           const woundDoc = {
-            localisations: Object.values(selected),
+            localisations:   Object.values(selected),
             localisationIds: Object.keys(selected),
-            art: document.getElementById('wzArt')?.value || '',
-            dekubitusGrad: document.getElementById('wzDekGrad')?.value || '',
-            sonstiges: document.getElementById('wzSonstiges')?.value || '',
-            seitWann: document.getElementById('wzSeitWann')?.value || '',
-            beschreibung: document.getElementById('wzBeschreibung')?.value || '',
-            versorgtMit: document.getElementById('wzVersorgtMit')?.value || '',
-            naechsteEval: document.getElementById('wzNaechsteEval')?.value || '',
-            dokumentiertAm: document.getElementById('wzDokDatum')?.value || ''
+            art:             document.getElementById('wzArt')?.value || '',
+            dekubitusGrad:   document.getElementById('wzDekGrad')?.value || '',
+            sonstiges:       document.getElementById('wzSonstiges')?.value || '',
+            seitWann:        document.getElementById('wzSeitWann')?.value || '',
+            beschreibung:    document.getElementById('wzBeschreibung')?.value || '',
+            versorgtMit:     document.getElementById('wzVersorgtMit')?.value || '',
+            naechsteEval:    document.getElementById('wzNaechsteEval')?.value || '',
+            dokumentiertAm:  document.getElementById('wzDokDatum')?.value || ''
           };
           localStorage.setItem('nursy_profile_care_v1', JSON.stringify(Object.assign({}, existing, {woundDoc})));
-        }catch(e){}
+        }catch(err){}
       }, true);
     }
   }
 
+  // E-Mail-Bestätigung: Weiterleitung je nach Rolle
   const cont = document.getElementById('verifyContinue');
   if (cont){
     cont.addEventListener('click', (e) => {
@@ -142,70 +132,69 @@ document.addEventListener('DOMContentLoaded',()=>{});
     });
   }
 
-  const loginForms = document.querySelectorAll('form[data-login-role]');
-  loginForms.forEach(form => {
-    const email = form.querySelector('#loginEmail');
-    const password = form.querySelector('#loginPassword');
-    const submit = form.querySelector('[type="submit"]');
-    const role = form.getAttribute('data-login-role');
-    const testEmail = role === 'care' ? 'care@test.at' : 'client@test.at';
-    const testPassword = 'Test1234!';
-    const useTest = form.querySelector('[data-action="use-test"]');
-    const loginTest = form.querySelector('[data-action="login-test"]');
-    if (useTest){
-      useTest.addEventListener('click', () => {
-        if (email) email.value = testEmail;
-        if (password) password.value = testPassword;
-      });
-    }
-    if (loginTest){
-      loginTest.addEventListener('click', () => {
-        if (email) email.value = testEmail;
-        if (password) password.value = testPassword;
-        form.requestSubmit ? form.requestSubmit(submit || undefined) : form.dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
-      });
-    }
+  // ── Login ──────────────────────────────────────────────────────────────────
+  // Alle Login-Formulare mit data-login-role="care|client" senden an /api/login
+  // mit der Rolle im Request-Body. Korrekte Fehlermeldungen vom Server werden
+  // direkt angezeigt.
+  document.querySelectorAll('form[data-login-role]').forEach(form => {
+    const emailEl  = form.querySelector('#loginEmail');
+    const pwEl     = form.querySelector('#loginPassword');
+    const submitEl = form.querySelector('[type="submit"]');
+    const role     = form.getAttribute('data-login-role');
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!email || !password) return;
-      if (submit) submit.disabled = true;
+      if (!emailEl || !pwEl) return;
+
+      const email = emailEl.value.trim();
+      const pw    = pwEl.value;
+
+      if (!email || !pw){
+        showError(form, 'Bitte E-Mail-Adresse und Passwort eingeben.');
+        return;
+      }
+
+      if (submitEl) submitEl.disabled = true;
+
       try {
-        const resp = await fetch('/api/login/' + role, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.value.trim(), password: password.value })
+        const resp = await fetch('/api/login', {
+          method:      'POST',
+          headers:     { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body:        JSON.stringify({ email, password: pw, role })
         });
         const data = await resp.json();
-        if (!resp.ok || !data.ok) {
-          showError(form, data.error || 'Anmeldung fehlgeschlagen');
-          if (submit) submit.disabled = false;
+
+        if (!resp.ok || !data.ok){
+          showError(form, data.error || 'Anmeldung fehlgeschlagen.');
+          if (submitEl) submitEl.disabled = false;
           return;
         }
-        try { localStorage.setItem('nursy_current_user', JSON.stringify(data.user)); } catch(err) {}
+
+        try { localStorage.setItem('nursy_current_user', JSON.stringify(data.user)); } catch(err){}
+
         const returnUrl = new URLSearchParams(window.location.search).get('return');
-        window.location.href = returnUrl || (role === 'care' ? 'dashboard-care.html' : 'dashboard-client.html');
-      } catch(err) {
-        /* Fallback: test credentials offline */
-        const ok = email.value.trim().toLowerCase() === testEmail && password.value === testPassword;
-        if (ok) {
-          const returnUrl = new URLSearchParams(window.location.search).get('return');
-          window.location.href = returnUrl || (role === 'care' ? 'dashboard-care.html' : 'dashboard-client.html');
-        } else {
-          showError(form, 'Verbindungsfehler. Bitte versuche es erneut.');
-          if (submit) submit.disabled = false;
-        }
+        window.location.href = returnUrl ||
+          (role === 'care' ? 'dashboard-care.html' : 'dashboard-client.html');
+
+      } catch(err){
+        showError(form, 'Server nicht erreichbar. Bitte versuche es erneut.');
+        if (submitEl) submitEl.disabled = false;
       }
     });
   });
 
+  // Registrierungs-Link nach E-Mail-Bestätigung aktualisieren
   try{
     const role = localStorage.getItem('nursy_register_role');
     if (role){
       document.querySelectorAll('a[data-verify-next]').forEach(a => {
-        a.href = (a.textContent.includes('Pflegekraft') || role === 'care') ? 'register-care-profile.html' : 'register-client-need.html';
+        a.href = (a.textContent.includes('Pflegekraft') || role === 'care')
+          ? 'register-care-profile.html'
+          : 'register-client-need.html';
       });
     }
-  }catch(e){}
+  }catch(err){}
 })();
 
 

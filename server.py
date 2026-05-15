@@ -995,6 +995,21 @@ def register_care():
     return jsonify({'ok': True, 'user': user})
 
 
+@app.route('/api/login', methods=['POST'])
+def login_unified():
+    """Einheitlicher Login-Endpunkt – Rolle wird im Body mitgeschickt.
+    Unterstützte Rollen: care, client.
+    Delegiert an die rollenspezifischen Logik-Funktionen.
+    """
+    data = request.get_json(silent=True) or {}
+    role = data.get('role', '').strip().lower()
+    if role == 'care':
+        return login_care()
+    if role in ('client', 'patient'):
+        return login_client()
+    return jsonify({'ok': False, 'error': 'Unbekannte Rolle. Bitte "care" oder "client" angeben.'}), 400
+
+
 @app.route('/api/login/client', methods=['POST'])
 def login_client():
     data  = request.get_json(silent=True) or {}

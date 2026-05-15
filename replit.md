@@ -16,7 +16,7 @@ Admin login: ADMIN_PASSWORD env var | Portal/Care login: über Admin anlegen (ke
 - `passwort-reset.html` – Klienten-Passwort per E-Mail zurücksetzen (Token-basiert, 1h Gültigkeit)
 - `billing-login.html` / `billing.html` – Verrechnungsstelle login + dashboard
 - `nutzer-verwaltung.html` – Admiral-only: interne Benutzer, Rollen & Seitenzugriff verwalten
-- `pflege-portal-login.html` – Akut Plus Pflegeportal login (care@test.at / Test1234!)
+- `pflege-portal-login.html` – Akut Plus Pflegeportal login (Zugangsdaten über Admin anlegen)
 - `pflege-portal.html` – Akut Plus Pflegeportal: month calendar, shift self-registration (Bezirk + Fahrzeug), events, info
 - `pflege-portal-register.html` – 2-step registration form for new applicants
 - `pflege-portal-bewerbung.html` – token-based detailed application form (sent via admin)
@@ -99,6 +99,6 @@ Each care worker has fully independent template design, price list, and invoice 
 - Admiral floating window manager in leitstelle-ansicht.html (PANELS 0–5, STORE='nursy_ls_admiral_v5').
 - Portal auth: `session['portal_user_id']` — checks portal_bewerbungen (freigegeben) then caregivers table.
 - Admin/Admiral access: `_require_admin_or_admiral()` checks `session['admin']` OR `leitstelle_role` in (admiral, disponent).
-- Demo portal user: care@test.at / Test1234! (pb_demo, status=freigegeben, 2. Bezirk, W-02).
 - Login routes all use 2-step auth: fetch by email/dienstnummer, then `check_pw(stored_hash, pw)`.
+- Unified login endpoint: `POST /api/login` with `{email, password, role}` in body (role: care|client). Delegates to `/api/login/care` or `/api/login/client`.
 - `nachrichten.id` uses BIGSERIAL (PostgreSQL) / INTEGER AUTOINCREMENT (SQLite).
