@@ -1037,6 +1037,8 @@
             const ziel = cells[3].textContent.trim();
 
             const massnahme = freqVal ? `${massnahmeBase} (${freqVal})` : massnahmeBase;
+            const timeParts1 = [uhrzeitVal, zeitpunktVal].filter(Boolean);
+            const timeBadge1 = timeParts1.length ? `&nbsp;<span class="pp-badge-time">${timeParts1.join(' · ')}</span>` : '';
 
             const tr = document.createElement('tr');
             if (uhrzeitVal)   tr.dataset.uhrzeit   = uhrzeitVal;
@@ -1044,7 +1046,7 @@
             tr.innerHTML = `
               <td class="pp-date" data-label="Geplant am">${plannedStr}</td>
               <td data-label="Diagnose">${diagnose}</td>
-              <td data-label="Maßnahme">${massnahme}</td>
+              <td data-label="Maßnahme" data-massnahme="${massnahme.replace(/"/g,'&quot;')}">${massnahme}${timeBadge1}</td>
               <td data-label="Ziel">${ziel}</td>
               <td class="pp-date pp-date--right" data-label="Evaluation am">${evalStr}</td>
             `;
@@ -1058,6 +1060,8 @@
             const ziel = textareas[2].value.trim();
 
             const massnahme = freqVal ? `${massnahmeBase} (${freqVal})` : massnahmeBase;
+            const timeParts2 = [uhrzeitVal, zeitpunktVal].filter(Boolean);
+            const timeBadge2 = timeParts2.length ? `&nbsp;<span class="pp-badge-time">${timeParts2.join(' · ')}</span>` : '';
 
             if (diagnose || massnahmeBase || ziel) {
               const tr = document.createElement('tr');
@@ -1066,7 +1070,7 @@
               tr.innerHTML = `
                 <td class="pp-date" data-label="Geplant am">${plannedStr}</td>
                 <td data-label="Diagnose">${diagnose}</td>
-                <td data-label="Maßnahme">${massnahme}</td>
+                <td data-label="Maßnahme" data-massnahme="${massnahme.replace(/"/g,'&quot;')}">${massnahme}${timeBadge2}</td>
                 <td data-label="Ziel">${ziel}</td>
                 <td class="pp-date pp-date--right" data-label="Evaluation am">${evalStr}</td>
               `;

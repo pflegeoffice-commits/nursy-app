@@ -1635,6 +1635,7 @@ body[data-page="pflegeplanung"] .pp-empty{
 .pp-table tbody tr.pp-row-selected{background:rgba(63,111,232,.12);outline:2px solid rgba(63,111,232,.35);}
 .pp-plan-abgesetzt td{opacity:.55;text-decoration:line-through;text-decoration-color:rgba(100,116,139,.5);}
 .pp-badge-abgesetzt{display:inline-block;font-size:.65rem;font-weight:800;padding:1px 6px;border-radius:20px;background:rgba(220,38,38,.12);color:#b91c1c;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;vertical-align:middle;}
+.pp-badge-time{display:inline-block;font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(63,111,232,.1);color:#1a4fa8;white-space:nowrap;vertical-align:middle;text-decoration:none;}
 .pp-btn--danger{background:rgba(220,38,38,.1);color:#b91c1c;border-color:rgba(220,38,38,.3);}
 .pp-btn--danger:hover{background:rgba(220,38,38,.2);}
 .pp-current-actions .btn--danger{color:#b91c1c;border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.07);}

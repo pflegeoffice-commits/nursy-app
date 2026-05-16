@@ -305,10 +305,17 @@
           if(p.uhrzeit)   tr.dataset.uhrzeit   = p.uhrzeit;
           if(p.zeitpunkt) tr.dataset.zeitpunkt = p.zeitpunkt;
           tr.title = p.abgesetzt ? 'Abgesetzt' : 'Klicken zum Auswählen';
+          var timeBadge = '';
+          if(p.uhrzeit || p.zeitpunkt){
+            var timeParts = [];
+            if(p.uhrzeit)   timeParts.push(esc(p.uhrzeit));
+            if(p.zeitpunkt) timeParts.push(esc(p.zeitpunkt));
+            timeBadge = '&nbsp;<span class="pp-badge-time">'+timeParts.join(' · ')+'</span>';
+          }
           tr.innerHTML =
             '<td class="pp-date" data-label="Geplant am">'+esc(p.geplantAm||'—')+'</td>'+
             '<td data-label="Diagnose">'+esc(p.diagnose||'')+(p.abgesetzt?'&nbsp;<span class="pp-badge-abgesetzt">abgesetzt</span>':'')+'</td>'+
-            '<td data-label="Maßnahme">'+esc(p.massnahme||'')+'</td>'+
+            '<td data-label="Maßnahme" data-massnahme="'+esc(p.massnahme||'')+'">'+esc(p.massnahme||'')+timeBadge+'</td>'+
             '<td data-label="Ziel">'+esc(p.ziel||'')+'</td>'+
             '<td class="pp-date pp-date--right" data-label="Evaluation am">'+esc(p.evalAm||'—')+(p.evalNote?'<br><span style="font-size:.72rem;color:#6b7280;">'+esc(p.evalNote)+'</span>':'')+'</td>';
           body.appendChild(tr);
@@ -353,7 +360,7 @@
             id:        tr.dataset.planId,
             geplantAm: tds[0] ? tds[0].textContent.trim() : '—',
             diagnose:  tds[1] ? tds[1].textContent.trim() : '',
-            massnahme: tds[2] ? tds[2].textContent.trim() : '',
+            massnahme: tds[2] ? (tds[2].dataset.massnahme !== undefined ? tds[2].dataset.massnahme : tds[2].textContent.trim()) : '',
             ziel:      tds[3] ? tds[3].textContent.trim() : '',
             evalAm:    tds[4] ? tds[4].textContent.trim() : '—',
             abgesetzt: tr.classList.contains('pp-plan-abgesetzt')
