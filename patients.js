@@ -58,6 +58,52 @@ function dfStatus(p, visit, allPats){
   return 'done'; // alle fälligen sind erledigt → grün
 }
 
+/* ── Durchführungsnachweis-Maßnahmen (Uhrzeiten für Überfälligkeits-Check) ── */
+const DF_MEASURE_TIMES = [
+  {id:1,t:'07:00'},{id:2,t:'07:30'},{id:3,t:'08:00'},{id:4,t:'08:00'},
+  {id:5,t:'09:00'},{id:6,t:'10:00'},{id:7,t:'10:00'},{id:8,t:'11:00'},
+  {id:9,t:'12:00'},{id:10,t:'12:00'},{id:11,t:'13:00'},{id:12,t:'14:00'},
+  {id:13,t:'15:00'},{id:14,t:'16:00'},{id:15,t:'18:00'},
+  {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
+  {id:19,t:'21:00'},{id:20,t:'21:30'},
+];
+const DF_TOTAL = DF_MEASURE_TIMES.length; // 20
+
+/* ── Status-Berechnung für heutige Einsätze ── */
+function dfStatus(p, visit){
+  if(!visit) return '';
+  const todayStr = isoDate();
+  const now = new Date();
+
+  function toMin(hhmm){
+    const [h,m] = (hhmm||'00:00').split(':').map(Number);
+    return h*60+m;
+  }
+  const nowMin   = now.getHours()*60 + now.getMinutes();
+  const fromMin  = toMin(visit.from);
+  const toMin_   = toMin(visit.to);
+
+  // 1) Noch nicht gestartet → orange
+  if(nowMin < fromMin) return 'upcoming';
+
+  // 2) DN-Daten laden (Key verwendet Patienten-ID)
+  let dfData = {};
+  try{ dfData = JSON.parse(localStorage.getItem('nursy_df_v1_'+p.id+'_'+todayStr)||'{}'); }catch(e){}
+  const signedIds = new Set(Object.keys(dfData).map(Number));
+  const signedCount = signedIds.size;
+
+  // 4) Alle 20 abgezeichnet → grün
+  if(signedCount >= DF_TOTAL) return 'done';
+
+  // 5) Überfällige Maßnahmen = Uhrzeit <= jetzt UND nicht abgezeichnet
+  const overdue = DF_MEASURE_TIMES.filter(function(m){
+    return toMin(m.t) <= nowMin && !signedIds.has(m.id);
+  });
+
+  if(overdue.length > 0) return 'overdue'; // rot
+  return 'done'; // alle fälligen sind erledigt → grün
+}
+
 /* ── Datum-Utils ── */
 function isoDate(d = new Date()){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -188,6 +234,22 @@ function makeRow(p, visit){
   if(todayVisit){
     const allPats = loadAllPatients();
     const status  = dfStatus(p, todayVisit, allPats);
+    if(status){
+      const dot = document.createElement('span');
+      dot.className = 'visit-dot visit-dot--' + status;
+      dot.title = status === 'upcoming' ? 'Einsatz noch bevorstehend'
+                : status === 'done'     ? 'Alle fälligen Maßnahmen abgezeichnet'
+                :                         'Überfällige Maßnahmen nicht abgezeichnet!';
+      avWrap.appendChild(dot);
+    }
+  }
+
+  avWrap.appendChild(av);
+
+  /* Status nur für heutige Einsätze berechnen */
+  const todayVisit = visit && visit.date === isoDate() ? visit : null;
+  if(todayVisit){
+    const status  = dfStatus(p, todayVisit);
     if(status){
       const dot = document.createElement('span');
       dot.className = 'visit-dot visit-dot--' + status;

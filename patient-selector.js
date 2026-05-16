@@ -261,7 +261,7 @@ var _PS_DF_TIMES = [
   {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
   {id:19,t:'21:00'},{id:20,t:'21:30'},
 ];
-function _psdfStatus(p, patIdx) {
+function _psdfStatus(p) {
   if (!p.visitToday) return '';
   var d = new Date();
   var today = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -324,8 +324,7 @@ function _renderPatList(query) {
     var row = document.createElement('div');
     var isActive = (p.id === _selectedId);
     row.className = 'pat-row' + (isActive ? ' active' : '');
-    var patIdx = _allPatients.findIndex(function(x){ return x.id===p.id; });
-    var status  = _psdfStatus(p, patIdx);
+    var status  = _psdfStatus(p);
     var dotHtml = status
       ? '<span class="pat-row__dot pat-row__dot--'+status+'" title="'+
           (status==='upcoming' ? 'Einsatz noch bevorstehend'
