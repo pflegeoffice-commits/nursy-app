@@ -668,6 +668,13 @@ render(); // initial render (MEASURES still empty – placeholder shown)
 /* Pflegeplanung von der API laden → befüllt MEASURES + rendert neu */
 _fetchPflegeplanungFromApi(_initPatId);
 
+/* Cross-tab sync: Pflegeplanung updated in another tab → rebuild MEASURES */
+window.addEventListener('storage', function(e){
+  const pid = _dfPatId || _initPatId;
+  if(e.key !== 'nursy_df_measures_v1_' + (pid||'default')) return;
+  _fetchPflegeplanungFromApi(pid);
+});
+
 /* DN-State des heutigen Tages von der API laden */
 fetch('/api/care/df/' + encodeURIComponent(_initPatId) + '/' + TODAY, { credentials:'include' })
   .then(function(r){ return r.ok ? r.json() : null; })

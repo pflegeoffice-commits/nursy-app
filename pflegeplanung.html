@@ -245,13 +245,14 @@
     function loadPlans(){ return _ppPlans.slice(); }
 
     function _writeDfMeasuresCache(pid, plans){
-      if(!window.dfMeasures) return;
       const active = (plans||[]).filter(function(p){ return !p.abgesetzt; });
-      window.dfMeasures.set(pid, {
+      const payload = {
         total: active.length,
         times: active.map(function(p){ return {id:p.id, t:p.uhrzeit||'08:00'}; }),
         names: active.map(function(p){ return {id:p.id, massnahme:p.massnahme||''}; })
-      });
+      };
+      if(window.dfMeasures) window.dfMeasures.set(pid, payload);
+      try{ localStorage.setItem('nursy_df_measures_v1_'+(pid||'default'), JSON.stringify(payload)); }catch(e){}
     }
 
     function savePlans(p){
