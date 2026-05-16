@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* Sofort-Aktualisierung wenn Durchführungsnachweis-Daten geändert werden */
   window.addEventListener('storage', function(e){
-    if(e.key && e.key.startsWith('nursy_df_v1_')) render();
+    if(e.key && (e.key.startsWith('nursy_df_v1_') || e.key.startsWith('nursy_pp_wund_v1_'))) render();
   });
   window.addEventListener('nursy:df-updated', function(){ render(); });
   window.addEventListener('nursy:wunddoku-updated', function(){ render(); });
