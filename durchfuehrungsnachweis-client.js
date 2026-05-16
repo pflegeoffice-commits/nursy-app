@@ -70,12 +70,13 @@
 
   /* ── Aktuellen Patienten-ID ermitteln ── */
   function getCurrentPatId(){
-    return localStorage.getItem('nursy_df_current_pat_id') || 'p1';
+    return localStorage.getItem('nursy_df_current_pat_id') || null;
   }
 
   /* ── Echte Pflegekraft-Daten laden ── */
   function loadRealEntries(){
     var patId = getCurrentPatId();
+    if(!patId) return [];
     var today = isoToday();
     var rows = [];
 
@@ -129,8 +130,9 @@
   }
 
   function load(){
+    var patId = getCurrentPatId();
     var rows = loadRealEntries();
-    if(rows.length === 0) rows = demoEntries();
+    if(rows.length === 0 && patId) rows = demoEntries();
     return rows;
   }
 
