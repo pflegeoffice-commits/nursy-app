@@ -1104,15 +1104,43 @@ function _parseDfMeasures() {
   } catch(e) { return []; }
 }
 
-function _injectDfMeasures() {
-  var doneMap = {};
+function _planDoneKey() {
+  var eid = state.einsatz && state.einsatz.id;
+  return eid ? 'nursy_plan_done_v1_' + eid : null;
+}
+
+function _loadPlanDone() {
+  var key = _planDoneKey();
+  if (!key) return {};
+  try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { return {}; }
+}
+
+function _savePlanDone() {
+  var key = _planDoneKey();
+  if (!key) return;
+  var map = {};
+  var counts = {};
   state.plan.forEach(function(t) {
-    if (t.cat === _MEASURES_CAT) doneMap[t.id] = t.done;
+    if (t.cat !== _MEASURES_CAT) return;
+    var base = t.text + '|' + (t.uhrzeit || '') + '|' + (t.zeitpunkt || '');
+    var n = counts[base] = (counts[base] || 0);
+    counts[base]++;
+    map[base + '|' + n] = t.done;
   });
+  try { localStorage.setItem(key, JSON.stringify(map)); } catch(e) {}
+}
+
+function _injectDfMeasures() {
+  var doneByKey = _loadPlanDone();
   state.plan = state.plan.filter(function(t) { return t.cat !== _MEASURES_CAT; });
   var fresh = _parseDfMeasures();
+  var counts = {};
   fresh.forEach(function(t) {
-    if (Object.prototype.hasOwnProperty.call(doneMap, t.id)) t.done = doneMap[t.id];
+    var base = t.text + '|' + (t.uhrzeit || '') + '|' + (t.zeitpunkt || '');
+    var n = counts[base] = (counts[base] || 0);
+    counts[base]++;
+    var k = base + '|' + n;
+    if (Object.prototype.hasOwnProperty.call(doneByKey, k)) t.done = doneByKey[k];
   });
   state.plan = fresh.concat(state.plan);
   renderPlan();
@@ -1218,6 +1246,7 @@ function renderPlan() {
 
 function planToggle(id) {
   state.plan.forEach(function(t){ if(t.id == id) t.done = !t.done; });
+  _savePlanDone();
   renderPlan();
 }
 
