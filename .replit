@@ -53,3 +53,7 @@ D4zpBq+kV8O51dIk5904CEs1EBsibkdhtVEkc6bMfSstIQQHzmniLLVV
 -----END PRIVATE KEY-----"""
 VAPID_PUBLIC_KEY = "BGRI5Qxp0f53wetDDmZ1IT6jI3zYSKMPjOkGr6RXw7nV0iTn3TgISzUQGyJuR2G1USRzpsx9Ky0hBAfOaeIstVU"
 VAPID_EMAIL = "mailto:admin@akutplus.at"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000
