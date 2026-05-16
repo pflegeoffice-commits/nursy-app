@@ -1,10 +1,42 @@
 (function(){
 
-  /* ── Maßnahmen: Namen aus dfMeasures-Cache (geschrieben von pflegeplanung.html / durchfuehrungsnachweis.html) ── */
+  /* ── Lokale Namensliste, befüllt beim Laden via /api/care/pflegeplanung/<patId> ── */
+  var _localNameMap = {}; /* patId → { id → massnahme } */
+
+  /* Statische Fallback-Liste für häufige Standard-Maßnahmen */
+  var HARDCODED_MEASURES = [
+    {id:'1',  massnahme:'Medikamentengabe oral (Frühgabe)'},
+    {id:'2',  massnahme:'Ganzkörperpflege / Körperpflege'},
+    {id:'3',  massnahme:'Blutdruck- & Pulskontrolle'},
+    {id:'4',  massnahme:'Atemübungen & Positionierung'},
+    {id:'5',  massnahme:'Medikamentengabe oral (Abendgabe)'},
+    {id:'6',  massnahme:'Abendpflege / Mundpflege'},
+    {id:'7',  massnahme:'Mobilisation & Gehtraining'},
+    {id:'8',  massnahme:'Verbandwechsel'},
+    {id:'9',  massnahme:'Blutzuckermessung'},
+    {id:'10', massnahme:'Lagerung / Dekubitusprophylaxe'},
+  ];
+
+  /* ── Maßnahmen-Name auflösen:
+       1. lokale Map (befüllt via API-Fetch beim Laden)
+       2. dfMeasures-Cache (geschrieben von pflegeplanung.html / durchfuehrungsnachweis.html)
+       3. statische Fallback-Liste
+       4. generisches Label ── */
   function measureName(id, patId){
+    var sid = String(id);
+    /* 1. lokale Map */
+    if(patId && _localNameMap[patId] && _localNameMap[patId][sid]){
+      return _localNameMap[patId][sid];
+    }
+    /* 2. dfMeasures-Cache */
     var names = (window.dfMeasures && window.dfMeasures.names(patId)) || [];
-    var m = names.filter(function(x){ return String(x.id) === String(id); })[0];
-    return m ? m.massnahme : 'Maßnahme ' + id;
+    var m = names.filter(function(x){ return String(x.id) === sid; })[0];
+    if(m && m.massnahme) return m.massnahme;
+    /* 3. statische Fallback-Liste */
+    var hc = HARDCODED_MEASURES.filter(function(x){ return x.id === sid; })[0];
+    if(hc) return hc.massnahme;
+    /* 4. generisch */
+    return 'Maßnahme ' + id;
   }
 
   function esc(s){
@@ -205,7 +237,7 @@
     }).join('');
   }
 
-  /* ── Pflegeplan vom Server laden → dfMeasures-Cache befüllen → neu rendern ── */
+  /* ── Pflegeplan vom Server laden → lokale Map + dfMeasures-Cache befüllen → neu rendern ── */
   function fetchAndCachePflegeplan(patId, onDone){
     if(!patId) return onDone && onDone();
     fetch('/api/care/pflegeplanung/' + encodeURIComponent(patId), {credentials:'include'})
@@ -213,12 +245,19 @@
       .then(function(d){
         if(!d || !d.ok || !Array.isArray(d.plaene)) return;
         var active = d.plaene.filter(function(p){ return !p.abgesetzt; });
-        var times = (window.dfMeasures && window.dfMeasures.times(patId)) || [];
-        window.dfMeasures && window.dfMeasures.set(patId, {
-          total: active.length,
-          times: active.length ? times : [],
-          names: active.map(function(p){ return {id: p.id, massnahme: p.massnahme || ''}; })
-        });
+        /* 1. lokale Map direkt befüllen – unabhängig von window.dfMeasures */
+        var map = {};
+        active.forEach(function(p){ map[String(p.id)] = p.massnahme || ''; });
+        _localNameMap[patId] = map;
+        /* 2. dfMeasures-Cache aktualisieren (falls auf dieser Seite verfügbar) */
+        if(window.dfMeasures){
+          var times = window.dfMeasures.times(patId) || [];
+          window.dfMeasures.set(patId, {
+            total: active.length,
+            times: active.length ? times : [],
+            names: active.map(function(p){ return {id: p.id, massnahme: p.massnahme || ''}; })
+          });
+        }
       })
       .catch(function(){})
       .then(function(){ onDone && onDone(); });
