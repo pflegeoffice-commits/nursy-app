@@ -630,6 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   window.addEventListener('nursy:df-updated', function(){ render(); });
   window.addEventListener('nursy:wunddoku-updated', function(){ render(); });
+  window.addEventListener('nursy:ppwund-updated', function(){ render(); });
 
   const allPatients = loadAllPatients();
 

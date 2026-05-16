@@ -224,6 +224,7 @@
       const material = matInput.value.trim();
       if(!material){ matInput.focus(); return; }
       saveWundPlan({ material, frequenz: freqSel.value, zeit: zeitInput.value.trim() || '11:00' });
+      window.dispatchEvent(new CustomEvent('nursy:ppwund-updated'));
       savedMsg.style.display = '';
       updateRowSub();
       setTimeout(function(){ form.style.display = 'none'; savedMsg.style.display = 'none'; }, 1400);
