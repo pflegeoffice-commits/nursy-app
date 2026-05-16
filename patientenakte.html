@@ -626,7 +626,6 @@ function buildAnamneseBody(patient, anamnese){
     '<textarea class="pa-input" id="anaWichtig" rows="2" placeholder="z. B. Schlüssel unter Matte, DNR…" onchange="anaCheckChanged()" style="resize:vertical">'+esc(patient.wichtig||'')+'</textarea>'+
     '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">'+
       '<button class="pa-save-btn" id="anaSaveBtn" onclick="saveAnamnese()" disabled>💾 Anamnese speichern</button>'+
-      '<button class="pa-save-btn" id="anaPdfBtn" onclick="saveAnamnesePDF()" style="background:#dc2626;border-color:#dc2626">📄 Als PDF speichern</button>'+
       '<button class="pa-save-btn" id="anaPdfDownloadBtn" onclick="saveAnamnesePDF(\'download\')" style="background:#0f766e;border-color:#0f766e">📥 PDF herunterladen</button>'+
       '<span id="anaSavedHint" style="font-size:.78rem;color:var(--green);display:none">✓ Gespeichert</span>'+
     '</div>';
@@ -879,8 +878,8 @@ function saveAnamnesePDF(mode){
     toast('⚠️ PDF-Bibliothek nicht geladen'); return;
   }
   var isDownload = (mode === 'download');
-  var btn = isDownload ? document.getElementById('anaPdfDownloadBtn') : document.getElementById('anaPdfBtn');
-  var btnOrigText = isDownload ? '📥 PDF herunterladen' : '📄 Als PDF speichern';
+  var btn = isDownload ? document.getElementById('anaPdfDownloadBtn') : null;
+  var btnOrigText = '📥 PDF herunterladen';
   if(btn){ btn.disabled = true; btn.textContent = '⏳ PDF wird erstellt…'; }
 
   var getRisks = function(){
