@@ -1058,12 +1058,16 @@ function loadEinsatzDoks() {
             fmtDokDatum(f.created_at) +
             '</div>';
         }
+        var lockBadge = f.can_delete === false
+          ? '<span title="Nur Administratoren können dieses Dokument löschen" style="font-size:1rem;flex-shrink:0;cursor:default;" aria-label="Nur Administratoren können dieses Dokument löschen">🔒</span>'
+          : '';
         return '<a href="' + escHtml(f.url) + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f1f5f9;text-decoration:none;color:inherit;">' +
           '<span style="font-size:1.3rem;flex-shrink:0;">' + ico + '</span>' +
           '<div style="flex:1;min-width:0;">' +
             '<div style="font-weight:700;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(f.original_name) + '</div>' +
             meta +
           '</div>' +
+          lockBadge +
           '<span style="font-size:.75rem;font-weight:700;color:var(--primary);flex-shrink:0;">Öffnen →</span>' +
         '</a>';
       }).join('');
