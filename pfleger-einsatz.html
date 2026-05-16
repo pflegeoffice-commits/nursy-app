@@ -906,7 +906,7 @@ function applyEinsatz(e) {
   renderHeader();
   renderAuftrag();
   state.plan = generatePlan(e);
-  renderPlan();
+  _injectDfMeasures();
   loadMessages();
   document.getElementById('peLoading').style.display = 'none';
   document.getElementById('peAuftragContent').style.display = 'block';
@@ -1013,6 +1013,53 @@ function renderAuftrag() {
   setText('aiAngName', e.ang_name || '–');
   setText('aiAngTel',  e.ang_tel  || '–');
 }
+
+// ════════════════════════════════════════════════════════
+//  PFLEGEPLANUNG MEASURES SYNC
+// ════════════════════════════════════════════════════════
+var _MEASURES_CAT = '📋 Pflegeplanung';
+
+function _dfMeasuresCacheKey() {
+  var pid = state.einsatz && state.einsatz.patient_id;
+  return pid ? 'nursy_df_measures_v1_' + pid : null;
+}
+
+function _parseDfMeasures() {
+  var key = _dfMeasuresCacheKey();
+  if (!key) return [];
+  try {
+    var raw = localStorage.getItem(key);
+    if (!raw) return [];
+    var payload = JSON.parse(raw);
+    var names = payload.names || [];
+    return names
+      .filter(function(n) { return n.massnahme; })
+      .map(function(n) {
+        return { id: 'dfm_' + n.id, cat: _MEASURES_CAT, text: n.massnahme, done: false };
+      });
+  } catch(e) { return []; }
+}
+
+function _injectDfMeasures() {
+  var doneMap = {};
+  state.plan.forEach(function(t) {
+    if (t.cat === _MEASURES_CAT) doneMap[t.id] = t.done;
+  });
+  state.plan = state.plan.filter(function(t) { return t.cat !== _MEASURES_CAT; });
+  var fresh = _parseDfMeasures();
+  fresh.forEach(function(t) {
+    if (Object.prototype.hasOwnProperty.call(doneMap, t.id)) t.done = doneMap[t.id];
+  });
+  state.plan = fresh.concat(state.plan);
+  renderPlan();
+}
+
+window.addEventListener('storage', function(ev) {
+  var key = _dfMeasuresCacheKey();
+  if (key && ev.key === key) {
+    _injectDfMeasures();
+  }
+});
 
 // ════════════════════════════════════════════════════════
 //  PLANUNG
