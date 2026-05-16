@@ -1096,7 +1096,10 @@ function _parseDfMeasures() {
     return names
       .filter(function(n) { return n.massnahme; })
       .map(function(n) {
-        return { id: 'dfm_' + n.id, cat: _MEASURES_CAT, text: n.massnahme, done: false };
+        var item = { id: 'dfm_' + n.id, cat: _MEASURES_CAT, text: n.massnahme, done: false };
+        if (n.uhrzeit)   item.uhrzeit   = n.uhrzeit;
+        if (n.zeitpunkt) item.zeitpunkt = n.zeitpunkt;
+        return item;
       });
   } catch(e) { return []; }
 }
@@ -1197,9 +1200,16 @@ function renderPlan() {
   Object.keys(cats).forEach(function(cat) {
     html += '<div class="plan-cat">' + cat + '</div>';
     cats[cat].forEach(function(t) {
+      var timeBadge = '';
+      if (t.uhrzeit || t.zeitpunkt) {
+        var timeParts = [];
+        if (t.uhrzeit)   timeParts.push(escHtml(t.uhrzeit));
+        if (t.zeitpunkt) timeParts.push(escHtml(t.zeitpunkt));
+        timeBadge = '&nbsp;<span class="pp-badge-time">' + timeParts.join(' · ') + '</span>';
+      }
       html += '<div class="plan-task' + (t.done?' done':'') + '" onclick="planToggle(\'' + t.id + '\')" data-id="' + t.id + '">'
             + '<div class="plan-check"><span class="plan-check__tick">✓</span></div>'
-            + '<div class="plan-task__text">' + escHtml(t.text) + '</div></div>';
+            + '<div class="plan-task__text">' + escHtml(t.text) + timeBadge + '</div></div>';
     });
   });
   list.innerHTML = html;
