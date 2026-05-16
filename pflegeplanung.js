@@ -850,6 +850,11 @@
         <div class="pp-stack">
           ${buildSelect('ppFreq2', 'Frequenz', frequencyOptions)}
           ${buildSelect('ppEval2', 'Evaluierung', evalOptions)}
+          <label class="pp-field" for="ppUhrzeit2">
+            <span class="pp-label">Uhrzeit (optional)</span>
+            <input id="ppUhrzeit2" class="pp-control" type="time" placeholder="08:00">
+          </label>
+          ${buildSelect('ppZeitpunkt2', 'Tageszeit', ['Bitte wählen', 'Früh', 'Mittag', 'Abend'])}
           ${buildSelect('ppAtl', 'ATL auswählen', ['Bitte wählen', 'Sich bewegen', 'Essen & Trinken', 'Ausscheiden', 'Körperpflege', 'Kommunizieren'])}
           ${buildSelect('ppKat', 'Kategorie', ['Bitte wählen', 'Mobilität', 'Körperpflege', 'Ernährung & Flüssigkeit', 'Ausscheidung', 'Atmung', 'Schmerz', 'Wunde & Haut', 'Schlaf & Ruhe', 'Psyche & Kommunikation', 'Kognition & Orientierung', 'Sicherheit & Sturz', 'Medikation', 'Prophylaxen'])}
           <label class="pp-field">
@@ -924,6 +929,13 @@
           ${buildSelect('ppFreq3', 'Frequenz', frequencyOptions)}
           ${buildSelect('ppEval3', 'Evaluierung', evalOptions)}
         </div>
+        <div class="pp-topgrid pp-topgrid--tight" style="margin-top:8px;">
+          <label class="pp-field" for="ppUhrzeit3">
+            <span class="pp-label">Uhrzeit (optional)</span>
+            <input id="ppUhrzeit3" class="pp-control" type="time" placeholder="08:00">
+          </label>
+          ${buildSelect('ppZeitpunkt3', 'Tageszeit', ['Bitte wählen', 'Früh', 'Mittag', 'Abend'])}
+        </div>
         <p class="pp-hint">Demo: keine Speicherung/Logik.</p>
       </div>
     `;
@@ -980,15 +992,21 @@
           return;
         }
 
-        // Frequenz + Evaluierung aus dem aktiven Modal lesen (je nach Dialog-ID)
-        const freqEl = qs('#ppFreq, #ppFreq2, #ppFreq3', modalEl);
-        const evalEl = qs('#ppEval, #ppEval2, #ppEval3', modalEl);
+        // Frequenz + Evaluierung + Uhrzeit + Zeitpunkt aus dem aktiven Modal lesen (je nach Dialog-ID)
+        const freqEl      = qs('#ppFreq, #ppFreq2, #ppFreq3', modalEl);
+        const evalEl      = qs('#ppEval, #ppEval2, #ppEval3', modalEl);
+        const uhrzeitEl   = qs('#ppUhrzeit, #ppUhrzeit2, #ppUhrzeit3', modalEl);
+        const zeitpunktEl = qs('#ppZeitpunkt, #ppZeitpunkt2, #ppZeitpunkt3', modalEl);
 
-        const freqValRaw = freqEl ? String(freqEl.value || '').trim() : '';
-        const evalValRaw = evalEl ? String(evalEl.value || '').trim() : '';
+        const freqValRaw      = freqEl      ? String(freqEl.value      || '').trim() : '';
+        const evalValRaw      = evalEl      ? String(evalEl.value      || '').trim() : '';
+        const uhrzeitValRaw   = uhrzeitEl   ? String(uhrzeitEl.value   || '').trim() : '';
+        const zeitpunktValRaw = zeitpunktEl ? String(zeitpunktEl.value || '').trim() : '';
 
-        const freqVal = (freqValRaw && freqValRaw !== 'Bitte wählen') ? freqValRaw : '';
-        const evalVal = (evalValRaw && evalValRaw !== 'Bitte wählen') ? evalValRaw : '';
+        const freqVal      = (freqValRaw && freqValRaw !== 'Bitte wählen') ? freqValRaw : '';
+        const evalVal      = (evalValRaw && evalValRaw !== 'Bitte wählen') ? evalValRaw : '';
+        const uhrzeitVal   = uhrzeitValRaw || '';
+        const zeitpunktVal = (zeitpunktValRaw && zeitpunktValRaw !== 'Bitte wählen') ? zeitpunktValRaw.toLowerCase() : '';
 
         function addDays(d, n){
           const x = new Date(d.getTime());
@@ -1021,6 +1039,8 @@
             const massnahme = freqVal ? `${massnahmeBase} (${freqVal})` : massnahmeBase;
 
             const tr = document.createElement('tr');
+            if (uhrzeitVal)   tr.dataset.uhrzeit   = uhrzeitVal;
+            if (zeitpunktVal) tr.dataset.zeitpunkt = zeitpunktVal;
             tr.innerHTML = `
               <td class="pp-date" data-label="Geplant am">${plannedStr}</td>
               <td data-label="Diagnose">${diagnose}</td>
@@ -1041,6 +1061,8 @@
 
             if (diagnose || massnahmeBase || ziel) {
               const tr = document.createElement('tr');
+              if (uhrzeitVal)   tr.dataset.uhrzeit   = uhrzeitVal;
+              if (zeitpunktVal) tr.dataset.zeitpunkt = zeitpunktVal;
               tr.innerHTML = `
                 <td class="pp-date" data-label="Geplant am">${plannedStr}</td>
                 <td data-label="Diagnose">${diagnose}</td>

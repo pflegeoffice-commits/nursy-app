@@ -300,6 +300,8 @@
           const tr = document.createElement('tr');
           tr.className = 'pp-click' + (p.abgesetzt ? ' pp-plan-abgesetzt' : '');
           tr.dataset.planId = p.id;
+          if(p.uhrzeit)   tr.dataset.uhrzeit   = p.uhrzeit;
+          if(p.zeitpunkt) tr.dataset.zeitpunkt = p.zeitpunkt;
           tr.title = p.abgesetzt ? 'Abgesetzt' : 'Klicken zum Auswählen';
           tr.innerHTML =
             '<td class="pp-date" data-label="Geplant am">'+esc(p.geplantAm||'—')+'</td>'+
@@ -345,7 +347,7 @@
         const rows = Array.from(planBody.querySelectorAll('tr[data-plan-id]'));
         const plans = rows.map(function(tr){
           const tds = tr.querySelectorAll('td');
-          return {
+          const plan = {
             id:        tr.dataset.planId,
             geplantAm: tds[0] ? tds[0].textContent.trim() : '—',
             diagnose:  tds[1] ? tds[1].textContent.trim() : '',
@@ -354,6 +356,9 @@
             evalAm:    tds[4] ? tds[4].textContent.trim() : '—',
             abgesetzt: tr.classList.contains('pp-plan-abgesetzt')
           };
+          if(tr.dataset.uhrzeit)   plan.uhrzeit   = tr.dataset.uhrzeit;
+          if(tr.dataset.zeitpunkt) plan.zeitpunkt = tr.dataset.zeitpunkt;
+          return plan;
         });
         savePlans(plans);
         wireRowClicks();
@@ -412,6 +417,21 @@
               '<textarea class="pp-ta" id="editMass" rows="3">'+esc(plan.massnahme)+'</textarea>'+
               '<label class="pp-label">Pflegeziel</label>'+
               '<textarea class="pp-ta" id="editZiel" rows="3">'+esc(plan.ziel)+'</textarea>'+
+              '<div style="display:flex;gap:12px;margin-top:4px;">'+
+                '<label class="pp-label" style="flex:1;">'+
+                  'Uhrzeit (optional)'+
+                  '<input class="control" type="time" id="editUhrzeit" value="'+(plan.uhrzeit||'')+'" style="display:block;width:100%;margin-top:4px;">'+
+                '</label>'+
+                '<label class="pp-label" style="flex:1;">'+
+                  'Tageszeit'+
+                  '<select id="editZeitpunkt" class="control" style="display:block;width:100%;margin-top:4px;">'+
+                    '<option value="">Bitte wählen</option>'+
+                    '<option value="früh"'+(plan.zeitpunkt==='früh'?' selected':'')+'>Früh</option>'+
+                    '<option value="mittag"'+(plan.zeitpunkt==='mittag'?' selected':'')+'>Mittag</option>'+
+                    '<option value="abend"'+(plan.zeitpunkt==='abend'?' selected':'')+'>Abend</option>'+
+                  '</select>'+
+                '</label>'+
+              '</div>'+
             '</div>'+
             '<div class="pp-modal__footer">'+
               '<button class="pp-btn" data-close>Abbrechen</button>'+
@@ -420,15 +440,19 @@
           '</div></div>',
           function(root, close){
             root.querySelector('#editSaveBtn').addEventListener('click', function(){
-              const diag = root.querySelector('#editDiag').value.trim();
-              const mass = root.querySelector('#editMass').value.trim();
-              const ziel = root.querySelector('#editZiel').value.trim();
+              const diag      = root.querySelector('#editDiag').value.trim();
+              const mass      = root.querySelector('#editMass').value.trim();
+              const ziel      = root.querySelector('#editZiel').value.trim();
+              const uhrzeit   = root.querySelector('#editUhrzeit').value.trim();
+              const zeitpunkt = root.querySelector('#editZeitpunkt').value.trim();
               const plans2 = loadPlans();
               const idx = plans2.findIndex(function(p){ return p.id===selectedId; });
               if(idx>=0){
                 plans2[idx].diagnose  = diag;
                 plans2[idx].massnahme = mass;
                 plans2[idx].ziel      = ziel;
+                plans2[idx].uhrzeit   = uhrzeit   || undefined;
+                plans2[idx].zeitpunkt = zeitpunkt || undefined;
                 savePlans(plans2);
                 renderPlans();
               }

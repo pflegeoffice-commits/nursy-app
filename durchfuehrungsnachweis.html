@@ -227,9 +227,20 @@ function _buildMeasuresFromPlaene(plaene, wundPlan, patId){
   const active = (plaene||[]).filter(function(p){ return !p.abgesetzt; });
   const total  = active.length;
   MEASURES = active.map(function(p, idx){
-    const timing = _dfTimingFor(p.massnahme, idx, total);
-    if(p.uhrzeit)   timing.uhrzeit   = p.uhrzeit;
-    if(p.zeitpunkt) timing.zeitpunkt = p.zeitpunkt;
+    /* Use explicitly stored uhrzeit/zeitpunkt as the primary source.
+       Fall back to keyword detection only for legacy items that have neither. */
+    const hasTiming = p.uhrzeit || p.zeitpunkt;
+    let timing;
+    if(hasTiming){
+      /* Derive the missing field from the stored one to keep uhrzeit + zeitpunkt consistent */
+      const ZP_DEFAULT = {früh:'08:00', mittag:'13:00', abend:'20:00'};
+      const UHR_TO_ZP  = function(u){ var h=parseInt(u,10); return h<12?'früh':h<18?'mittag':'abend'; };
+      const uhr = p.uhrzeit  || ZP_DEFAULT[p.zeitpunkt] || '08:00';
+      const zp  = p.zeitpunkt|| UHR_TO_ZP(uhr);
+      timing = { uhrzeit: uhr, zeitpunkt: zp, frequenz: '1× täglich' };
+    } else {
+      timing = _dfTimingFor(p.massnahme, idx, total);
+    }
     if(p.frequenz)  timing.frequenz  = p.frequenz;
     let ziel = p.ziel || '';
     /* Wundplan auf passendes Maßnahmen-Feld anwenden */
