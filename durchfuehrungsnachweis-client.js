@@ -274,5 +274,18 @@
 
     /* Pflegeplan laden, Cache befüllen und Ansicht mit echten Maßnahmen-Namen neu rendern */
     fetchAndCachePflegeplan(getCurrentPatId(), render);
+
+    /* Patient-Wechsel in einem anderen Tab (storage-Event feuert nur in anderen Tabs) */
+    window.addEventListener('storage', function(e){
+      if(e.key === 'nursy_df_current_pat_id' && e.newValue){
+        fetchAndCachePflegeplan(e.newValue, render);
+      }
+    });
+
+    /* Patient-Wechsel auf derselben Seite via patient-selector.js (CustomEvent) */
+    window.addEventListener('nursy:patient-changed', function(e){
+      var newId = e.detail && e.detail.patientId;
+      if(newId) fetchAndCachePflegeplan(newId, render);
+    });
   });
 })();

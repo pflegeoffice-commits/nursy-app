@@ -375,6 +375,12 @@ function _selectPatient(id) {
   var idx = _allPatients.findIndex(function(p){ return p.id === id; });
   var p = _allPatients[idx >= 0 ? idx : 0];
   if (_onChangeCb && p) _onChangeCb(idx >= 0 ? idx : 0, p);
+  /* Benachrichtige andere Komponenten auf derselben Seite über den Patientenwechsel */
+  try {
+    window.dispatchEvent(new CustomEvent('nursy:patient-changed', { detail: { patientId: id } }));
+  } catch(e) {
+    if(typeof console !== 'undefined') console.warn('[patient-selector] nursy:patient-changed konnte nicht ausgelöst werden:', e);
+  }
 }
 
 /* ── Öffentliche API ── */
