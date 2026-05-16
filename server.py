@@ -2002,6 +2002,10 @@ def list_einsatz_dokumente(eid):
     role, fahrzeug = _get_session_role_fahrzeug()
     if not role:
         return jsonify({'ok': False, 'error': 'Nicht angemeldet'}), 401
+    current_uploader = (session.get('leitstelle_name') or session.get('user_name') or
+                        session.get('user_id') or '')
+    is_admin = bool(session.get('admin') or
+                    session.get('leitstelle_role') in ('admiral', 'disponent'))
     with get_db() as db:
         rows = db.execute(
             'SELECT id,original_name,stored_name,beschreibung,uploaded_by,mime_type,created_at FROM einsatz_dokumente WHERE einsatz_id=? ORDER BY created_at DESC',
@@ -2009,8 +2013,38 @@ def list_einsatz_dokumente(eid):
         ).fetchall()
     docs = [{'id':r['id'],'original_name':r['original_name'],'beschreibung':r['beschreibung'],
               'uploaded_by':r['uploaded_by'],'created_at':r['created_at'],
-              'url':'/api/einsatz-uploads/'+r['stored_name']} for r in rows]
+              'url':'/api/einsatz-uploads/'+r['stored_name'],
+              'can_delete': is_admin or (r['uploaded_by'] == current_uploader and bool(current_uploader))} for r in rows]
     return jsonify({'ok': True, 'dokumente': docs})
+
+@app.route('/api/einsaetze/<eid>/dokumente/<doc_id>', methods=['DELETE'])
+def delete_einsatz_dokument(eid, doc_id):
+    role, fahrzeug = _get_session_role_fahrzeug()
+    if not role:
+        return jsonify({'ok': False, 'error': 'Nicht angemeldet'}), 401
+    current_uploader = (session.get('leitstelle_name') or session.get('user_name') or
+                        session.get('user_id') or '')
+    is_admin = bool(session.get('admin') or
+                    session.get('leitstelle_role') in ('admiral', 'disponent'))
+    with get_db() as db:
+        row = db.execute(
+            'SELECT id,stored_name,uploaded_by FROM einsatz_dokumente WHERE id=? AND einsatz_id=?',
+            (doc_id, eid)
+        ).fetchone()
+        if not row:
+            return jsonify({'ok': False, 'error': 'Datei nicht gefunden'}), 404
+        if not is_admin and row['uploaded_by'] != current_uploader:
+            return jsonify({'ok': False, 'error': 'Kein Zugriff – nur der Uploader oder ein Admin kann löschen'}), 403
+        db.execute('DELETE FROM einsatz_dokumente WHERE id=?', (doc_id,))
+        db.commit()
+    stored = row['stored_name']
+    try:
+        path = os.path.join(UPLOAD_DIR, stored)
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception:
+        pass
+    return jsonify({'ok': True})
 
 @app.route('/api/einsaetze/<eid>/dokumente', methods=['POST'])
 def upload_einsatz_dokument(eid):

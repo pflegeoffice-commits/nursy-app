@@ -2277,7 +2277,7 @@ window.handleFiles=function(input){
       })
       .then(function(d){
         if(d.ok){
-          uploads.push({id:d.id,name:f.name,size:f.size,type:f.type,url:d.url});
+          uploads.push({id:d.id,name:f.name,size:f.size,type:f.type,url:d.url,can_delete:true});
         } else {
           uploads.push({id:'err_'+Date.now(),name:f.name,size:f.size,type:f.type,error:d.error||'Hochladen fehlgeschlagen'});
         }
@@ -2312,10 +2312,27 @@ function loadEinsatzDokumente(){
     .then(function(d){
       if(!d||!d.ok) return;
       uploads=d.dokumente.map(function(x){
-        return {id:x.id,name:x.original_name,size:0,type:'',url:x.url};
+        return {id:x.id,name:x.original_name,size:0,type:'',url:x.url,can_delete:x.can_delete};
       });
       renderFiles();
     });
+}
+
+function deleteFile(docId){
+  if(!EID||EID==='demo') return;
+  if(!confirm('Datei wirklich löschen?')) return;
+  fetch('/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente/'+encodeURIComponent(docId),
+    {method:'DELETE',credentials:'include'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok){
+        uploads=uploads.filter(function(u){ return u.id!==docId; });
+        renderFiles();
+      } else {
+        alert(d.error||'Löschen fehlgeschlagen');
+      }
+    })
+    .catch(function(){ alert('Verbindungsfehler beim Löschen'); });
 }
 
 function renderFiles(){
@@ -2334,6 +2351,14 @@ function renderFiles(){
         (f.size?'<div style="font-size:.72rem;color:var(--muted);">'+Math.round(f.size/1024)+' KB</div>':'')+
         errBadge+
       '</div>'+dlBtn;
+    if(f.can_delete && f.id && !f.error){
+      var delBtn=document.createElement('button');
+      delBtn.title='Datei löschen';
+      delBtn.style.cssText='margin-left:6px;background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px 6px;border-radius:6px;color:#dc2626;flex-shrink:0;';
+      delBtn.textContent='🗑';
+      delBtn.addEventListener('click',(function(id){ return function(){ deleteFile(id); }; })(f.id));
+      item.appendChild(delBtn);
+    }
     list.appendChild(item);
   });
 }
