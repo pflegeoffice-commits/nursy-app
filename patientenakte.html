@@ -281,6 +281,7 @@ var currentPatient = null;
 var allDocs = [];
 var activeTypeFilter = 'alle';
 var currentEid = '';
+var paIsAdmin = false;
 
 function authFetch(url, opts){
   opts = opts || {};
@@ -1603,6 +1604,10 @@ function renderDocs(){
   grid.innerHTML=filtered.map(function(d){
     var icon=TYPE_ICONS[d.typ]||'📎', css=TYPE_CSS[d.typ]||'sonstiges';
     var imgPreview=isImage(d.original_name)?'<img src="'+esc(d.url)+'" style="max-width:100%;max-height:160px;border-radius:8px;margin-top:8px;display:block;border:1.5px solid #e5e7eb;" loading="lazy" />':'';
+    var isProtected = (d.typ==='protokoll'||d.typ==='einverstaendnis');
+    var delBtn = (!isProtected||paIsAdmin)
+      ? '<button class="pa-doc-btn pa-doc-btn--del" onclick="deleteDok(\''+esc(d.id)+'\')">🗑</button>'
+      : '';
     return '<div class="pa-doc-card" id="doc_'+esc(d.id)+'">'+
       '<div class="pa-doc-icon pa-doc-icon--'+css+'">'+icon+'</div>'+
       '<div class="pa-doc-info">'+
@@ -1613,7 +1618,7 @@ function renderDocs(){
       '</div>'+
       '<div class="pa-doc-actions">'+
         '<a class="pa-doc-btn pa-doc-btn--dl" href="'+esc(d.url)+'" download="'+esc(d.original_name)+'" target="_blank">⬇ Öffnen</a>'+
-        '<button class="pa-doc-btn pa-doc-btn--del" onclick="deleteDok(\''+esc(d.id)+'\')">🗑</button>'+
+        delBtn+
       '</div>'+
     '</div>';
   }).join('');
@@ -1670,7 +1675,8 @@ function loadDocs(pid){
   authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente',{credentials:'include'})
     .then(function(r){ return r.status===403?null:r.json(); })
     .then(function(res){
-      if(!res) return;
+      if(!res){ paIsAdmin=false; return; }
+      paIsAdmin=res.ok?!!res.is_admin:false;
       if(res.ok){
         allDocs=res.dokumente||[];
         var cnt=document.getElementById('paDocCount'); if(cnt) cnt.textContent=allDocs.length;
@@ -1892,6 +1898,7 @@ function loadPatient(pid){
       authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente',{credentials:'include'})
         .then(function(r2){ return r2.status===403?null:r2.json(); })
         .then(function(dr){
+          paIsAdmin=(dr&&dr.ok)?!!dr.is_admin:false;
           renderPatientPage(pr.patient, (dr&&dr.ok)?dr.dokumente:[]);
         });
     });
@@ -1974,6 +1981,7 @@ function doSearch(){
         authFetch('/api/patienten/'+encodeURIComponent(pid)+'/dokumente',{credentials:'include'})
           .then(function(r2){ return r2.status===403?null:r2.json(); })
           .then(function(dr){
+            paIsAdmin=(dr&&dr.ok)?!!dr.is_admin:false;
             renderPatientPage(pr.patient, (dr&&dr.ok)?dr.dokumente:[]);
           });
       })

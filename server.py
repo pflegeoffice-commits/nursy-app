@@ -2120,6 +2120,8 @@ def link_patient_to_einsatz(eid):
 @app.route('/api/patienten/<pid>/dokumente', methods=['GET'])
 def list_dokumente(pid):
     role, fahrzeug = _get_session_role_fahrzeug()
+    is_admin = bool(session.get('admin') or
+                    session.get('leitstelle_role') in ('admiral', 'disponent'))
     with get_db() as db:
         if role == 'care':
             if not fahrzeug or not _care_has_einsatz_for_patient(db, fahrzeug, pid):
@@ -2138,7 +2140,7 @@ def list_dokumente(pid):
             'created_at': r['created_at'],
             'url': '/api/uploads/' + r['stored_name'],
         })
-    return jsonify({'ok': True, 'dokumente': docs})
+    return jsonify({'ok': True, 'dokumente': docs, 'is_admin': is_admin})
 
 MIME_MAP = {
     'pdf':'application/pdf','png':'image/png','jpg':'image/jpeg','jpeg':'image/jpeg',
@@ -2265,10 +2267,14 @@ def serve_upload(filename):
 
 @app.route('/api/patienten/dokumente/<doc_id>', methods=['DELETE'])
 def delete_dokument(doc_id):
+    is_admin = bool(session.get('admin') or
+                    session.get('leitstelle_role') in ('admiral', 'disponent'))
     with get_db() as db:
         row = db.execute('SELECT * FROM patient_dokumente WHERE id=?', (doc_id,)).fetchone()
         if not row:
             return jsonify({'ok': False, 'error': 'Dokument nicht gefunden'}), 404
+        if row['typ'] in ('protokoll', 'einverstaendnis') and not is_admin:
+            return jsonify({'ok': False, 'error': 'Nur Administratoren dürfen Protokoll- und Einverständnis-Dokumente löschen'}), 403
         stored = row['stored_name']
         db.execute('DELETE FROM patient_dokumente WHERE id=?', (doc_id,))
         db.commit()
