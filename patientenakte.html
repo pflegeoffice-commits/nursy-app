@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nursy – Patientenakte</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <style>
     :root{--blue:#3f6fe8;--green:#2f8f4e;--red:#dc2626;--muted:#6b7280;--border:1.5px solid #e5e7eb;--shadow:0 2px 12px rgba(63,111,232,.08)}
     .pa-page{padding:20px 16px 80px;max-width:700px;margin:0 auto;box-sizing:border-box}
@@ -621,8 +622,9 @@ function buildAnamneseBody(patient, anamnese){
     '<textarea class="pa-input" id="anaMedis" rows="2" placeholder="z. B. Metformin 500mg, Aspirin…" onchange="anaCheckChanged()" style="resize:vertical">'+esc(patient.medikamente||'')+'</textarea>'+
     '<label class="pa-label" style="margin-top:8px">Wichtige Hinweise</label>'+
     '<textarea class="pa-input" id="anaWichtig" rows="2" placeholder="z. B. Schlüssel unter Matte, DNR…" onchange="anaCheckChanged()" style="resize:vertical">'+esc(patient.wichtig||'')+'</textarea>'+
-    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px">'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">'+
       '<button class="pa-save-btn" id="anaSaveBtn" onclick="saveAnamnese()" disabled>💾 Anamnese speichern</button>'+
+      '<button class="pa-save-btn" id="anaPdfBtn" onclick="saveAnamnesePDF()" style="background:#dc2626;border-color:#dc2626">📄 Als PDF speichern</button>'+
       '<span id="anaSavedHint" style="font-size:.78rem;color:var(--green);display:none">✓ Gespeichert</span>'+
     '</div>';
 }
@@ -894,6 +896,252 @@ function saveAnamnese(){
     toast('⚠️ Verbindungsfehler');
     if(btn) btn.disabled=false;
   });
+}
+
+/* ── Anamnese PDF Export ── */
+function saveAnamnesePDF(){
+  if(!currentPatient){ toast('⚠️ Kein Patient geladen'); return; }
+  if(typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined'){
+    toast('⚠️ PDF-Bibliothek nicht geladen'); return;
+  }
+  var btn = document.getElementById('anaPdfBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ PDF wird erstellt…'; }
+
+  var getRisks = function(){
+    var map = {};
+    ['sturzrisiko','dekubitusrisiko','inkontinenz','schluckstörung','schmerztherapie','wunde'].forEach(function(k){
+      var el = document.getElementById('anaRisk_'+k);
+      if(el) map[k] = el.checked;
+    });
+    return map;
+  };
+  var getAblSys = function(){
+    var ABL = ['Dauerkatheter','Suprapubischer Katheter','Urostoma','Colostoma','Ileostoma','Nephrostoma'];
+    return ABL.filter(function(s){
+      var key = s.replace(/[^a-zA-Z0-9]/g,'_');
+      var el = document.getElementById('anaAbl_'+key);
+      return el && el.checked;
+    });
+  };
+  var g = function(id){ var e=document.getElementById(id); return e?(e.value||'').trim():''; };
+  var erkrankungen = getErkrankungen();
+  var risks = getRisks();
+  var ablSys = getAblSys();
+  var RISK_LABELS = {sturzrisiko:'Sturzrisiko',dekubitusrisiko:'Dekubitusrisiko',inkontinenz:'Inkontinenz','schluckstörung':'Schluckstörung',schmerztherapie:'Schmerztherapie',wunde:'Wunden/Ulcus'};
+  var riskList = Object.keys(risks).filter(function(k){ return risks[k]; }).map(function(k){ return RISK_LABELS[k]||k; });
+  var fields = {
+    mobilitaet:        g('anaMobil'),
+    orientierung:      g('anaOrient'),
+    pflegestufe:       g('anaPflege'),
+    ankleiden:         g('anaAnkleiden'),
+    koerperpflege:     g('anaKoerperpflege'),
+    kontinenz:         g('anaKontinenz'),
+    ableitendeSysteme: ablSys,
+    risiken:           risks,
+    wunden:            _anaWunden
+  };
+  var allergien  = g('anaAllergien');
+  var medikamente = g('anaMedis');
+  var wichtig    = g('anaWichtig');
+  var now = new Date();
+  var datum = now.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+now.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+  var patName = currentPatient ? [currentPatient.vorname, currentPatient.nachname].filter(Boolean).join(' ') : '';
+
+  var doGenerate = function(logoDataUrl){
+    var jsPDFLib = (typeof jsPDF !== 'undefined') ? jsPDF : window.jspdf.jsPDF;
+    var doc = new jsPDFLib({ unit:'mm', format:'a4' });
+    var W = 210, ML = 16, MR = 16, y = 18;
+    var cW = W - ML - MR;
+
+    /* ── Header ── */
+    var headerH = 28;
+    doc.setFillColor(30, 58, 138);
+    doc.rect(0, 0, W, headerH, 'F');
+
+    if(logoDataUrl){
+      try{ doc.addImage(logoDataUrl, 'PNG', ML, 5, 40, 18); } catch(e){}
+    }
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(255,255,255);
+    doc.text('Pflegerische Anamnese', W - MR, 11, {align:'right'});
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.text('Protokoll', W - MR, 17, {align:'right'});
+
+    y = headerH + 10;
+
+    /* ── Patient-Info Box ── */
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(ML, y, cW, 18, 3, 3, 'F');
+    doc.setTextColor(30, 58, 138);
+    doc.setFontSize(12);
+    doc.setFont('helvetica','bold');
+    doc.text(patName || '–', ML + 5, y + 7);
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(107,114,128);
+    doc.text('Geburtsdatum: '+(currentPatient && currentPatient.birth ? currentPatient.birth : '–'), ML + 5, y + 13);
+    doc.text('Erstellt: '+datum, W - MR - 5, y + 7, {align:'right'});
+    if(currentPatient && currentPatient.pflegenummer){
+      doc.text('Nr: '+currentPatient.pflegenummer, W - MR - 5, y + 13, {align:'right'});
+    }
+    y += 24;
+
+    /* helper: section header */
+    var sectionHead = function(title){
+      doc.setFillColor(63, 111, 232);
+      doc.rect(ML, y, cW, 6, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(255,255,255);
+      doc.text(title.toUpperCase(), ML + 3, y + 4.2);
+      y += 9;
+    };
+
+    /* helper: field row */
+    var field = function(label, value){
+      var val = (value && value.toString().trim()) ? value : '–';
+      doc.setFontSize(8);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(55,65,81);
+      doc.text(label+':', ML + 2, y);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(17,24,39);
+      var lines = doc.splitTextToSize(val, cW - 52);
+      doc.text(lines, ML + 50, y);
+      y += Math.max(5, lines.length * 4.5);
+      if(y > 270){ doc.addPage(); y = 18; }
+    };
+
+    /* helper: two-column field */
+    var field2 = function(label1, val1, label2, val2){
+      var half = (cW - 6) / 2;
+      doc.setFontSize(8);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(55,65,81);
+      doc.text(label1+':', ML + 2, y);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(17,24,39);
+      doc.text((val1||'–'), ML + 2 + half * 0.45, y);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(55,65,81);
+      doc.text(label2+':', ML + half + 5, y);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(17,24,39);
+      doc.text((val2||'–'), ML + half + 5 + half * 0.45, y);
+      y += 5.5;
+      if(y > 270){ doc.addPage(); y = 18; }
+    };
+
+    /* ── Allgemein ── */
+    sectionHead('Allgemein');
+    field2('Mobilität', fields.mobilitaet, 'Orientierung', fields.orientierung);
+    field2('Pflegestufe', fields.pflegestufe, 'An-/Auskleiden', fields.ankleiden);
+    field2('Körperpflege', fields.koerperpflege, 'Kontinenz', fields.kontinenz);
+    y += 3;
+
+    /* ── Ableitende Systeme ── */
+    sectionHead('Ableitende Systeme');
+    field('Systeme', ablSys.length ? ablSys.join(', ') : 'keine');
+    y += 3;
+
+    /* ── Risiken ── */
+    sectionHead('Risiken');
+    field('Aktive Risiken', riskList.length ? riskList.join(', ') : 'keine');
+    y += 3;
+
+    /* ── Diagnosen ── */
+    sectionHead('Diagnosen / Erkrankungen');
+    field('Erkrankungen', erkrankungen.length ? erkrankungen.join(', ') : 'keine');
+    y += 3;
+
+    /* ── Medikation & Allergien ── */
+    sectionHead('Medikation & Allergien');
+    field('Medikamente', medikamente);
+    field('Allergien / Unverträglichkeiten', allergien);
+    y += 3;
+
+    /* ── Wichtige Hinweise ── */
+    sectionHead('Wichtige Hinweise');
+    field('Hinweise', wichtig);
+    y += 3;
+
+    /* ── Wunddokumentation ── */
+    if(_anaWunden && _anaWunden.length > 0){
+      sectionHead('Wunddokumentation ('+_anaWunden.length+' Wunde(n))');
+      _anaWunden.forEach(function(w, i){
+        if(y > 240){ doc.addPage(); y = 18; }
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica','bold');
+        doc.setTextColor(30,58,138);
+        doc.text('Wunde '+(i+1)+':'+(w.lokalisierung?' '+w.lokalisierung:''), ML + 2, y);
+        y += 5;
+        doc.setFont('helvetica','normal');
+        doc.setTextColor(17,24,39);
+        if(w.beschreibung){
+          var bLines = doc.splitTextToSize(w.beschreibung, cW - 10);
+          doc.setFontSize(8);
+          doc.text(bLines, ML + 4, y);
+          y += bLines.length * 4.5;
+        }
+        if(w.versorgtMit){ field('Versorgung', w.versorgtMit); }
+        if(w.entzuendung && w.entzuendung.length){ field('Entzündungszeichen', w.entzuendung.join(', ')); }
+        if(w.foto){
+          try{
+            var imgH = 40, imgW = 55;
+            if(y + imgH > 270){ doc.addPage(); y = 18; }
+            doc.addImage(w.foto, 'JPEG', ML + 4, y, imgW, imgH);
+            y += imgH + 5;
+          } catch(e){}
+        }
+        y += 3;
+        if(y > 270){ doc.addPage(); y = 18; }
+      });
+    }
+
+    /* ── Footer ── */
+    var pageCount = doc.internal.getNumberOfPages();
+    for(var p = 1; p <= pageCount; p++){
+      doc.setPage(p);
+      doc.setFontSize(7);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(156,163,175);
+      doc.text('Akut Plus Pflegedienst · Pflegerische Anamnese · '+datum, ML, 292);
+      doc.text('Seite '+p+' / '+pageCount, W - MR, 292, {align:'right'});
+    }
+
+    /* ── Save as Protokoll document ── */
+    var pdfB64 = doc.output('datauristring').split(',')[1];
+    var fname = 'Anamnese-Protokoll_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.pdf';
+    var resetBtn = function(){ if(btn){ btn.disabled = false; btn.textContent = '📄 Als PDF speichern'; } };
+    authFetch('/api/patienten/'+encodeURIComponent(currentPatient.id)+'/dokumente/json',{
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({typ:'protokoll', original_name:fname,
+        beschreibung:'Pflegeanamnese PDF erstellt am '+datum,
+        file_data_b64:pdfB64, mime_type:'application/pdf'})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d.ok){
+        loadDocs(currentPatient.id);
+        toast('✅ PDF-Protokoll gespeichert');
+      } else {
+        toast('⚠️ PDF konnte nicht gespeichert werden: '+(d.error||''));
+      }
+      resetBtn();
+    }).catch(function(){ toast('⚠️ PDF-Protokoll: Verbindungsfehler'); resetBtn(); });
+  };
+
+  /* Load logo as base64, then generate */
+  fetch('akutplus-logo-nobg.png')
+    .then(function(r){ return r.blob(); })
+    .then(function(blob){
+      var reader = new FileReader();
+      reader.onloadend = function(){ doGenerate(reader.result); };
+      reader.readAsDataURL(blob);
+    })
+    .catch(function(){ doGenerate(null); });
 }
 
 /* ── Stammdaten Edit Modal (inline) ── */
