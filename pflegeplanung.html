@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nursy – Pflegeplanung</title>
   <link rel="stylesheet" href="styles.css?v=20260211">
+  <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.png">
     <meta name="theme-color" content="#0f2744">
@@ -113,6 +114,7 @@
               <a href="#" class="pp-link" id="btnEvaluate">Evaluieren</a>
               <button class="control btn" type="button" id="btnEdit">Bearbeiten</button>
               <button class="control btn btn--danger" type="button" id="btnAbsetzen">Absetzen</button>
+              <button class="control btn" type="button" id="btnPlanPdf" style="background:#0f766e;border-color:#0f766e;color:#fff;">📥 PDF herunterladen / drucken</button>
             </div>
           </div>
 
@@ -162,6 +164,149 @@
 
   <!-- Modal root (wird von pflegeplanung.js befüllt) -->
   <div id="modalRoot" aria-live="polite"></div>
+
+  <script>
+  /* ── Pflegeplanung PDF Download ── */
+  function generatePflegeplanPDF(plans){
+    if(typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined'){
+      alert('PDF-Bibliothek nicht geladen. Bitte Seite neu laden.');
+      return;
+    }
+    var btn = document.getElementById('btnPlanPdf');
+    var origText = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = '⏳ PDF wird erstellt…'; }
+    var resetBtn = function(){ if(btn){ btn.disabled = false; btn.textContent = origText; } };
+
+    /* Patient name from patBlock DOM */
+    var patBlock = document.getElementById('patBlock');
+    var patName = '';
+    if(patBlock){
+      var nameEl = patBlock.querySelector('[data-patient-name]') || patBlock.querySelector('strong') || patBlock;
+      patName = (nameEl.dataset && nameEl.dataset.patientName) ? nameEl.dataset.patientName : patBlock.textContent.trim().replace(/\s+/g,' ');
+    }
+
+    var now = new Date();
+    var datum = now.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'})
+      +' '+now.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+
+    try {
+      var jsPDFLib = (typeof jsPDF !== 'undefined') ? jsPDF : window.jspdf.jsPDF;
+      var doc = new jsPDFLib({ unit:'mm', format:'a4' });
+
+      var W=210, H=297, ML=14, MR=14, MT=18;
+      var y = MT;
+
+      /* ── Header ── */
+      doc.setFontSize(18);
+      doc.setFont(undefined,'bold');
+      doc.setTextColor(15,23,68);
+      doc.text('Pflegeplanung', ML, y);
+
+      doc.setFontSize(9);
+      doc.setFont(undefined,'normal');
+      doc.setTextColor(100,116,139);
+      doc.text('Erstellt am '+datum, W-MR, y, {align:'right'});
+      y += 6;
+
+      if(patName){
+        doc.setFontSize(10);
+        doc.setFont(undefined,'bold');
+        doc.setTextColor(15,23,68);
+        doc.text('Patient: '+patName, ML, y);
+        y += 5;
+      }
+
+      doc.setDrawColor(226,232,240);
+      doc.setLineWidth(0.4);
+      doc.line(ML, y, W-MR, y);
+      y += 6;
+
+      if(!plans || !plans.length){
+        doc.setFontSize(10);
+        doc.setFont(undefined,'normal');
+        doc.setTextColor(100,116,139);
+        doc.text('Noch keine aktuelle Planung vorhanden.', ML, y);
+      } else {
+        /* Column layout: Geplant | Diagnose | Maßnahme | Ziel | Eval */
+        var COL_W = [24, 40, 54, 45, 22];
+        var COL_X = [ML];
+        for(var ci=0; ci<COL_W.length-1; ci++) COL_X.push(COL_X[ci]+COL_W[ci]);
+        var HDRS = ['Geplant am','Diagnose','Maßnahme','Ziel','Eval. am'];
+        var ROW_H = 7, LINE_H = 4.5;
+
+        /* Header row */
+        doc.setFillColor(240,245,255);
+        doc.rect(ML, y, W-ML-MR, ROW_H, 'F');
+        doc.setFont(undefined,'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(30,58,138);
+        HDRS.forEach(function(h, i){ doc.text(h, COL_X[i]+1.5, y+4.8); });
+        y += ROW_H;
+
+        var altRow = false;
+        plans.forEach(function(p){
+          var cells = [p.geplantAm||'—', p.diagnose||'', p.massnahme||'', p.ziel||'', p.evalAm||'—'];
+          var cellLines = cells.map(function(txt, i){
+            return doc.splitTextToSize(String(txt), COL_W[i]-3);
+          });
+          var maxLines = cellLines.reduce(function(m,l){ return Math.max(m,l.length); }, 1);
+          var rh = Math.max(ROW_H, maxLines*LINE_H+3);
+
+          if(y + rh > H-14){ doc.addPage(); y = MT; }
+
+          if(p.abgesetzt){
+            doc.setFillColor(254,242,242);
+            doc.rect(ML, y, W-ML-MR, rh, 'F');
+          } else if(altRow){
+            doc.setFillColor(248,250,252);
+            doc.rect(ML, y, W-ML-MR, rh, 'F');
+          }
+
+          doc.setFont(undefined,'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(p.abgesetzt ? 156 : 15, p.abgesetzt ? 163 : 23, p.abgesetzt ? 175 : 42);
+          cellLines.forEach(function(lines, i){
+            lines.forEach(function(line, li){
+              doc.text(line, COL_X[i]+1.5, y+4+li*LINE_H);
+            });
+          });
+          if(p.abgesetzt){
+            doc.setFontSize(6);
+            doc.setTextColor(185,28,28);
+            doc.text('abgesetzt', COL_X[0]+1.5, y+rh-2);
+          }
+          if(p.evalNote){
+            doc.setFontSize(6.5);
+            doc.setTextColor(107,114,128);
+            var noteLines = doc.splitTextToSize('Evaluation: '+p.evalNote, COL_W[4]-3);
+            noteLines.forEach(function(line,li){
+              doc.text(line, COL_X[4]+1.5, y+4+li*LINE_H);
+            });
+          }
+
+          y += rh;
+          altRow = !altRow;
+          doc.setDrawColor(226,232,240);
+          doc.setLineWidth(0.2);
+          doc.line(ML, y, W-MR, y);
+        });
+      }
+
+      /* ── Footer ── */
+      doc.setFontSize(7);
+      doc.setFont(undefined,'normal');
+      doc.setTextColor(148,163,184);
+      doc.text('Akut Plus Pflegedienst · Pflegeplanung · '+datum, ML, H-6);
+
+      var fname = 'Pflegeplanung_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.pdf';
+      doc.save(fname);
+    } catch(e) {
+      alert('PDF konnte nicht erstellt werden: '+(e && e.message ? e.message : e));
+    } finally {
+      resetBtn();
+    }
+  }
+  </script>
 
   <script src="df-measures.js"></script>
   <script src="patient-selector.js"></script>
@@ -522,6 +667,14 @@
             });
           }
         );
+      });
+    }
+
+    /* ── PDF HERUNTERLADEN ────────────────────────── */
+    const btnPlanPdf = document.getElementById('btnPlanPdf');
+    if(btnPlanPdf){
+      btnPlanPdf.addEventListener('click', function(){
+        generatePflegeplanPDF(loadPlans());
       });
     }
 
