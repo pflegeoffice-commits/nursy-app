@@ -538,6 +538,7 @@
       date:         document.getElementById('wdDate').value,
     };
     try{ localStorage.setItem('nursy_wunddoku_v1', JSON.stringify(data)); } catch(e){}
+    window.dispatchEvent(new CustomEvent('nursy:wunddoku-updated'));
     /* Wunddokumentation auch serverseitig speichern */
     var _wdPatId = '';
     try{ _wdPatId = localStorage.getItem('nursy_current_patient_id') || 'default'; }catch(e){}

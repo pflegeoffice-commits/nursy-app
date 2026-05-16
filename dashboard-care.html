@@ -562,6 +562,7 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
       if(e.key && e.key.indexOf('nursy_df_v1_') === 0) render();
     });
     window.addEventListener('nursy:df-updated', function(){ render(); });
+    window.addEventListener('nursy:wunddoku-updated', function(){ render(); });
 
     /* ── Automatischer Server-Backup aller Dokumentationsdaten ── */
     (function(){
@@ -666,6 +667,9 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
         }
       });
       window.addEventListener('nursy:df-updated', function(){
+        setTimeout(function(){ runBackup(false); }, 1500);
+      });
+      window.addEventListener('nursy:wunddoku-updated', function(){
         setTimeout(function(){ runBackup(false); }, 1500);
       });
 

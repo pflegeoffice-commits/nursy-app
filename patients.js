@@ -629,6 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(e.key && e.key.startsWith('nursy_df_v1_')) render();
   });
   window.addEventListener('nursy:df-updated', function(){ render(); });
+  window.addEventListener('nursy:wunddoku-updated', function(){ render(); });
 
   const allPatients = loadAllPatients();
 
