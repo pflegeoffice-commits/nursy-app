@@ -84,6 +84,7 @@
     .pa-doc-btn--dl:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
     .pa-doc-btn--del{background:#fff;color:var(--red);border-color:rgba(220,38,38,.25)}
     .pa-doc-btn--del:hover{background:#fee2e2;border-color:var(--red)}
+    .pa-doc-lock{height:30px;padding:0 10px;border-radius:7px;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1.5px solid #e5e7eb;background:#f9fafb;color:#9ca3af;cursor:default;user-select:none;}
     .pa-empty-docs{padding:20px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6;}
     .pa-empty-docs__ico{font-size:2rem;margin-bottom:6px}
 
@@ -1588,7 +1589,7 @@ function renderDocs(){
     var isProtected = (d.typ==='protokoll'||d.typ==='einverstaendnis');
     var delBtn = (!isProtected||paIsAdmin)
       ? '<button class="pa-doc-btn pa-doc-btn--del" onclick="deleteDok(\''+esc(d.id)+'\')">🗑</button>'
-      : '';
+      : '<span class="pa-doc-btn pa-doc-lock" title="Nur Administratoren können dieses Dokument löschen">🔒</span>';
     return '<div class="pa-doc-card" id="doc_'+esc(d.id)+'">'+
       '<div class="pa-doc-icon pa-doc-icon--'+css+'">'+icon+'</div>'+
       '<div class="pa-doc-info">'+
