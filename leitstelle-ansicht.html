@@ -5723,6 +5723,8 @@
     }
 
     var _lagebild = aeCollectLagebild();
+    var _capId = (aeSelectedPatientId && String(aeSelectedPatientId).indexOf('nursy_') === 0)
+      ? String(aeSelectedPatientId).replace('nursy_', '') : '';
     var einsatzData = {
       id: 'e_' + Date.now(),
       artLabel: artLabel,
@@ -5753,6 +5755,7 @@
       gefahr: v('aeGefahr'),
       allein: v('aeAllein'),
       decision: aeDecisionVal,
+      _capId: _capId,
       extra: {lagebild: _lagebild}
     };
 
@@ -6780,6 +6783,29 @@
   }
 
   // ── Mini-Liste Übersicht ──
+  /* ── Pflege-Doku Überfälligkeitsstatus für Einsatz-Karte ──
+     Liest nursy_df_measures_v1_<capId> und nursy_df_v1_<capId>_<date>
+     mit denselben expliziten Uhrzeiten wie dashboard-care.html. */
+  function lsDfOverdueStatus(capId) {
+    if(!capId || !window.dfMeasures) return '';
+    /* Only use real cached data — skip if no plan cache exists (avoid fallback slots) */
+    var rawCache = null;
+    try{ rawCache = JSON.parse(localStorage.getItem('nursy_df_measures_v1_'+capId)||'null'); }catch(e){}
+    if(!rawCache || !rawCache.total) return '';
+    var now = new Date();
+    var today = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    var nowMin = now.getHours()*60 + now.getMinutes();
+    function toMin(s){ var p=(s||'00:00').split(':'); return +p[0]*60+ +p[1]; }
+    var dfData = {};
+    try{ dfData = JSON.parse(localStorage.getItem('nursy_df_v1_'+capId+'_'+today)||'{}'); }catch(e){}
+    var signedIds = Object.keys(dfData);
+    var times = Array.isArray(rawCache.times) ? rawCache.times : [];
+    var total = rawCache.total;
+    if(signedIds.length >= total) return 'done';
+    var overdue = times.filter(function(m){ return toMin(m.t) <= nowMin && signedIds.indexOf(String(m.id)) === -1; });
+    return overdue.length > 0 ? 'overdue' : 'upcoming';
+  }
+
   function renderDashAktivListe() {
     var cont = document.getElementById('dashAktivListe'); if(!cont) return;
     var aktiv = aeEinsaetze.filter(function(e){ return e.status !== 'storniert' && e.status !== 'abgeschlossen' && _blMatch(e); });
@@ -6947,6 +6973,13 @@
       var statusLabel = {geplant:'Geplant',aktiv:'Aktiv',pause:'Pause',ausruecken:'Ausrücken',abgeschlossen:'Abgeschlossen'};
       var details = '';
       if (expanded) {
+        var dfSt = e._capId ? lsDfOverdueStatus(e._capId) : '';
+        var dfRow = dfSt
+          ? ['Pflege-Doku',
+              dfSt === 'done'    ? '<span style="color:#16a34a;font-weight:700;">✓ Alle fälligen Maßnahmen abgezeichnet</span>'
+            : dfSt === 'overdue' ? '<span style="color:#dc2626;font-weight:700;">⚠ Überfällige Maßnahmen offen!</span>'
+            :                      '<span style="color:#d97706;font-weight:700;">○ Noch bevorstehend</span>']
+          : null;
         var rows = [
           ['Einsatz-Nr.', e.nr||'–'], ['Einsatzart', e.artLabel||'–'],
           ['Dringlichkeit', e.dring||'–'], ['Patient', e.pName||'–'],
@@ -6957,6 +6990,7 @@
           ['Angehörige', e.angName||'–'],
           ['Anmerkung', e.notiz||'–']
         ];
+        if (dfRow) rows.push(dfRow);
         details = '<div class="ea-card__detail open">'
           + rows.map(function(r){ return '<div class="ea-detail-row"><span class="ea-detail-key">'+r[0]+'</span><span class="ea-detail-val">'+r[1]+'</span></div>'; }).join('')
           + '</div>';
@@ -7210,7 +7244,8 @@
       nr:nr, problem:bem||'', qual:qual||'', dring:dring||'geplant',
       pName:name, adresse:adresse, tel:v('qaTel'), bezirk:'', angName:'', angTel:'',
       allergien:'', medikamente:'', anordnungen:'', leitstAnmerk:rufb||'',
-      einsatzdauer:'', einsatzbeginn:'', schluessel:'', adressinfo:'', allein:'', gefahr:'', decision:'ja'
+      einsatzdauer:'', einsatzbeginn:'', schluessel:'', adressinfo:'', allein:'', gefahr:'', decision:'ja',
+      _capId: ''
     };
     aeEinsaetze.unshift(einsatz);
     renderDashboard();
@@ -7231,6 +7266,8 @@
     var nr  = v('aeNummer') || aeGenNummer();
     var qual = v('aeQualifikation'), dring = v('aeDringlichkeit');
     var sub  = [adresse||'Adresse ausstehend', pName?'Pat.: '+pName:'', qual].filter(Boolean).join(' · ');
+    var _capIdG = (aeSelectedPatientId && String(aeSelectedPatientId).indexOf('nursy_') === 0)
+      ? String(aeSelectedPatientId).replace('nursy_', '') : '';
     var einsatzData = {
       id:'e_'+Date.now(), artLabel:artLabel, fz:v('aeFz'), sub:sub, zeit:'–',
       status:'geplant', notiz:'', nr:nr, problem:v('aeProblem'), qual:qual, dring:dring,
@@ -7240,7 +7277,8 @@
       allergien:v('aeAllergien'), medikamente:v('aeMedikamente'),
       schluessel:v('aeSchluessel'), adressinfo:v('aeAdressinfo'),
       angName:(v('aeA1Nachname')+' '+v('aeA1Vorname')).trim(), angTel:v('aeA1Tel'),
-      gefahr:v('aeGefahr'), allein:v('aeAllein'), decision:aeDecisionVal
+      gefahr:v('aeGefahr'), allein:v('aeAllein'), decision:aeDecisionVal,
+      _capId: _capIdG
     };
     aeEinsaetze.unshift(einsatzData);
     renderDashboard();
@@ -8764,6 +8802,7 @@
 
 </script>
 
+<script src="df-measures.js"></script>
 <script src="nursy-auth.js"></script>
 <script>
 // ── Leitstelle Auth ──────────────────────────────────────────────────────────

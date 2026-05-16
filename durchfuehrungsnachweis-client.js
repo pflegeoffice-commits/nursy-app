@@ -97,7 +97,7 @@
       Object.keys(dayData).forEach(function(taskId){
         var signed = dayData[taskId];
         if(!signed || !signed.time) return;
-        rows.push({date:today, time:signed.time, measure:measureName(taskId, patId), caregiver:signed.name||'Pflegekraft'});
+        rows.push({date:today, time:signed.time, measure:measureName(taskId, patId), caregiver:signed.name||'Pflegekraft', measureId:taskId});
       });
     }catch(e){}
 
@@ -111,7 +111,7 @@
         Object.keys(data).forEach(function(taskId){
           var signed = data[taskId];
           if(!signed || !signed.time) return;
-          rows.push({date:date, time:signed.time, measure:measureName(taskId, patId), caregiver:signed.name||'Pflegekraft'});
+          rows.push({date:date, time:signed.time, measure:measureName(taskId, patId), caregiver:signed.name||'Pflegekraft', measureId:taskId});
         });
       });
     }catch(e){}
@@ -205,6 +205,7 @@
       return a.time < b.time ? -1 : 1;
     });
 
+    var patId = getCurrentPatId();
     var groups = {}, order = [];
     items.forEach(function(x){
       if(!groups[x.date]){ groups[x.date]=[]; order.push(x.date); }
@@ -215,8 +216,14 @@
 
     host.innerHTML = order.map(function(date){
       var rows = groups[date].map(function(x){
+        var planned = x.measureId ? plannedTimeFor(x.measureId, patId) : '';
+        var plannedHtml = planned
+          ? '<span style="font-size:11px;color:var(--muted);background:rgba(63,111,232,.07);border-radius:6px;padding:2px 6px;white-space:nowrap;">geplant ' + esc(planned) + '</span>'
+          : '';
         return '<tr>' +
-          '<td data-label="Zeit" style="width:80px;">' + esc(x.time) + '</td>' +
+          '<td data-label="Zeit" style="width:80px;">' + esc(x.time) +
+            (plannedHtml ? '<br>' + plannedHtml : '') +
+          '</td>' +
           '<td data-label="Maßnahme"><div class="dn-measure">' + esc(x.measure) + '</div></td>' +
           '<td data-label="Pflegekraft" style="white-space:nowrap;">' +
             cgAvatar(x.caregiver) + ' ' + esc(x.caregiver) +
@@ -237,6 +244,15 @@
     }).join('');
   }
 
+  /* ── Geplante Uhrzeit für eine Maßnahme aus dem dfMeasures-Cache lesen ── */
+  function plannedTimeFor(measureId, patId){
+    if(!window.dfMeasures) return '';
+    var times = window.dfMeasures.times(patId) || [];
+    var sid = String(measureId);
+    var entry = times.filter(function(x){ return String(x.id) === sid; })[0];
+    return entry ? entry.t : '';
+  }
+
   /* ── Pflegeplan vom Server laden → lokale Map + dfMeasures-Cache befüllen → neu rendern ── */
   function fetchAndCachePflegeplan(patId, onDone){
     if(!patId) return onDone && onDone();
@@ -245,16 +261,35 @@
       .then(function(d){
         if(!d || !d.ok || !Array.isArray(d.plaene)) return;
         var active = d.plaene.filter(function(p){ return !p.abgesetzt; });
+        var total  = active.length;
         /* 1. lokale Map direkt befüllen – unabhängig von window.dfMeasures */
         var map = {};
         active.forEach(function(p){ map[String(p.id)] = p.massnahme || ''; });
         _localNameMap[patId] = map;
-        /* 2. dfMeasures-Cache aktualisieren (falls auf dieser Seite verfügbar) */
+        /* 2. dfMeasures-Cache mit expliziten Uhrzeiten aus dem Plan befüllen */
         if(window.dfMeasures){
-          var times = window.dfMeasures.times(patId) || [];
+          var ZP_DEFAULT = {früh:'08:00', mittag:'13:00', abend:'20:00'};
+          var times = active.map(function(p, idx){
+            var uhr;
+            if(p.uhrzeit || p.zeitpunkt){
+              uhr = p.uhrzeit || ZP_DEFAULT[p.zeitpunkt] || '08:00';
+            } else {
+              /* Keyword-Fallback – identisch mit _dfTimingFor() in durchfuehrungsnachweis.html */
+              var m = (p.massnahme||'').toLowerCase();
+              if(/abend|nacht|schlaf|sicherheitscheck/.test(m)){
+                uhr = '20:00';
+              } else if(/mittag|ausscheid|stuhl|sturzprophylaxe.*rundgang|ernährungs/.test(m)){
+                uhr = '13:00';
+              } else {
+                var pct = total > 1 ? idx / (total - 1) : 0;
+                uhr = pct >= 0.7 ? '19:00' : pct >= 0.4 ? '13:00' : '08:00';
+              }
+            }
+            return {id: p.id, t: uhr};
+          });
           window.dfMeasures.set(patId, {
             total: active.length,
-            times: active.length ? times : [],
+            times: times,
             names: active.map(function(p){ return {id: p.id, massnahme: p.massnahme || ''}; })
           });
         }

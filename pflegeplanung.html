@@ -249,7 +249,10 @@
       const active = (plans||[]).filter(function(p){ return !p.abgesetzt; });
       const payload = {
         total: active.length,
-        times: active.map(function(p){ return {id:p.id, t:p.uhrzeit||'08:00'}; }),
+        times: active.map(function(p){
+          var ZP_DEFAULT = {früh:'08:00', mittag:'13:00', abend:'20:00'};
+          return {id:p.id, t:p.uhrzeit || ZP_DEFAULT[p.zeitpunkt] || '08:00'};
+        }),
         names: active.map(function(p){ return {id:p.id, massnahme:p.massnahme||''}; })
       };
       if(window.dfMeasures) window.dfMeasures.set(pid, payload);
