@@ -205,6 +205,25 @@
     }).join('');
   }
 
+  /* ── Pflegeplan vom Server laden → dfMeasures-Cache befüllen → neu rendern ── */
+  function fetchAndCachePflegeplan(patId, onDone){
+    if(!patId) return onDone && onDone();
+    fetch('/api/care/pflegeplanung/' + encodeURIComponent(patId), {credentials:'include'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || !d.ok || !Array.isArray(d.plaene)) return;
+        var active = d.plaene.filter(function(p){ return !p.abgesetzt; });
+        var times = (window.dfMeasures && window.dfMeasures.times(patId)) || [];
+        window.dfMeasures && window.dfMeasures.set(patId, {
+          total: active.length,
+          times: active.length ? times : [],
+          names: active.map(function(p){ return {id: p.id, massnahme: p.massnahme || ''}; })
+        });
+      })
+      .catch(function(){})
+      .then(function(){ onDone && onDone(); });
+  }
+
   document.addEventListener('DOMContentLoaded', function(){
     render();
     var rf = document.getElementById('dnRangeFilter');
@@ -213,5 +232,8 @@
     if(rf) rf.addEventListener('change', render);
     if(s)  s.addEventListener('input', render);
     if(p)  p.addEventListener('click', function(){ window.print(); });
+
+    /* Pflegeplan laden, Cache befüllen und Ansicht mit echten Maßnahmen-Namen neu rendern */
+    fetchAndCachePflegeplan(getCurrentPatId(), render);
   });
 })();
