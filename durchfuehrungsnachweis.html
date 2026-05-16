@@ -668,8 +668,20 @@ render(); // initial render (MEASURES still empty – placeholder shown)
 /* Pflegeplanung von der API laden → befüllt MEASURES + rendert neu */
 _fetchPflegeplanungFromApi(_initPatId);
 
-/* Cross-tab sync: Pflegeplanung updated in another tab → rebuild MEASURES */
+/* Cross-tab sync: patient switched in another tab → follow the switch, then reload measures */
 window.addEventListener('storage', function(e){
+  if(e.key === 'nursy_df_current_pat_id' && e.newValue) {
+    const newId = e.newValue;
+    if(newId === (_dfPatId || _initPatId)) return;
+    _selectedId = newId;
+    const newIdx = (_allPatients || []).findIndex(function(p){ return p.id === newId; });
+    if(newIdx >= 0){
+      onPatientChange(newIdx);
+      _renderChip();
+    }
+    return;
+  }
+  /* Care-plan measures updated in another tab → rebuild MEASURES for current patient */
   const pid = _dfPatId || _initPatId;
   if(e.key !== 'nursy_df_measures_v1_' + (pid||'default')) return;
   _fetchPflegeplanungFromApi(pid);
