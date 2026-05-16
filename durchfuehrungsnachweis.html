@@ -681,6 +681,12 @@ window.addEventListener('storage', function(e){
     }
     return;
   }
+  /* DN-State updated in another tab for the current patient → reload and re-render */
+  if(e.key === _activeKey && e.newValue !== null) {
+    try{ state = JSON.parse(e.newValue); }catch(ex){ state = {}; }
+    render();
+    return;
+  }
   /* Care-plan measures updated in another tab → rebuild MEASURES for current patient */
   const pid = _dfPatId || _initPatId;
   if(e.key !== 'nursy_df_measures_v1_' + (pid||'default')) return;
