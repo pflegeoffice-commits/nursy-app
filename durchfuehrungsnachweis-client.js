@@ -1,31 +1,9 @@
 (function(){
 
-  /* ── Maßnahmen (gleiche Tabelle wie beim Pfleger) ── */
-  var MEASURES = [
-    {id:1,  massnahme:'Ganzkörperpflege / Körperpflege'},
-    {id:2,  massnahme:'Atemübungen & Positionierung'},
-    {id:3,  massnahme:'Medikamentengabe oral (Frühgabe)'},
-    {id:4,  massnahme:'Blutdruck- & Pulskontrolle'},
-    {id:5,  massnahme:'Trinkplan – Erinnerung (Früh)'},
-    {id:6,  massnahme:'Mobilisation & Gehtraining'},
-    {id:7,  massnahme:'Lagerungswechsel'},
-    {id:8,  massnahme:'Wundversorgung / Verbandswechsel'},
-    {id:9,  massnahme:'Trinkplan – Erinnerung (Mittag)'},
-    {id:10, massnahme:'Mittagsmedikation'},
-    {id:11, massnahme:'Ernährungsprotokoll / Zwischenmahlzeit'},
-    {id:12, massnahme:'Lagerungswechsel'},
-    {id:13, massnahme:'Stuhlgang-/Ausscheidungskontrolle'},
-    {id:14, massnahme:'Sturzprophylaxe (Rundgang)'},
-    {id:15, massnahme:'Trinkplan – Erinnerung (Abend)'},
-    {id:16, massnahme:'Medikamentengabe oral (Abendgabe)'},
-    {id:17, massnahme:'Abendpflege / Mundpflege'},
-    {id:18, massnahme:'Lagerungswechsel'},
-    {id:19, massnahme:'Schlafförderung / Nachtruhe'},
-    {id:20, massnahme:'Sicherheitscheck / Bettgitter'},
-  ];
-
-  function measureName(id){
-    var m = MEASURES.filter(function(x){ return String(x.id) === String(id); })[0];
+  /* ── Maßnahmen: Namen aus dfMeasures-Cache (geschrieben von pflegeplanung.html / durchfuehrungsnachweis.html) ── */
+  function measureName(id, patId){
+    var names = (window.dfMeasures && window.dfMeasures.names(patId)) || [];
+    var m = names.filter(function(x){ return String(x.id) === String(id); })[0];
     return m ? m.massnahme : 'Maßnahme ' + id;
   }
 
@@ -87,7 +65,7 @@
       Object.keys(dayData).forEach(function(taskId){
         var signed = dayData[taskId];
         if(!signed || !signed.time) return;
-        rows.push({date:today, time:signed.time, measure:measureName(taskId), caregiver:signed.name||'Pflegekraft'});
+        rows.push({date:today, time:signed.time, measure:measureName(taskId, patId), caregiver:signed.name||'Pflegekraft'});
       });
     }catch(e){}
 
@@ -101,7 +79,7 @@
         Object.keys(data).forEach(function(taskId){
           var signed = data[taskId];
           if(!signed || !signed.time) return;
-          rows.push({date:date, time:signed.time, measure:measureName(taskId), caregiver:signed.name||'Pflegekraft'});
+          rows.push({date:date, time:signed.time, measure:measureName(taskId, patId), caregiver:signed.name||'Pflegekraft'});
         });
       });
     }catch(e){}

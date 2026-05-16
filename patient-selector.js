@@ -253,14 +253,10 @@ function _closeModal() {
 
 /* ── Patientenliste im Modal rendern ── */
 /* ── DN-Status für Selector-Einträge ── */
-var _PS_DF_TIMES = [
-  {id:1,t:'07:00'},{id:2,t:'07:30'},{id:3,t:'08:00'},{id:4,t:'08:00'},
-  {id:5,t:'09:00'},{id:6,t:'10:00'},{id:7,t:'10:00'},{id:8,t:'11:00'},
-  {id:9,t:'12:00'},{id:10,t:'12:00'},{id:11,t:'13:00'},{id:12,t:'14:00'},
-  {id:13,t:'15:00'},{id:14,t:'16:00'},{id:15,t:'18:00'},
-  {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
-  {id:19,t:'21:00'},{id:20,t:'21:30'},
-];
+function _psGetDfTimes(patId) {
+  if (window.dfMeasures) return { times: window.dfMeasures.times(patId), total: window.dfMeasures.total(patId) };
+  return { times: [], total: 0 };
+}
 function _psdfStatus(p) {
   if (!p.visitToday) return '';
   var d = new Date();
@@ -272,9 +268,10 @@ function _psdfStatus(p) {
   var dfData = {};
   try{ dfData = JSON.parse(localStorage.getItem('nursy_df_v1_'+p.id+'_'+today)||'{}'); }catch(e){}
   var signedIds = {};
-  Object.keys(dfData).forEach(function(k){ signedIds[+k]=1; });
-  if (Object.keys(signedIds).length >= 20) return 'done';
-  var overdue = _PS_DF_TIMES.filter(function(m){ return toMin(m.t)<=nowMin && !signedIds[m.id]; });
+  Object.keys(dfData).forEach(function(k){ signedIds[k]=1; });
+  var cache = _psGetDfTimes(p.id);
+  if (Object.keys(signedIds).length >= cache.total) return 'done';
+  var overdue = cache.times.filter(function(m){ return toMin(m.t)<=nowMin && !signedIds[String(m.id)]; });
   return overdue.length>0 ? 'overdue' : 'done';
 }
 

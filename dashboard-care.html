@@ -286,6 +286,7 @@
       </div>
     </div>
   </footer>
+<script src="df-measures.js"></script>
 <script src="script.js"></script>
 
 <!-- ── Beenden-Modal (Dashboard) ── -->
@@ -436,40 +437,27 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
   }
 
   /* ── DN-Status für Dashboard-Patienten ── */
-  var DF_MEASURE_TIMES_DASH = [
-    {id:1,t:'07:00'},{id:2,t:'07:30'},{id:3,t:'08:00'},{id:4,t:'08:00'},
-    {id:5,t:'09:00'},{id:6,t:'10:00'},{id:7,t:'10:00'},{id:8,t:'11:00'},
-    {id:9,t:'12:00'},{id:10,t:'12:00'},{id:11,t:'13:00'},{id:12,t:'14:00'},
-    {id:13,t:'15:00'},{id:14,t:'16:00'},{id:15,t:'18:00'},
-    {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
-    {id:19,t:'21:00'},{id:20,t:'21:30'},
-  ];
+  function _dashGetDfCache(patId){
+    if(window.dfMeasures) return {times:window.dfMeasures.times(patId), total:window.dfMeasures.total(patId)};
+    return {times:[], total:0};
+  }
 
   function dashDfStatus(patId, from, to){
     var today=isoToday(), now=new Date();
     function toMin(s){ var p=(s||'00:00').split(':'); return +p[0]*60+ +p[1]; }
     var nowMin=now.getHours()*60+now.getMinutes();
-    var fromMin=toMin(from), toMin_=toMin(to);
+    var fromMin=toMin(from);
     if(nowMin < fromMin) return 'upcoming';
 
-    /* Patientenindex – nur angenommene Patienten */
-    var allAcc=[];  try{ allAcc =JSON.parse(localStorage.getItem(window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1')||'[]'); }catch(e){}
-    var merged=[];
-    allAcc.forEach(function(ap){ if(ap.active!==false){ merged.push(ap); } });
-    merged.sort(function(a,b){
-      function hasT(p){ return (p.visits||[]).some(function(v){ return v.date===today&&!v.cancelled; })||(p.visitDate===today); }
-      var aT=hasT(a), bT=hasT(b);
-      if(aT&&!bT) return -1; if(!aT&&bT) return 1;
-      return (a.name||'').localeCompare(b.name||'');
-    });
     var dfData={};
     try{ dfData=JSON.parse(localStorage.getItem('nursy_df_v1_'+patId+'_'+today)||'{}'); }catch(e){}
     var signedIds={};
-    Object.keys(dfData).forEach(function(k){ signedIds[+k]=1; });
+    Object.keys(dfData).forEach(function(k){ signedIds[k]=1; });
     var signedCount=Object.keys(signedIds).length;
-    if(signedCount>=20) return 'done';
+    var cache=_dashGetDfCache(patId);
+    if(signedCount>=cache.total) return 'done';
 
-    var overdue=DF_MEASURE_TIMES_DASH.filter(function(m){ return toMin(m.t)<=nowMin && !signedIds[m.id]; });
+    var overdue=cache.times.filter(function(m){ return toMin(m.t)<=nowMin && !signedIds[String(m.id)]; });
     return overdue.length>0 ? 'overdue' : 'done';
   }
 

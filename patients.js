@@ -12,62 +12,13 @@ const DEMO_KEY     = 'nursy_patients_demo_v3';
 /* Dynamischer Schlüssel – user-spezifisch via getCarePatKey() (script.js) */
 function _accKey(){ return window.getCarePatKey ? window.getCarePatKey() : 'nursy_accepted_patients_v1'; }
 
-/* ── Durchführungsnachweis-Maßnahmen (Uhrzeiten für Überfälligkeits-Check) ── */
-const DF_MEASURE_TIMES = [
-  {id:1,t:'07:00'},{id:2,t:'07:30'},{id:3,t:'08:00'},{id:4,t:'08:00'},
-  {id:5,t:'09:00'},{id:6,t:'10:00'},{id:7,t:'10:00'},{id:8,t:'11:00'},
-  {id:9,t:'12:00'},{id:10,t:'12:00'},{id:11,t:'13:00'},{id:12,t:'14:00'},
-  {id:13,t:'15:00'},{id:14,t:'16:00'},{id:15,t:'18:00'},
-  {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
-  {id:19,t:'21:00'},{id:20,t:'21:30'},
-];
-const DF_TOTAL = DF_MEASURE_TIMES.length; // 20
-
-/* ── Status-Berechnung für heutige Einsätze ── */
-function dfStatus(p, visit, allPats){
-  if(!visit) return '';
-  const todayStr = isoDate();
-  const now = new Date();
-
-  function toMin(hhmm){
-    const [h,m] = (hhmm||'00:00').split(':').map(Number);
-    return h*60+m;
-  }
-  const nowMin   = now.getHours()*60 + now.getMinutes();
-  const fromMin  = toMin(visit.from);
-  const toMin_   = toMin(visit.to);
-
-  // 1) Noch nicht gestartet → orange
-  if(nowMin < fromMin) return 'upcoming';
-
-  // 2) DN-Daten laden (ID-basierter Schlüssel)
-  let dfData = {};
-  try{ dfData = JSON.parse(localStorage.getItem('nursy_df_v1_'+p.id+'_'+todayStr)||'{}'); }catch(e){}
-  const signedIds = new Set(Object.keys(dfData).map(Number));
-  const signedCount = signedIds.size;
-
-  // 4) Alle 20 abgezeichnet → grün
-  if(signedCount >= DF_TOTAL) return 'done';
-
-  // 5) Überfällige Maßnahmen = Uhrzeit <= jetzt UND nicht abgezeichnet
-  const overdue = DF_MEASURE_TIMES.filter(function(m){
-    return toMin(m.t) <= nowMin && !signedIds.has(m.id);
-  });
-
-  if(overdue.length > 0) return 'overdue'; // rot
-  return 'done'; // alle fälligen sind erledigt → grün
+/* ── DN-Maßnahmen: Uhrzeiten aus Cache lesen (geschrieben von durchfuehrungsnachweis.html) ── */
+function _getDfTimes(patId){
+  return window.dfMeasures ? window.dfMeasures.times(patId) : [];
 }
-
-/* ── Durchführungsnachweis-Maßnahmen (Uhrzeiten für Überfälligkeits-Check) ── */
-const DF_MEASURE_TIMES = [
-  {id:1,t:'07:00'},{id:2,t:'07:30'},{id:3,t:'08:00'},{id:4,t:'08:00'},
-  {id:5,t:'09:00'},{id:6,t:'10:00'},{id:7,t:'10:00'},{id:8,t:'11:00'},
-  {id:9,t:'12:00'},{id:10,t:'12:00'},{id:11,t:'13:00'},{id:12,t:'14:00'},
-  {id:13,t:'15:00'},{id:14,t:'16:00'},{id:15,t:'18:00'},
-  {id:16,t:'20:00'},{id:17,t:'20:00'},{id:18,t:'20:00'},
-  {id:19,t:'21:00'},{id:20,t:'21:30'},
-];
-const DF_TOTAL = DF_MEASURE_TIMES.length; // 20
+function _getDfTotal(patId){
+  return window.dfMeasures ? window.dfMeasures.total(patId) : 0;
+}
 
 /* ── Status-Berechnung für heutige Einsätze ── */
 function dfStatus(p, visit){
@@ -79,29 +30,31 @@ function dfStatus(p, visit){
     const [h,m] = (hhmm||'00:00').split(':').map(Number);
     return h*60+m;
   }
-  const nowMin   = now.getHours()*60 + now.getMinutes();
-  const fromMin  = toMin(visit.from);
-  const toMin_   = toMin(visit.to);
+  const nowMin  = now.getHours()*60 + now.getMinutes();
+  const fromMin = toMin(visit.from);
 
   // 1) Noch nicht gestartet → orange
   if(nowMin < fromMin) return 'upcoming';
 
-  // 2) DN-Daten laden (Key verwendet Patienten-ID)
+  // 2) DN-Daten laden
   let dfData = {};
   try{ dfData = JSON.parse(localStorage.getItem('nursy_df_v1_'+p.id+'_'+todayStr)||'{}'); }catch(e){}
-  const signedIds = new Set(Object.keys(dfData).map(Number));
+  const signedIds = new Set(Object.keys(dfData));
   const signedCount = signedIds.size;
 
-  // 4) Alle 20 abgezeichnet → grün
-  if(signedCount >= DF_TOTAL) return 'done';
+  const dfTimes = _getDfTimes(p.id);
+  const dfTotal = _getDfTotal(p.id);
 
-  // 5) Überfällige Maßnahmen = Uhrzeit <= jetzt UND nicht abgezeichnet
-  const overdue = DF_MEASURE_TIMES.filter(function(m){
-    return toMin(m.t) <= nowMin && !signedIds.has(m.id);
+  // 3) Alle abgezeichnet → grün
+  if(signedCount >= dfTotal) return 'done';
+
+  // 4) Überfällige Maßnahmen = Uhrzeit <= jetzt UND nicht abgezeichnet
+  const overdue = dfTimes.filter(function(m){
+    return toMin(m.t) <= nowMin && !signedIds.has(String(m.id));
   });
 
   if(overdue.length > 0) return 'overdue'; // rot
-  return 'done'; // alle fälligen sind erledigt → grün
+  return 'done'; // alle fälligen erledigt → grün
 }
 
 /* ── Datum-Utils ── */

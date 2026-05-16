@@ -163,6 +163,7 @@
   <!-- Modal root (wird von pflegeplanung.js befüllt) -->
   <div id="modalRoot" aria-live="polite"></div>
 
+  <script src="df-measures.js"></script>
   <script src="patient-selector.js"></script>
   <script>
     initPatientSelector({ container: 'patBlock', openBtnId: 'openPatModal' });
@@ -242,10 +243,22 @@
     /* ── API-backed Plan-Persistenz ── */
     let _ppPlans = [];
     function loadPlans(){ return _ppPlans.slice(); }
+
+    function _writeDfMeasuresCache(pid, plans){
+      if(!window.dfMeasures) return;
+      const active = (plans||[]).filter(function(p){ return !p.abgesetzt; });
+      window.dfMeasures.set(pid, {
+        total: active.length,
+        times: active.map(function(p){ return {id:p.id, t:p.uhrzeit||'08:00'}; }),
+        names: active.map(function(p){ return {id:p.id, massnahme:p.massnahme||''}; })
+      });
+    }
+
     function savePlans(p){
       _ppPlans = (p || []).slice();
       const pid = (typeof getCurrentPatientId==='function') ? getCurrentPatientId() : '';
       if(!pid) return;
+      _writeDfMeasuresCache(pid, _ppPlans);
       fetch('/api/care/pflegeplanung/' + encodeURIComponent(pid), {
         method:'PUT', credentials:'include',
         headers:{'Content-Type':'application/json'},
@@ -259,6 +272,7 @@
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           _ppPlans = (d && d.ok && Array.isArray(d.plaene)) ? d.plaene : [];
+          _writeDfMeasuresCache(pid, _ppPlans);
           renderPlans();
         })
         .catch(function(){ _ppPlans=[]; renderPlans(); });

@@ -198,31 +198,11 @@ body{
 
 </div>
 
+<script src="df-measures.js"></script>
 <script src="patient-selector.js"></script>
 <script>
-/* ── Maßnahmen aus der Pflegeplanung ── */
-const MEASURES = [
-  {id:1,  massnahme:'Ganzkörperpflege / Körperpflege',    ziel:'Hygiene und Selbstständigkeit erhalten',    uhrzeit:'07:00', frequenz:'1× täglich',    zeitpunkt:'früh'},
-  {id:2,  massnahme:'Atemübungen & Positionierung',        ziel:'Dyspnoe reduzieren, Atmung vertiefen',      uhrzeit:'07:30', frequenz:'1× täglich',    zeitpunkt:'früh'},
-  {id:3,  massnahme:'Medikamentengabe oral (Frühgabe)',    ziel:'Stabile Medikation sicherstellen',          uhrzeit:'08:00', frequenz:'08:00 / 20:00', zeitpunkt:'früh'},
-  {id:4,  massnahme:'Blutdruck- & Pulskontrolle',         ziel:'Kreislauf überwachen',                      uhrzeit:'08:00', frequenz:'2× täglich',    zeitpunkt:'früh'},
-  {id:5,  massnahme:'Trinkplan – Erinnerung (Früh)',      ziel:'Ausreichende Hydrierung sichern',           uhrzeit:'09:00', frequenz:'3× täglich',    zeitpunkt:'früh'},
-  {id:6,  massnahme:'Mobilisation & Gehtraining',         ziel:'Sicheres Gehen, Muskelkraft erhalten',      uhrzeit:'10:00', frequenz:'1× täglich',    zeitpunkt:'früh'},
-  {id:7,  massnahme:'Lagerungswechsel',                   ziel:'Dekubitusprophylaxe',                       uhrzeit:'10:00', frequenz:'alle 2 Stunden', zeitpunkt:'früh'},
-  {id:8,  massnahme:'Wundversorgung / Verbandswechsel',   ziel:'Infektionsprophylaxe',                      uhrzeit:'11:00', frequenz:'1× täglich',    zeitpunkt:'früh'},
-  {id:9,  massnahme:'Trinkplan – Erinnerung (Mittag)',    ziel:'Ausreichende Hydrierung sichern',           uhrzeit:'12:00', frequenz:'3× täglich',    zeitpunkt:'mittag'},
-  {id:10, massnahme:'Mittagsmedikation',                  ziel:'Schmerzreduktion und Therapietreue',        uhrzeit:'12:00', frequenz:'1× täglich',    zeitpunkt:'mittag'},
-  {id:11, massnahme:'Ernährungsprotokoll / Zwischenm.',   ziel:'Gewicht stabil, ausreichend Intake',        uhrzeit:'13:00', frequenz:'1× täglich',    zeitpunkt:'mittag'},
-  {id:12, massnahme:'Lagerungswechsel',                   ziel:'Dekubitusprophylaxe',                       uhrzeit:'14:00', frequenz:'alle 2 Stunden', zeitpunkt:'mittag'},
-  {id:13, massnahme:'Stuhlgang-/Ausscheidungskontrolle',  ziel:'Obstipationsprophylaxe',                    uhrzeit:'15:00', frequenz:'1× täglich',    zeitpunkt:'mittag'},
-  {id:14, massnahme:'Sturzprophylaxe (Rundgang)',         ziel:'Sicherheit gewährleisten',                  uhrzeit:'16:00', frequenz:'2× täglich',    zeitpunkt:'mittag'},
-  {id:15, massnahme:'Trinkplan – Erinnerung (Abend)',     ziel:'Ausreichende Hydrierung sichern',           uhrzeit:'18:00', frequenz:'3× täglich',    zeitpunkt:'abend'},
-  {id:16, massnahme:'Medikamentengabe oral (Abendgabe)',  ziel:'Stabile Medikation sicherstellen',          uhrzeit:'20:00', frequenz:'08:00 / 20:00', zeitpunkt:'abend'},
-  {id:17, massnahme:'Abendpflege / Mundpflege',           ziel:'Mundschleimhaut intakt, Wohlbefinden',      uhrzeit:'20:00', frequenz:'1× täglich',    zeitpunkt:'abend'},
-  {id:18, massnahme:'Lagerungswechsel',                   ziel:'Dekubitusprophylaxe',                       uhrzeit:'20:00', frequenz:'alle 2 Stunden', zeitpunkt:'abend'},
-  {id:19, massnahme:'Schlafförderung / Nachtruhe',        ziel:'Erholsamer Schlaf sicherstellen',           uhrzeit:'21:00', frequenz:'1× täglich',    zeitpunkt:'abend'},
-  {id:20, massnahme:'Sicherheitscheck / Bettgitter',      ziel:'Sturzprophylaxe in der Nacht',              uhrzeit:'21:30', frequenz:'1× täglich',    zeitpunkt:'abend'},
-];
+/* ── Maßnahmen – dynamisch aus der Pflegeplanung (API) ── */
+let MEASURES = [];
 
 const GROUPS = [
   {key:'früh',   label:'Früh',   range:'06:00 – 12:00', cls:'badge--frueh'},
@@ -230,27 +210,59 @@ const GROUPS = [
   {key:'abend',  label:'Abend',  range:'18:00 – 24:00', cls:'badge--abend'},
 ];
 
-/* ── Wundversorgungsplan aus Pflegeplanung einlesen ── */
-function loadWundPlan(patId){
-  try{ return JSON.parse(localStorage.getItem('nursy_pp_wund_v1_' + (patId||'default'))||'null'); }catch(e){ return null; }
+/* ── Maßnahmen aus Pflegeplanung-API bauen und Cache schreiben ── */
+function _dfTimingFor(massnahme, idx, total){
+  const m = (massnahme||'').toLowerCase();
+  if(/abend|nacht|schlaf|sicherheitscheck/.test(m))
+    return {uhrzeit:'20:00', zeitpunkt:'abend', frequenz:'1× täglich'};
+  if(/mittag|ausscheid|stuhl|sturzprophylaxe.*rundgang|ernährungs/.test(m))
+    return {uhrzeit:'13:00', zeitpunkt:'mittag', frequenz:'1× täglich'};
+  const pct = total > 1 ? idx / (total - 1) : 0;
+  if(pct >= 0.7) return {uhrzeit:'19:00', zeitpunkt:'abend',  frequenz:'1× täglich'};
+  if(pct >= 0.4) return {uhrzeit:'13:00', zeitpunkt:'mittag', frequenz:'1× täglich'};
+  return              {uhrzeit:'08:00', zeitpunkt:'früh',   frequenz:'1× täglich'};
 }
-function applyWundPlan(patId){
-  const plan = loadWundPlan(patId);
-  const m8 = MEASURES.find(m => m.id === 8);
-  if(m8 && plan && plan.material){
-    m8.ziel = 'Versorgt mit: ' + plan.material;
-    m8.frequenz = plan.frequenz || m8.frequenz;
-    m8.uhrzeit  = plan.zeit    || m8.uhrzeit;
+
+function _buildMeasuresFromPlaene(plaene, wundPlan, patId){
+  const active = (plaene||[]).filter(function(p){ return !p.abgesetzt; });
+  const total  = active.length;
+  MEASURES = active.map(function(p, idx){
+    const timing = _dfTimingFor(p.massnahme, idx, total);
+    if(p.uhrzeit)   timing.uhrzeit   = p.uhrzeit;
+    if(p.zeitpunkt) timing.zeitpunkt = p.zeitpunkt;
+    if(p.frequenz)  timing.frequenz  = p.frequenz;
+    let ziel = p.ziel || '';
+    /* Wundplan auf passendes Maßnahmen-Feld anwenden */
+    if(wundPlan && wundPlan.material && /wund/i.test(p.massnahme)){
+      ziel = 'Versorgt mit: ' + wundPlan.material;
+      if(wundPlan.frequenz) timing.frequenz = wundPlan.frequenz;
+      if(wundPlan.zeit)     timing.uhrzeit  = wundPlan.zeit;
+    }
+    return { id:p.id, massnahme:p.massnahme||'', ziel, uhrzeit:timing.uhrzeit, frequenz:timing.frequenz, zeitpunkt:timing.zeitpunkt };
+  });
+  /* Cache für patients.js / patient-selector.js / dashboard-care.html / durchfuehrungsnachweis-client.js */
+  try{
+    localStorage.setItem('nursy_df_measures_v1_'+(patId||'default'), JSON.stringify({
+      total: MEASURES.length,
+      times: MEASURES.map(function(m){ return {id:m.id, t:m.uhrzeit}; }),
+      names: MEASURES.map(function(m){ return {id:m.id, massnahme:m.massnahme}; })
+    }));
+  }catch(e){}
+  /* Wundplan-Cache für Abwärtskompatibilität */
+  if(wundPlan){
+    try{ localStorage.setItem('nursy_pp_wund_v1_'+(patId||'default'), JSON.stringify(wundPlan)); }catch(e){}
   }
 }
-/* Wundplan asynchron vom Server laden */
-function fetchWundPlanFromApi(patId){
+
+/* Pflegeplanung (Maßnahmen + Wundplan) asynchron vom Server laden */
+function _fetchPflegeplanungFromApi(patId){
   fetch('/api/care/pflegeplanung/' + encodeURIComponent(patId||'default'), {credentials:'include'})
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
-      if(!d || !d.ok || !d.wundPlan) return;
-      try{ localStorage.setItem('nursy_pp_wund_v1_' + (patId||'default'), JSON.stringify(d.wundPlan)); }catch(e){}
-      applyWundPlan(patId);
+      if(!d || !d.ok) return;
+      _buildMeasuresFromPlaene(d.plaene, d.wundPlan, patId);
+      autoSignWunddoku(patId);
+      state = stLoad();
       render();
     }).catch(function(){});
 }
@@ -277,21 +289,6 @@ let stSave = function(s){
 };
 let state = stLoad();
 
-/* ── Initiale API-Abfrage für heutigen Tag + Wundplan ── */
-(function(){
-  const pid = _dfPatId;
-  fetch('/api/care/df/' + encodeURIComponent(pid) + '/' + TODAY, { credentials:'include' })
-    .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(d){
-      if(!d || !d.ok || !d.state || !Object.keys(d.state).length) return;
-      state = d.state;
-      try{ localStorage.setItem(_activeKey, JSON.stringify(state)); }catch(e){}
-      render();
-    })
-    .catch(function(){});
-  /* Wundplan asynchron laden */
-  fetchWundPlanFromApi(pid);
-})();
 
 /* ── Archivierung: Einträge vergangener Tage sichern ── */
 function runArchive(patId){
@@ -333,17 +330,18 @@ function autoSignWunddoku(patId){
   let wd;
   try{ wd = JSON.parse(wdRaw); }catch(e){ return; }
   if(!wd || !wd.savedAt) return;
-  /* prüfen ob Wunddoku heute gespeichert wurde */
   const savedDate = wd.savedAt.slice(0,10);
   if(savedDate !== TODAY) return;
-  /* Maßnahme 8 als erledigt markieren falls noch nicht abgezeichnet */
+  /* Wundversorgungsmaßnahme anhand des Namens finden */
+  const wundM = MEASURES.find(function(m){ return /wund/i.test(m.massnahme); });
+  if(!wundM) return;
   const key = patDayKey(patId, TODAY);
   let s = {};
   try{ s = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){}
-  if(!s[8]){
+  if(!s[wundM.id]){
     const ts = wd.savedAt ? new Date(wd.savedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '—';
     const wunden = Array.isArray(wd.wounds) ? wd.wounds.map(function(w){ return 'Wunde ' + w.nr + ' (' + (w.localisation||'—') + ')'; }).join(', ') : '—';
-    s[8] = { status:'done', ts, comment:'Wunddokumentation: ' + wunden, reason:'' };
+    s[wundM.id] = { status:'done', ts, comment:'Wunddokumentation: ' + wunden, reason:'' };
     try{ localStorage.setItem(key, JSON.stringify(s)); }catch(e){}
   }
 }
@@ -355,8 +353,6 @@ function onPatientChange(idx){
   const newKey = patDayKey(patId, TODAY);
   _activeKey = newKey;
   _dfPatId = patId;
-  applyWundPlan(patId);
-  autoSignWunddoku(patId);
   try{ state = JSON.parse(localStorage.getItem(newKey)||'{}'); }catch(e){ state={}; }
   stSave = function(s){
     try{ localStorage.setItem(newKey, JSON.stringify(s)); }catch(e){}
@@ -365,7 +361,8 @@ function onPatientChange(idx){
   runArchive(patId);
   renderArchive(patId);
   render();
-  /* API-Abfrage für neuen Patienten */
+  /* Pflegeplanung + DN-State für neuen Patienten laden */
+  _fetchPflegeplanungFromApi(patId);
   fetch('/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, { credentials:'include' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
@@ -381,6 +378,11 @@ function onPatientChange(idx){
 function renderPlan(){
   const planBody = document.getElementById('planBody');
   planBody.innerHTML = '';
+
+  if(MEASURES.length === 0){
+    planBody.innerHTML = '<div class="empty-msg" style="padding:28px 20px;">Noch kein Pflegeplan hinterlegt.<br><a href="pflegeplanung.html" style="color:var(--blue);font-weight:700;">Jetzt Pflegeplanung öffnen →</a></div>';
+    return;
+  }
 
   GROUPS.forEach(g => {
     const items = MEASURES.filter(m => m.zeitpunkt === g.key && !state[m.id]);
@@ -546,7 +548,7 @@ document.addEventListener('click', e => {
 
   /* confirm */
   if(confirm){
-    const id   = Number(confirm.dataset.confirm);
+    const id   = confirm.dataset.confirm;
     const mode = sfMode[id];
     if(!mode) return;
     const ts     = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
@@ -567,7 +569,7 @@ document.addEventListener('click', e => {
 
   /* undo */
   if(undo){
-    delete state[Number(undo.dataset.undo)];
+    delete state[undo.dataset.undo];
     stSave(state);
     render();
     return;
@@ -641,10 +643,6 @@ const today = new Date().toLocaleDateString('de-DE', {weekday:'long', day:'2-dig
 document.getElementById('todayChip').innerHTML = 'Datum: <strong>' + today + '</strong>';
 
 const _initPatId = getCurrentPatientId();
-applyWundPlan(_initPatId);
-autoSignWunddoku(_initPatId);
-/* reload state after potential auto-sign */
-state = stLoad();
 
 initPatientSelector({
   container: 'patBlock',
@@ -654,7 +652,21 @@ initPatientSelector({
 
 runArchive(_initPatId);
 renderArchive(_initPatId);
-render();
+render(); // initial render (MEASURES still empty – placeholder shown)
+
+/* Pflegeplanung von der API laden → befüllt MEASURES + rendert neu */
+_fetchPflegeplanungFromApi(_initPatId);
+
+/* DN-State des heutigen Tages von der API laden */
+fetch('/api/care/df/' + encodeURIComponent(_initPatId) + '/' + TODAY, { credentials:'include' })
+  .then(function(r){ return r.ok ? r.json() : null; })
+  .then(function(d){
+    if(!d || !d.ok || !d.state || !Object.keys(d.state).length) return;
+    state = d.state;
+    try{ localStorage.setItem(_activeKey, JSON.stringify(state)); }catch(e){}
+    render();
+  })
+  .catch(function(){});
 </script>
 </body>
 </html>
