@@ -561,6 +561,9 @@
         const plan  = plans.find(function(p){ return p.id===selectedId; });
         if(!plan) return;
         if(plan.abgesetzt){ alert('Eine abgesetzte Planung kann nicht bearbeitet werden.'); return; }
+        var selRow = document.querySelector('#planBody tr[data-plan-id="'+selectedId+'"]');
+        var initUhrzeit   = (selRow && selRow.dataset.uhrzeit)   || plan.uhrzeit   || '';
+        var initZeitpunkt = (selRow && selRow.dataset.zeitpunkt) || plan.zeitpunkt || '';
         openActionModal(
           '<div class="pp-modal pp-modal--active" role="dialog" aria-modal="true">'+
           '<div class="pp-modal__backdrop" data-close></div>'+
@@ -577,15 +580,15 @@
               '<div style="display:flex;gap:12px;margin-top:4px;">'+
                 '<label class="pp-label" style="flex:1;">'+
                   'Uhrzeit (optional)'+
-                  '<input class="control" type="time" id="editUhrzeit" value="'+(plan.uhrzeit||'')+'" style="display:block;width:100%;margin-top:4px;">'+
+                  '<input class="control" type="time" id="editUhrzeit" value="'+initUhrzeit+'" style="display:block;width:100%;margin-top:4px;">'+
                 '</label>'+
                 '<label class="pp-label" style="flex:1;">'+
                   'Tageszeit'+
                   '<select id="editZeitpunkt" class="control" style="display:block;width:100%;margin-top:4px;">'+
                     '<option value="">Bitte wählen</option>'+
-                    '<option value="früh"'+(plan.zeitpunkt==='früh'?' selected':'')+'>Früh</option>'+
-                    '<option value="mittag"'+(plan.zeitpunkt==='mittag'?' selected':'')+'>Mittag</option>'+
-                    '<option value="abend"'+(plan.zeitpunkt==='abend'?' selected':'')+'>Abend</option>'+
+                    '<option value="früh"'+(initZeitpunkt==='früh'?' selected':'')+'>Früh</option>'+
+                    '<option value="mittag"'+(initZeitpunkt==='mittag'?' selected':'')+'>Mittag</option>'+
+                    '<option value="abend"'+(initZeitpunkt==='abend'?' selected':'')+'>Abend</option>'+
                   '</select>'+
                 '</label>'+
               '</div>'+
