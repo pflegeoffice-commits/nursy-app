@@ -217,13 +217,21 @@
     host.innerHTML = order.map(function(date){
       var rows = groups[date].map(function(x){
         var planned = x.measureId ? plannedTimeFor(x.measureId, patId) : '';
-        var plannedHtml = planned
-          ? '<span style="font-size:11px;color:var(--muted);background:rgba(63,111,232,.07);border-radius:6px;padding:2px 6px;white-space:nowrap;">geplant ' + esc(planned) + '</span>'
-          : '';
-        return '<tr>' +
-          '<td data-label="Zeit" style="width:80px;">' + esc(x.time) +
-            (plannedHtml ? '<br>' + plannedHtml : '') +
-          '</td>' +
+        var diff = minuteDiff(planned, x.time);
+        var rowCls = '';
+        if(planned){
+          if(diff !== null && diff > 30){
+            rowCls = ' class="dn-row--late"';
+          } else {
+            rowCls = ' class="dn-row--ontime"';
+          }
+        }
+        var plannedCell = planned
+          ? '<td data-label="Geplant" class="dn-time-cell">' + esc(planned) + '</td>'
+          : '<td data-label="Geplant" class="dn-time-cell dn-time-cell--empty">—</td>';
+        return '<tr' + rowCls + '>' +
+          plannedCell +
+          '<td data-label="Abgezeichnet" class="dn-time-cell dn-time-actual">' + esc(x.time) + '</td>' +
           '<td data-label="Maßnahme"><div class="dn-measure">' + esc(x.measure) + '</div></td>' +
           '<td data-label="Pflegekraft" style="white-space:nowrap;">' +
             cgAvatar(x.caregiver) + ' ' + esc(x.caregiver) +
@@ -237,11 +245,27 @@
           '<span class="muted">' + groups[date].length + ' Maßnahmen</span>' +
         '</div>' +
         '<table class="dn-table">' +
-          '<thead><tr><th>Zeit</th><th>Maßnahme</th><th>Pflegekraft</th><th>Status</th></tr></thead>' +
+          '<thead><tr>' +
+            '<th class="dn-th-time">Geplant</th>' +
+            '<th class="dn-th-time">Abgezeichnet</th>' +
+            '<th>Maßnahme</th><th>Pflegekraft</th><th>Status</th>' +
+          '</tr></thead>' +
           '<tbody>' + rows + '</tbody>' +
         '</table>' +
         '</div>';
     }).join('');
+  }
+
+  /* ── Differenz in Minuten zwischen zwei HH:MM-Strings ── */
+  function minuteDiff(planned, actual){
+    if(!planned || !actual) return null;
+    var p = planned.split(':').map(Number);
+    var a = actual.split(':').map(Number);
+    if(p.length < 2 || a.length < 2) return null;
+    var pMin = p[0]*60 + p[1];
+    var aMin = a[0]*60 + a[1];
+    if(isNaN(pMin) || isNaN(aMin)) return null;
+    return aMin - pMin;
   }
 
   /* ── Geplante Uhrzeit für eine Maßnahme aus dem dfMeasures-Cache lesen ── */

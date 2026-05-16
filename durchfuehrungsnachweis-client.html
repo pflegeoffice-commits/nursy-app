@@ -29,6 +29,13 @@
     }
     body[data-page="dn-client"] .dn-table th{ background:rgba(63,111,232,.06); font-weight:800; }
     body[data-page="dn-client"] .dn-table tr:last-child td{ border-bottom:none; }
+    body[data-page="dn-client"] .dn-th-time{ width:80px; }
+    body[data-page="dn-client"] .dn-time-cell{ width:80px; font-variant-numeric:tabular-nums; }
+    body[data-page="dn-client"] .dn-time-cell--empty{ color:var(--muted); }
+    body[data-page="dn-client"] .dn-time-actual{ font-weight:700; }
+    body[data-page="dn-client"] .dn-row--ontime td{ background:rgba(16,185,129,.07); }
+    body[data-page="dn-client"] .dn-row--late td{ background:rgba(245,158,11,.10); }
+    body[data-page="dn-client"] .dn-row--late .dn-time-actual{ color:#92400e; }
     body[data-page="dn-client"] .dn-status{
       display:inline-flex; align-items:center; height:24px; padding:0 10px;
       border-radius:999px; font-size:12px; font-weight:800; letter-spacing:.3px; text-transform:uppercase;
