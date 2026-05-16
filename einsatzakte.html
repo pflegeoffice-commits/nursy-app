@@ -2277,7 +2277,7 @@ window.handleFiles=function(input){
       })
       .then(function(d){
         if(d.ok){
-          uploads.push({id:d.id,name:f.name,size:f.size,type:f.type,url:d.url,can_delete:true});
+          uploads.push({id:d.id,name:f.name,size:f.size,type:f.type,url:d.url,can_delete:true,uploaded_by:d.uploaded_by||'',created_at:d.created_at||''});
         } else {
           uploads.push({id:'err_'+Date.now(),name:f.name,size:f.size,type:f.type,error:d.error||'Hochladen fehlgeschlagen'});
         }
@@ -2312,7 +2312,7 @@ function loadEinsatzDokumente(){
     .then(function(d){
       if(!d||!d.ok) return;
       uploads=d.dokumente.map(function(x){
-        return {id:x.id,name:x.original_name,size:0,type:'',url:x.url,can_delete:x.can_delete};
+        return {id:x.id,name:x.original_name,size:0,type:'',url:x.url,can_delete:x.can_delete,uploaded_by:x.uploaded_by,created_at:x.created_at};
       });
       renderFiles();
     });
@@ -2335,6 +2335,16 @@ function deleteFile(docId){
     .catch(function(){ alert('Verbindungsfehler beim Löschen'); });
 }
 
+function formatUploadDate(s){
+  if(!s) return '';
+  try{
+    var d=new Date(s.replace ? s.replace(' ','T') : s);
+    if(isNaN(d)) return s;
+    return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+
+           d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return s; }
+}
+
 function renderFiles(){
   var list=document.getElementById('fileList'); if(!list) return;
   if(!uploads.length){ list.innerHTML='<div class="ea-empty"><div class="ea-empty__ico">📎</div>Noch keine Dateien.</div>'; return; }
@@ -2349,6 +2359,7 @@ function renderFiles(){
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-weight:700;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(f.name)+'</div>'+
         (f.size?'<div style="font-size:.72rem;color:var(--muted);">'+Math.round(f.size/1024)+' KB</div>':'')+
+        (f.uploaded_by||f.created_at?'<div style="font-size:.70rem;color:var(--muted);margin-top:2px;">'+(f.uploaded_by?escH(f.uploaded_by):'')+((f.uploaded_by&&f.created_at)?' · ':'')+formatUploadDate(f.created_at)+'</div>':'')+
         errBadge+
       '</div>'+dlBtn;
     if(f.can_delete && f.id && !f.error){

@@ -2080,7 +2080,11 @@ def upload_einsatz_dokument(eid):
             (doc_id, eid, original_name, stored_name, beschreibung, uploaded_by, file_data, mime_type)
         )
         db.commit()
-    return jsonify({'ok': True, 'id': doc_id, 'url': '/api/einsatz-uploads/' + stored_name})
+    with get_db() as db:
+        row = db.execute('SELECT created_at FROM einsatz_dokumente WHERE id=?', (doc_id,)).fetchone()
+    created_at = row['created_at'] if row else None
+    return jsonify({'ok': True, 'id': doc_id, 'url': '/api/einsatz-uploads/' + stored_name,
+                    'uploaded_by': uploaded_by, 'created_at': created_at})
 
 @app.route('/api/einsatz-uploads/<path:filename>')
 def serve_einsatz_upload(filename):
