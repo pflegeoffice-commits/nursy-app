@@ -626,6 +626,7 @@ function buildAnamneseBody(patient, anamnese){
     '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">'+
       '<button class="pa-save-btn" id="anaSaveBtn" onclick="saveAnamnese()" disabled>💾 Anamnese speichern</button>'+
       '<button class="pa-save-btn" id="anaPdfBtn" onclick="saveAnamnesePDF()" style="background:#dc2626;border-color:#dc2626">📄 Als PDF speichern</button>'+
+      '<button class="pa-save-btn" id="anaPdfDownloadBtn" onclick="saveAnamnesePDF(\'download\')" style="background:#0f766e;border-color:#0f766e">📥 PDF herunterladen</button>'+
       '<span id="anaSavedHint" style="font-size:.78rem;color:var(--green);display:none">✓ Gespeichert</span>'+
     '</div>';
 }
@@ -871,12 +872,14 @@ function saveAnamnese(){
 }
 
 /* ── Anamnese PDF Export ── */
-function saveAnamnesePDF(){
+function saveAnamnesePDF(mode){
   if(!currentPatient){ toast('⚠️ Kein Patient geladen'); return; }
   if(typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined'){
     toast('⚠️ PDF-Bibliothek nicht geladen'); return;
   }
-  var btn = document.getElementById('anaPdfBtn');
+  var isDownload = (mode === 'download');
+  var btn = isDownload ? document.getElementById('anaPdfDownloadBtn') : document.getElementById('anaPdfBtn');
+  var btnOrigText = isDownload ? '📥 PDF herunterladen' : '📄 Als PDF speichern';
   if(btn){ btn.disabled = true; btn.textContent = '⏳ PDF wird erstellt…'; }
 
   var getRisks = function(){
@@ -1087,7 +1090,14 @@ function saveAnamnesePDF(){
     /* ── Save as Protokoll document ── */
     var pdfB64 = doc.output('datauristring').split(',')[1];
     var fname = 'Anamnese-Protokoll_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.pdf';
-    var resetBtn = function(){ if(btn){ btn.disabled = false; btn.textContent = '📄 Als PDF speichern'; } };
+    var resetBtn = function(){ if(btn){ btn.disabled = false; btn.textContent = btnOrigText; } };
+
+    if(isDownload){
+      /* Direct browser download */
+      doc.save(fname);
+    }
+
+    /* Always save as Protokoll document in Dokumente */
     authFetch('/api/patienten/'+encodeURIComponent(currentPatient.id)+'/dokumente/json',{
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
@@ -1097,7 +1107,7 @@ function saveAnamnesePDF(){
     }).then(function(r){ return r.json(); }).then(function(d){
       if(d.ok){
         loadDocs(currentPatient.id);
-        toast('✅ PDF-Protokoll gespeichert');
+        toast(isDownload ? '✅ PDF heruntergeladen & in Dokumente gespeichert' : '✅ PDF-Protokoll gespeichert');
       } else {
         toast('⚠️ PDF konnte nicht gespeichert werden: '+(d.error||''));
       }
