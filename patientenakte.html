@@ -858,37 +858,8 @@ function saveAnamnese(){
       var hint = document.getElementById('anaSavedHint');
       if(hint){ hint.style.display='inline'; setTimeout(function(){ hint.style.display='none'; },3000); }
       toast('✅ Anamnese gespeichert');
-      /* Protokoll in Dokumente speichern */
-      var RISK_LABELS = {sturzrisiko:'Sturzrisiko',dekubitusrisiko:'Dekubitusrisiko',inkontinenz:'Inkontinenz','schluckstörung':'Schluckstörung',schmerztherapie:'Schmerztherapie',wunde:'Wunden/Ulcus'};
-      var riskList = Object.keys(risks).filter(function(k){ return risks[k]; }).map(function(k){ return RISK_LABELS[k]||k; });
-      var now = new Date();
-      var datum = now.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+now.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
-      var lines = [
-        'PFLEGERISCHE ANAMNESE – PROTOKOLL',
-        'Erstellt: '+datum,
-        'Patient: '+(currentPatient?[currentPatient.vorname,currentPatient.nachname].filter(Boolean).join(' '):''),
-        '──────────────────────────────────',
-        'Mobilität: '+(payload.anamnese.mobilitaet||'–'),
-        'Orientierung: '+(payload.anamnese.orientierung||'–'),
-        'Pflegestufe: '+(payload.anamnese.pflegestufe||'–'),
-        'An-/Auskleiden: '+(payload.anamnese.ankleiden||'–'),
-        'Körperpflege: '+(payload.anamnese.koerperpflege||'–'),
-        'Kontinenz: '+(payload.anamnese.kontinenz||'–'),
-        'Ableitende Systeme: '+(ablSys.length?ablSys.join(', '):'keine'),
-        'Risiken: '+(riskList.length?riskList.join(', '):'keine'),
-        'Erkrankungen: '+(erkrankungen.length?erkrankungen.join(', '):'keine'),
-        'Allergien: '+(payload.allergien||'–'),
-        'Medikamente: '+(payload.medikamente||'–'),
-        'Wichtige Hinweise: '+(payload.wichtig||'–'),
-      ];
-      var text = lines.join('\n');
-      var b64 = btoa(unescape(encodeURIComponent(text)));
-      var fname = 'Anamnese-Protokoll_'+datum.replace(/[:\s]/g,'-').replace(/\./g,'')+'.txt';
-      postDokumentJson(currentPatient.id, {
-        typ:'protokoll', original_name:fname,
-        beschreibung:'Pflegeanamnese gespeichert am '+datum,
-        file_data_b64:b64, mime_type:'text/plain'
-      }, function(){ loadDocs(currentPatient.id); });
+      /* PDF-Protokoll in Dokumente speichern */
+      saveAnamnesePDF();
     } else {
       toast('⚠️ '+(d.error||'Fehler beim Speichern'));
       if(btn) btn.disabled=false;
