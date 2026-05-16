@@ -273,6 +273,7 @@ function _dfApiSave(patId, s){
 let stSave = function(s){
   try{ localStorage.setItem(_activeKey, JSON.stringify(s)); }catch(e){}
   _dfApiSave(_dfPatId, s);
+  window.dispatchEvent(new CustomEvent('nursy:df-updated'));
 };
 let state = stLoad();
 

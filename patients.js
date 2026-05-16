@@ -675,6 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('storage', function(e){
     if(e.key && e.key.startsWith('nursy_df_v1_')) render();
   });
+  window.addEventListener('nursy:df-updated', function(){ render(); });
 
   const allPatients = loadAllPatients();
 

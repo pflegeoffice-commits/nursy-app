@@ -573,6 +573,7 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
     window.addEventListener('storage', function(e){
       if(e.key && e.key.indexOf('nursy_df_v1_') === 0) render();
     });
+    window.addEventListener('nursy:df-updated', function(){ render(); });
 
     /* ── Automatischer Server-Backup aller Dokumentationsdaten ── */
     (function(){
@@ -675,6 +676,9 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
         if(e.key && (e.key.indexOf('nursy_df_v1_') === 0 || e.key.indexOf('nursy_wunddoku') === 0 || e.key.indexOf('nursy_pp_wund') === 0)){
           setTimeout(function(){ runBackup(false); }, 1500);
         }
+      });
+      window.addEventListener('nursy:df-updated', function(){
+        setTimeout(function(){ runBackup(false); }, 1500);
       });
 
       /* Manuelle Backup-Funktion global verfügbar */
