@@ -127,6 +127,35 @@
 
       <div style="height:18px"></div>
 
+      <div class="field">
+        <label class="field__label">Abonnement wählen</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+          <label id="planBasicCard" style="border:2px solid #3f6fe8;border-radius:12px;padding:16px 14px;cursor:pointer;background:linear-gradient(135deg,#eff2fd,#fff);position:relative;">
+            <input type="radio" name="plan" value="basic" checked style="position:absolute;opacity:0;" />
+            <div style="font-weight:700;font-size:.95rem;color:#0f2744;">Basic</div>
+            <div style="font-size:1.3rem;font-weight:900;color:#3f6fe8;margin:4px 0;">€ 50 <span style="font-size:.75rem;font-weight:400;color:#6b7280;">/ Monat</span></div>
+            <ul style="font-size:.75rem;color:#374151;margin:0;padding-left:14px;line-height:1.7;">
+              <li>Dokumentation</li>
+              <li>Anfragen bearbeiten</li>
+              <li>Kein Rechnungssystem</li>
+            </ul>
+          </label>
+          <label id="planPremiumCard" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px 14px;cursor:pointer;background:#fff;position:relative;">
+            <input type="radio" name="plan" value="premium" style="position:absolute;opacity:0;" />
+            <div style="font-weight:700;font-size:.95rem;color:#0f2744;">Premium</div>
+            <div style="font-size:1.3rem;font-weight:900;color:#10b981;margin:4px 0;">€ 65 <span style="font-size:.75rem;font-weight:400;color:#6b7280;">/ Monat</span></div>
+            <ul style="font-size:.75rem;color:#374151;margin:0;padding-left:14px;line-height:1.7;">
+              <li>Alles aus Basic</li>
+              <li>Vollständige Rechnungslegung</li>
+              <li>Honorarnoten & Vorlagen</li>
+            </ul>
+          </label>
+        </div>
+        <div class="help">Du kannst deinen Plan jederzeit im Profil ändern.</div>
+      </div>
+
+      <div style="height:18px"></div>
+
       <button class="control btn primary" type="submit" id="regSubmit">Registrieren</button>
 
       <p class="note" style="margin-top:12px;">
@@ -150,6 +179,16 @@
 <script src="script.js"></script>
 <script>
 (function(){
+  /* Plan-Karten visuelle Auswahl */
+  document.querySelectorAll('input[name="plan"]').forEach(function(radio){
+    radio.addEventListener('change', function(){
+      document.getElementById('planBasicCard').style.borderColor   = this.value==='basic'   ? '#3f6fe8' : '#e5e7eb';
+      document.getElementById('planBasicCard').style.background    = this.value==='basic'   ? 'linear-gradient(135deg,#eff2fd,#fff)' : '#fff';
+      document.getElementById('planPremiumCard').style.borderColor = this.value==='premium' ? '#10b981' : '#e5e7eb';
+      document.getElementById('planPremiumCard').style.background  = this.value==='premium' ? 'linear-gradient(135deg,#ecfdf5,#fff)' : '#fff';
+    });
+  });
+
   var plz = document.getElementById('p-plz');
   var bez = document.getElementById('p-bezirk');
   if(plz && bez){
@@ -189,7 +228,8 @@
             ort:      document.getElementById('p-ort').value.trim(),
             bezirk:   (document.getElementById('p-bezirk')||{}).value || '',
             email:    document.getElementById('p-email').value.trim(),
-            password: pw
+            password: pw,
+            plan:     (document.querySelector('input[name="plan"]:checked')||{}).value || 'basic'
           })
         });
         var data = await resp.json();

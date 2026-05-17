@@ -251,6 +251,8 @@ def init_db():
             "ALTER TABLE caregivers ADD COLUMN dienstnummer TEXT DEFAULT ''",
             "ALTER TABLE caregivers ADD COLUMN qualifikation TEXT DEFAULT ''",
             "ALTER TABLE caregivers ADD COLUMN profil_extra TEXT DEFAULT '{}'",
+            "ALTER TABLE caregivers ADD COLUMN plan TEXT DEFAULT 'basic'",
+            "ALTER TABLE caregivers ADD COLUMN plan_seit TEXT DEFAULT CURRENT_TIMESTAMP",
         ]:
             db.execute_safe(_cg_m)
         db.commit()
@@ -574,6 +576,29 @@ def init_db():
             expires_at TEXT NOT NULL,
             used INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS pfleger_abonnements (
+            id TEXT PRIMARY KEY,
+            caregiver_id TEXT NOT NULL,
+            plan TEXT NOT NULL DEFAULT 'basic',
+            betrag REAL NOT NULL,
+            monat TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'offen',
+            rechnung_gesendet INTEGER DEFAULT 0,
+            rechnung_datum TEXT DEFAULT '',
+            erstellt_am TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS patient_buchungen (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            caregiver_id TEXT NOT NULL,
+            anfrage_id TEXT DEFAULT '',
+            betrag REAL NOT NULL DEFAULT 15.0,
+            beschreibung TEXT DEFAULT 'Pflegevermittlung – Annahme Anfrage',
+            status TEXT NOT NULL DEFAULT 'offen',
+            rechnung_gesendet INTEGER DEFAULT 0,
+            rechnung_datum TEXT DEFAULT '',
+            erstellt_am TEXT DEFAULT CURRENT_TIMESTAMP
         )''')
         db.commit()
         # Fahrzeuge werden nur über die Admin-Oberfläche angelegt (kein Demo-Seeding)
@@ -973,16 +998,19 @@ def register_care():
     if len(data['password']) < 8:
         return jsonify({'error': 'Passwort muss mind. 8 Zeichen haben'}), 400
 
+    _plan = data.get('plan', 'basic')
+    if _plan not in ('basic', 'premium'):
+        _plan = 'basic'
     uid = 'c' + uuid.uuid4().hex[:8]
     try:
         with get_db() as db:
             db.execute(
-                'INSERT INTO caregivers (id,vorname,nachname,email,password_hash,gender,address,plz,ort,bezirk) '
-                'VALUES (?,?,?,?,?,?,?,?,?,?)',
+                'INSERT INTO caregivers (id,vorname,nachname,email,password_hash,gender,address,plz,ort,bezirk,plan,plan_seit) '
+                'VALUES (?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)',
                 [uid, data['vorname'].strip(), data['nachname'].strip(),
                  data['email'].strip().lower(), hash_pw(data['password']),
                  data.get('gender',''), data.get('address',''),
-                 data.get('plz',''), data.get('ort',''), data.get('bezirk','')]
+                 data.get('plz',''), data.get('ort',''), data.get('bezirk',''), _plan]
             )
             db.commit()
     except Exception:
@@ -2325,9 +2353,29 @@ def me():
                 'dienstnummer': row['dienstnummer'] or '',
                 'fahrzeug': fz,
                 'eingeloggt_seit': vs['eingeloggt_seit'] if vs else '',
+                'plan': row['plan'] or 'basic',
+                'plan_seit': row['plan_seit'] or '',
                 'role': 'care'
             }})
     return jsonify({'error': 'Sitzung abgelaufen'}), 401
+
+
+@app.route('/api/me/plan', methods=['PUT'])
+def update_care_plan():
+    uid = session.get('user_id')
+    if not uid or session.get('user_role') != 'care':
+        return jsonify({'error': 'Nicht angemeldet'}), 401
+    data = request.get_json(silent=True) or {}
+    plan = data.get('plan', '')
+    if plan not in ('basic', 'premium'):
+        return jsonify({'error': 'Ungültiger Plan'}), 400
+    with get_db() as db:
+        db.execute(
+            "UPDATE caregivers SET plan=?, plan_seit=CURRENT_TIMESTAMP WHERE id=?",
+            [plan, uid]
+        )
+        db.commit()
+    return jsonify({'ok': True, 'plan': plan})
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -5560,6 +5608,191 @@ def billing_vorlagen_delete(vid):
     return jsonify({'ok': True})
 
 
+# ── Billing: Pfleger-Abonnements ─────────────────────────────────────────────
+
+@app.route('/api/billing/abonnements')
+def billing_abonnements_list():
+    err = require_billing()
+    if err: return err
+    with get_db() as db:
+        rows = db.execute(
+            '''SELECT pa.*, c.vorname, c.nachname, c.email
+               FROM pfleger_abonnements pa
+               JOIN caregivers c ON pa.caregiver_id = c.id
+               ORDER BY pa.erstellt_am DESC'''
+        ).fetchall()
+    return jsonify({'ok': True, 'abonnements': [dict(r) for r in rows]})
+
+@app.route('/api/billing/abonnements/generieren', methods=['POST'])
+def billing_abonnements_generieren():
+    err = require_billing()
+    if err: return err
+    import datetime as _dt
+    monat = _dt.date.today().strftime('%Y-%m')
+    with get_db() as db:
+        cgs = db.execute("SELECT id, plan FROM caregivers WHERE plan IN ('basic','premium')").fetchall()
+        created = 0
+        for cg in cgs:
+            existing = db.execute(
+                "SELECT id FROM pfleger_abonnements WHERE caregiver_id=? AND monat=?",
+                [cg['id'], monat]
+            ).fetchone()
+            if not existing:
+                betrag = 50.0 if cg['plan'] == 'basic' else 65.0
+                aid = 'pa' + uuid.uuid4().hex[:10]
+                db.execute(
+                    "INSERT INTO pfleger_abonnements (id,caregiver_id,plan,betrag,monat,status) VALUES (?,?,?,?,?,'offen')",
+                    [aid, cg['id'], cg['plan'], betrag, monat]
+                )
+                created += 1
+        db.commit()
+    return jsonify({'ok': True, 'erstellt': created, 'monat': monat})
+
+@app.route('/api/billing/abonnements/<aid>/status', methods=['POST'])
+def billing_abonnements_status(aid):
+    err = require_billing()
+    if err: return err
+    data = request.get_json(silent=True) or {}
+    status = data.get('status', '')
+    if status not in ('offen', 'bezahlt', 'storniert'):
+        return jsonify({'error': 'Ungültiger Status'}), 400
+    with get_db() as db:
+        db.execute("UPDATE pfleger_abonnements SET status=? WHERE id=?", [status, aid])
+        db.commit()
+    return jsonify({'ok': True})
+
+@app.route('/api/billing/abonnements/<aid>/rechnung', methods=['POST'])
+def billing_abonnements_rechnung(aid):
+    err = require_billing()
+    if err: return err
+    with get_db() as db:
+        row = db.execute(
+            '''SELECT pa.*, c.vorname, c.nachname, c.email
+               FROM pfleger_abonnements pa
+               JOIN caregivers c ON pa.caregiver_id = c.id
+               WHERE pa.id=?''', [aid]
+        ).fetchone()
+        if not row:
+            return jsonify({'error': 'Nicht gefunden'}), 404
+        if not smtp_configured():
+            return jsonify({'error': 'SMTP nicht konfiguriert'}), 500
+        import datetime as _dt
+        monat_label = _dt.datetime.strptime(row['monat'], '%Y-%m').strftime('%B %Y') if row['monat'] else row['monat']
+        plan_label = 'Basic (50 €/Monat)' if row['plan'] == 'basic' else 'Premium (65 €/Monat)'
+        body = (
+            f"Sehr geehrte/r {row['vorname']} {row['nachname']},\n\n"
+            f"anbei Ihre Rechnung für den Monat {monat_label}.\n\n"
+            f"Plan: Nursy {plan_label}\n"
+            f"Betrag: € {row['betrag']:.2f}\n\n"
+            f"Bitte überweisen Sie den Betrag auf unser Konto.\n\n"
+            f"Mit freundlichen Grüßen,\nAkut Plus Pflegedienst – Verrechnungsstelle"
+        )
+        cfg = _smtp_config()
+        try:
+            msg = MIMEText(body, 'plain', 'utf-8')
+            msg['Subject'] = f'Rechnung Nursy Abonnement – {monat_label}'
+            msg['From'] = f"{cfg['from_name']} <{cfg['from_email']}>"
+            msg['To'] = row['email']
+            ctx = ssl.create_default_context()
+            if cfg['port'] == 465:
+                with smtplib.SMTP_SSL(cfg['host'], cfg['port'], context=ctx) as s:
+                    s.login(cfg['user'], cfg['password']); s.send_message(msg)
+            else:
+                with smtplib.SMTP(cfg['host'], cfg['port']) as s:
+                    s.starttls(context=ctx); s.login(cfg['user'], cfg['password']); s.send_message(msg)
+        except Exception as e:
+            return jsonify({'error': f'E-Mail Fehler: {e}'}), 500
+        import datetime as _dt2
+        db.execute(
+            "UPDATE pfleger_abonnements SET rechnung_gesendet=1, rechnung_datum=? WHERE id=?",
+            [_dt2.datetime.now().strftime('%Y-%m-%d'), aid]
+        )
+        db.commit()
+    return jsonify({'ok': True})
+
+
+# ── Billing: Patienten-Buchungen ─────────────────────────────────────────────
+
+@app.route('/api/billing/patient-buchungen')
+def billing_patient_buchungen_list():
+    err = require_billing()
+    if err: return err
+    with get_db() as db:
+        rows = db.execute(
+            '''SELECT pb.*, p.vorname as pat_vorname, p.nachname as pat_nachname,
+                      p.email as pat_email,
+                      c.vorname as cg_vorname, c.nachname as cg_nachname
+               FROM patient_buchungen pb
+               JOIN patients p ON pb.patient_id = p.id
+               JOIN caregivers c ON pb.caregiver_id = c.id
+               ORDER BY pb.erstellt_am DESC'''
+        ).fetchall()
+    return jsonify({'ok': True, 'buchungen': [dict(r) for r in rows]})
+
+@app.route('/api/billing/patient-buchungen/<bid>/status', methods=['POST'])
+def billing_patient_buchungen_status(bid):
+    err = require_billing()
+    if err: return err
+    data = request.get_json(silent=True) or {}
+    status = data.get('status', '')
+    if status not in ('offen', 'bezahlt', 'storniert'):
+        return jsonify({'error': 'Ungültiger Status'}), 400
+    with get_db() as db:
+        db.execute("UPDATE patient_buchungen SET status=? WHERE id=?", [status, bid])
+        db.commit()
+    return jsonify({'ok': True})
+
+@app.route('/api/billing/patient-buchungen/<bid>/rechnung', methods=['POST'])
+def billing_patient_buchungen_rechnung(bid):
+    err = require_billing()
+    if err: return err
+    with get_db() as db:
+        row = db.execute(
+            '''SELECT pb.*, p.vorname as pat_vorname, p.nachname as pat_nachname,
+                      p.email as pat_email,
+                      c.vorname as cg_vorname, c.nachname as cg_nachname
+               FROM patient_buchungen pb
+               JOIN patients p ON pb.patient_id = p.id
+               JOIN caregivers c ON pb.caregiver_id = c.id
+               WHERE pb.id=?''', [bid]
+        ).fetchone()
+        if not row:
+            return jsonify({'error': 'Nicht gefunden'}), 404
+        if not smtp_configured():
+            return jsonify({'error': 'SMTP nicht konfiguriert'}), 500
+        body = (
+            f"Sehr geehrte/r {row['pat_vorname']} {row['pat_nachname']},\n\n"
+            f"für die erfolgreiche Vermittlung Ihrer Pflegeanfrage stellen wir Ihnen folgendes in Rechnung:\n\n"
+            f"Leistung: {row['beschreibung']}\n"
+            f"Ihre Pflegekraft: {row['cg_vorname']} {row['cg_nachname']}\n"
+            f"Betrag: € {row['betrag']:.2f}\n\n"
+            f"Bitte überweisen Sie den Betrag auf unser Konto.\n\n"
+            f"Mit freundlichen Grüßen,\nAkut Plus Pflegedienst – Verrechnungsstelle"
+        )
+        cfg = _smtp_config()
+        try:
+            msg = MIMEText(body, 'plain', 'utf-8')
+            msg['Subject'] = 'Rechnung – Pflegevermittlung Nursy'
+            msg['From'] = f"{cfg['from_name']} <{cfg['from_email']}>"
+            msg['To'] = row['pat_email']
+            ctx = ssl.create_default_context()
+            if cfg['port'] == 465:
+                with smtplib.SMTP_SSL(cfg['host'], cfg['port'], context=ctx) as s:
+                    s.login(cfg['user'], cfg['password']); s.send_message(msg)
+            else:
+                with smtplib.SMTP(cfg['host'], cfg['port']) as s:
+                    s.starttls(context=ctx); s.login(cfg['user'], cfg['password']); s.send_message(msg)
+        except Exception as e:
+            return jsonify({'error': f'E-Mail Fehler: {e}'}), 500
+        import datetime as _dt
+        db.execute(
+            "UPDATE patient_buchungen SET rechnung_gesendet=1, rechnung_datum=? WHERE id=?",
+            [_dt.datetime.now().strftime('%Y-%m-%d'), bid]
+        )
+        db.commit()
+    return jsonify({'ok': True})
+
+
 # ── Care: Dokumentation ──────────────────────────────────────────────────────
 
 @app.route('/api/care/dokumentation')
@@ -6918,6 +7151,13 @@ def care_matching_annehmen(anfrage_id):
                 "INSERT OR REPLACE INTO matching_verbindungen (id,patient_id,caregiver_id,anfrage_id,verbunden_am,aktiv) VALUES (?,?,?,?,datetime('now','localtime'),1)",
                 [vid, anfrage['patient_id'], cg_id, anfrage_id]
             )
+        # Patienten-Buchung: 15 € für angenommene Anfrage
+        buch_id = 'pb' + uuid.uuid4().hex[:10]
+        db.execute_safe(
+            "INSERT INTO patient_buchungen (id,patient_id,caregiver_id,anfrage_id,betrag,beschreibung,status) "
+            "VALUES (?,?,?,?,15.0,'Pflegevermittlung – Annahme Anfrage','offen')",
+            [buch_id, anfrage['patient_id'], cg_id, anfrage_id]
+        )
         pat = db.execute("SELECT * FROM patients WHERE id=?", [anfrage['patient_id']]).fetchone()
         if pat:
             pat_json = json.dumps({

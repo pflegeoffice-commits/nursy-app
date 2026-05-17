@@ -334,6 +334,8 @@ input[type="date"].f-inp::-webkit-date-and-time-value,input[type="time"].f-inp::
     <button class="b-tab" data-tab="nursy">💻 Nursy Plattform</button>
     <button class="b-tab" data-tab="pflegerpersonal">👨‍⚕️ Pflegerpersonal</button>
     <button class="b-tab" data-tab="honorar">📄 Honorarnoten</button>
+    <button class="b-tab" data-tab="abonnements">📋 Abonnements</button>
+    <button class="b-tab" data-tab="patbuchungen">🧾 Patienten</button>
     <button class="b-tab" data-tab="vorlagen" id="bTabVorlagen" style="display:none;">📝 Vorlagen</button>
   </div>
 </header>
@@ -701,6 +703,75 @@ input[type="date"].f-inp::-webkit-date-and-time-value,input[type="time"].f-inp::
 
   </div><!-- /page-honorar -->
 
+  <!-- ══════════════════════
+       ABONNEMENTS
+  ══════════════════════ -->
+  <div class="b-page" id="page-abonnements">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <h2 style="font-size:1rem;font-weight:800;margin:0;">Pfleger-Abonnements</h2>
+      <button class="btn btn--primary" onclick="genAboMonat()" style="font-size:.78rem;">+ Monat generieren</button>
+    </div>
+    <div id="aboFilterRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <select id="aboFilterStatus" onchange="loadAbonnements()" style="border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;font-size:.78rem;">
+        <option value="">Alle Status</option>
+        <option value="offen">Offen</option>
+        <option value="bezahlt">Bezahlt</option>
+        <option value="storniert">Storniert</option>
+      </select>
+      <select id="aboFilterPlan" onchange="loadAbonnements()" style="border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;font-size:.78rem;">
+        <option value="">Alle Pläne</option>
+        <option value="basic">Basic</option>
+        <option value="premium">Premium</option>
+      </select>
+    </div>
+    <div id="aboTable" style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+        <thead><tr style="background:#f8faff;">
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Pfleger/in</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Plan</th>
+          <th style="padding:8px;text-align:right;font-weight:700;color:#64748b;">Betrag</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Monat</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Status</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Rechnung</th>
+          <th style="padding:8px;"></th>
+        </tr></thead>
+        <tbody id="aboBody"><tr><td colspan="7" style="padding:20px;text-align:center;color:#9ca3af;">Wird geladen…</td></tr></tbody>
+      </table>
+    </div>
+  </div><!-- /page-abonnements -->
+
+  <!-- ══════════════════════
+       PATIENTEN-BUCHUNGEN
+  ══════════════════════ -->
+  <div class="b-page" id="page-patbuchungen">
+    <div style="margin-bottom:14px;">
+      <h2 style="font-size:1rem;font-weight:800;margin:0 0 4px;">Patienten-Buchungen</h2>
+      <p style="font-size:.75rem;color:#64748b;margin:0;">€ 15,00 je angenommene Pflegeanfrage</p>
+    </div>
+    <div id="patbFilterRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <select id="patbFilterStatus" onchange="loadPatBuchungen()" style="border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;font-size:.78rem;">
+        <option value="">Alle Status</option>
+        <option value="offen">Offen</option>
+        <option value="bezahlt">Bezahlt</option>
+        <option value="storniert">Storniert</option>
+      </select>
+    </div>
+    <div id="patbTable" style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+        <thead><tr style="background:#f8faff;">
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Patient/in</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Pfleger/in</th>
+          <th style="padding:8px;text-align:right;font-weight:700;color:#64748b;">Betrag</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Datum</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Status</th>
+          <th style="padding:8px;text-align:left;font-weight:700;color:#64748b;">Rechnung</th>
+          <th style="padding:8px;"></th>
+        </tr></thead>
+        <tbody id="patbBody"><tr><td colspan="7" style="padding:20px;text-align:center;color:#9ca3af;">Wird geladen…</td></tr></tbody>
+      </table>
+    </div>
+  </div><!-- /page-patbuchungen -->
+
 </div><!-- /b-body -->
 
 <!-- ══════ LEISTUNG MODAL ══════ -->
@@ -922,6 +993,8 @@ function switchTab(tab){
   if(tab==='nursy')           loadRechnungen('nursy');
   if(tab==='pflegerpersonal') initPflegerpersonal();
   if(tab==='honorar')         initHonorar();
+  if(tab==='abonnements')     loadAbonnements();
+  if(tab==='patbuchungen')    loadPatBuchungen();
   if(tab==='vorlagen')        loadVorlagen();
 }
 document.querySelectorAll('.b-tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
@@ -2210,6 +2283,96 @@ function hnOpenPrint(h){
 /* ── Backup ── */
 function billingBackup(){
   window.location.href='/api/billing/backup';
+}
+
+/* ══════════════════════
+   ABONNEMENTS
+══════════════════════ */
+function loadAbonnements(){
+  var st = (document.getElementById('aboFilterStatus')||{}).value||'';
+  var pl = (document.getElementById('aboFilterPlan')||{}).value||'';
+  fetch('http://178.105.53.33:5000/api/billing/abonnements',{credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(!d.ok) return;
+      var rows = d.abonnements.filter(a=>(!st||a.status===st)&&(!pl||a.plan===pl));
+      var tbody = document.getElementById('aboBody');
+      if(!tbody) return;
+      if(!rows.length){ tbody.innerHTML='<tr><td colspan="7" style="padding:20px;text-align:center;color:#9ca3af;">Keine Einträge gefunden.</td></tr>'; return; }
+      tbody.innerHTML = rows.map(a=>{
+        var stBadge = a.status==='bezahlt'?'<span style="color:#16a34a;font-weight:700;">Bezahlt</span>':a.status==='storniert'?'<span style="color:#dc2626;">Storniert</span>':'<span style="color:#d97706;font-weight:700;">Offen</span>';
+        var planBadge = a.plan==='premium'?'<span style="color:#10b981;font-weight:700;">Premium</span>':'<span style="color:#3b82f6;font-weight:700;">Basic</span>';
+        var rechnBadge = a.rechnung_gesendet?'<span style="color:#16a34a;font-size:.7rem;">✓ '+a.rechnung_datum+'</span>':'<span style="color:#9ca3af;font-size:.7rem;">–</span>';
+        return '<tr style="border-bottom:1px solid #f1f5f9;">'
+          +'<td style="padding:8px;">'+(a.vorname||'')+' '+(a.nachname||'')+'<br><span style="font-size:.68rem;color:#9ca3af;">'+(a.email||'')+'</span></td>'
+          +'<td style="padding:8px;">'+planBadge+'</td>'
+          +'<td style="padding:8px;text-align:right;font-weight:700;">€ '+fmt(a.betrag||0)+'</td>'
+          +'<td style="padding:8px;">'+(a.monat||'')+'</td>'
+          +'<td style="padding:8px;">'+stBadge+'</td>'
+          +'<td style="padding:8px;">'+rechnBadge+'</td>'
+          +'<td style="padding:8px;white-space:nowrap;">'
+          +'<button onclick="aboSetStatus(\''+a.id+'\',\'bezahlt\')" style="font-size:.68rem;padding:3px 7px;border:1px solid #16a34a;color:#16a34a;background:#fff;border-radius:6px;cursor:pointer;margin-right:3px;">Bezahlt</button>'
+          +'<button onclick="aboRechnung(\''+a.id+'\')" style="font-size:.68rem;padding:3px 7px;border:1px solid #2563eb;color:#2563eb;background:#fff;border-radius:6px;cursor:pointer;">📧 Rechnung</button>'
+          +'</td></tr>';
+      }).join('');
+    });
+}
+
+function aboSetStatus(id,status){
+  fetch('http://178.105.53.33:5000/api/billing/abonnements/'+id+'/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})
+    .then(r=>r.json()).then(d=>{ if(d.ok) loadAbonnements(); else alert(d.error||'Fehler'); });
+}
+
+function aboRechnung(id){
+  if(!confirm('Rechnung per E-Mail senden?')) return;
+  fetch('http://178.105.53.33:5000/api/billing/abonnements/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Rechnung gesendet!'); loadAbonnements(); } else alert(d.error||'Fehler'); });
+}
+
+function genAboMonat(){
+  if(!confirm('Abonnements für den aktuellen Monat generieren?')) return;
+  fetch('http://178.105.53.33:5000/api/billing/abonnements/generieren',{method:'POST',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ alert(d.erstellt+' neue Einträge für '+d.monat+' erstellt.'); loadAbonnements(); } else alert(d.error||'Fehler'); });
+}
+
+/* ══════════════════════
+   PATIENTEN-BUCHUNGEN
+══════════════════════ */
+function loadPatBuchungen(){
+  var st = (document.getElementById('patbFilterStatus')||{}).value||'';
+  fetch('http://178.105.53.33:5000/api/billing/patient-buchungen',{credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{
+      if(!d.ok) return;
+      var rows = d.buchungen.filter(b=>!st||b.status===st);
+      var tbody = document.getElementById('patbBody');
+      if(!tbody) return;
+      if(!rows.length){ tbody.innerHTML='<tr><td colspan="7" style="padding:20px;text-align:center;color:#9ca3af;">Keine Buchungen gefunden.</td></tr>'; return; }
+      tbody.innerHTML = rows.map(b=>{
+        var stBadge = b.status==='bezahlt'?'<span style="color:#16a34a;font-weight:700;">Bezahlt</span>':b.status==='storniert'?'<span style="color:#dc2626;">Storniert</span>':'<span style="color:#d97706;font-weight:700;">Offen</span>';
+        var rechnBadge = b.rechnung_gesendet?'<span style="color:#16a34a;font-size:.7rem;">✓ '+b.rechnung_datum+'</span>':'<span style="color:#9ca3af;font-size:.7rem;">–</span>';
+        return '<tr style="border-bottom:1px solid #f1f5f9;">'
+          +'<td style="padding:8px;">'+(b.pat_vorname||'')+' '+(b.pat_nachname||'')+'<br><span style="font-size:.68rem;color:#9ca3af;">'+(b.pat_email||'')+'</span></td>'
+          +'<td style="padding:8px;">'+(b.cg_vorname||'')+' '+(b.cg_nachname||'')+'</td>'
+          +'<td style="padding:8px;text-align:right;font-weight:700;">€ '+fmt(b.betrag||0)+'</td>'
+          +'<td style="padding:8px;">'+(b.erstellt_am||'').substring(0,10)+'</td>'
+          +'<td style="padding:8px;">'+stBadge+'</td>'
+          +'<td style="padding:8px;">'+rechnBadge+'</td>'
+          +'<td style="padding:8px;white-space:nowrap;">'
+          +'<button onclick="patbSetStatus(\''+b.id+'\',\'bezahlt\')" style="font-size:.68rem;padding:3px 7px;border:1px solid #16a34a;color:#16a34a;background:#fff;border-radius:6px;cursor:pointer;margin-right:3px;">Bezahlt</button>'
+          +'<button onclick="patbRechnung(\''+b.id+'\')" style="font-size:.68rem;padding:3px 7px;border:1px solid #2563eb;color:#2563eb;background:#fff;border-radius:6px;cursor:pointer;">📧 Rechnung</button>'
+          +'</td></tr>';
+      }).join('');
+    });
+}
+
+function patbSetStatus(id,status){
+  fetch('http://178.105.53.33:5000/api/billing/patient-buchungen/'+id+'/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})
+    .then(r=>r.json()).then(d=>{ if(d.ok) loadPatBuchungen(); else alert(d.error||'Fehler'); });
+}
+
+function patbRechnung(id){
+  if(!confirm('Rechnung per E-Mail an den Patienten senden?')) return;
+  fetch('http://178.105.53.33:5000/api/billing/patient-buchungen/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Rechnung gesendet!'); loadPatBuchungen(); } else alert(d.error||'Fehler'); });
 }
 </script>
 </body>

@@ -209,13 +209,22 @@
         </div>
       </div>
 
-      <div class="card dash-section">
+      <div class="card dash-section" id="cardMeineRechnungen" style="display:none;">
         <div class="dash-row">
           <div>
             <h3>Meine Rechnungen</h3>
-            <p class="muted">Rechnungsübersicht, Status und Export.</p>
+            <p class="muted">Rechnungsübersicht, Status und Export. <span id="planBadgeDash" style="font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:20px;background:#10b981;color:#fff;margin-left:4px;">Premium</span></p>
           </div>
           <a class="control btn" href="invoices.html">Öffnen</a>
+        </div>
+      </div>
+      <div class="card dash-section" id="cardBasicInfo" style="display:none;border:1.5px solid #e5e7eb;background:#fafafa;">
+        <div class="dash-row">
+          <div>
+            <h3 style="color:#6b7280;">Rechnungslegung</h3>
+            <p class="muted">Nur im Premium-Plan verfügbar. <a href="profile-care.html" style="color:#3f6fe8;font-weight:600;">Jetzt upgraden →</a></p>
+          </div>
+          <span style="font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;background:#f3f4f6;color:#6b7280;">Basic</span>
         </div>
       </div>
 
@@ -541,6 +550,25 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
         }
         try { localStorage.setItem('nursy_profile_care_v1', JSON.stringify(p)); } catch(e) {}
       }).catch(function(){});
+
+    /* Plan-Gate: Rechnungen nur für Premium */
+    fetch('http://178.105.53.33:5000/api/me', {credentials:'include'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        var plan = (d && d.ok && d.user && d.user.plan) ? d.user.plan : 'basic';
+        var cardPremium = document.getElementById('cardMeineRechnungen');
+        var cardBasic   = document.getElementById('cardBasicInfo');
+        if(plan === 'premium'){
+          if(cardPremium) cardPremium.style.display='';
+          if(cardBasic)   cardBasic.style.display='none';
+        } else {
+          if(cardPremium) cardPremium.style.display='none';
+          if(cardBasic)   cardBasic.style.display='';
+        }
+      }).catch(function(){
+        var cardBasic = document.getElementById('cardBasicInfo');
+        if(cardBasic) cardBasic.style.display='';
+      });
 
     /* Patienten-Liste vom Server synchronisieren und neu rendern */
     fetch('http://178.105.53.33:5000/api/care/meine-patienten', {credentials:'include'})

@@ -124,6 +124,7 @@
     <button class="p-tab" data-tab="qualifikation" role="tab">Qualifikation</button>
     <button class="p-tab" data-tab="verfuegbarkeit" role="tab">Verfügbarkeit</button>
     <button class="p-tab" data-tab="praeferenzen" role="tab">Präferenzen</button>
+    <button class="p-tab" data-tab="abonnement" role="tab">Abonnement</button>
   </div>
 
   <!-- TAB 1: STAMMDATEN -->
@@ -363,6 +364,48 @@
 
   </div>
 
+  <!-- TAB 5: ABONNEMENT -->
+  <div class="p-panel" id="tab-abonnement">
+    <div class="p-section">
+      <div class="p-section__head">
+        <h3 class="p-section__title">Mein Abonnement</h3>
+      </div>
+      <div id="aboCurrentInfo" style="margin-bottom:18px;">
+        <div style="display:inline-flex;align-items:center;gap:10px;background:#f0f4fb;border-radius:10px;padding:12px 18px;">
+          <span id="aboPlanBadge" style="font-size:1rem;font-weight:800;color:#3f6fe8;">–</span>
+          <span id="aboBetragLabel" style="font-size:.82rem;color:#6b7280;">Wird geladen…</span>
+        </div>
+        <p id="aboPlanSeit" class="p-hint" style="margin-top:6px;"></p>
+      </div>
+      <h4 style="font-size:.82rem;font-weight:700;color:#374151;margin:0 0 10px;">Plan wechseln</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div id="aboBasicCard" onclick="selectAboPlan('basic')" style="border:2px solid #3f6fe8;border-radius:12px;padding:16px 14px;cursor:pointer;background:linear-gradient(135deg,#eff2fd,#fff);">
+          <div style="font-weight:700;font-size:.9rem;color:#0f2744;">Basic</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#3f6fe8;margin:4px 0;">€ 50 <span style="font-size:.72rem;font-weight:400;color:#6b7280;">/ Monat</span></div>
+          <ul style="font-size:.72rem;color:#374151;margin:0;padding-left:14px;line-height:1.7;">
+            <li>Dokumentation</li>
+            <li>Anfragen bearbeiten</li>
+            <li>Kein Rechnungssystem</li>
+          </ul>
+        </div>
+        <div id="aboPremiumCard" onclick="selectAboPlan('premium')" style="border:2px solid #e5e7eb;border-radius:12px;padding:16px 14px;cursor:pointer;background:#fff;">
+          <div style="font-weight:700;font-size:.9rem;color:#0f2744;">Premium</div>
+          <div style="font-size:1.2rem;font-weight:900;color:#10b981;margin:4px 0;">€ 65 <span style="font-size:.72rem;font-weight:400;color:#6b7280;">/ Monat</span></div>
+          <ul style="font-size:.72rem;color:#374151;margin:0;padding-left:14px;line-height:1.7;">
+            <li>Alles aus Basic</li>
+            <li>Vollständige Rechnungslegung</li>
+            <li>Honorarnoten & Vorlagen</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="p-save-btn" id="aboSaveBtn" onclick="saveAboPlan()" disabled>Plan speichern</button>
+        <span id="aboSaveMsg" style="font-size:.78rem;"></span>
+      </div>
+      <p class="p-hint" style="margin-top:10px;">Der neue Plan gilt ab dem nächsten Abrechnungsmonat. Bei Fragen wende dich an die Verrechnungsstelle.</p>
+    </div>
+  </div>
+
 </main>
 
 <footer class="footer">
@@ -403,8 +446,68 @@
       btn.classList.add('p-tab--active');
       var panel = document.getElementById('tab-' + btn.dataset.tab);
       if (panel) panel.classList.add('p-panel--active');
+      if (btn.dataset.tab === 'abonnement') loadAboPlan();
     });
   });
+
+  /* ── Abonnement-Tab ── */
+  var _aboSelectedPlan = null;
+
+  function loadAboPlan() {
+    fetch('http://178.105.53.33:5000/api/me', {credentials:'include'})
+      .then(function(r){ return r.json(); })
+      .then(function(d) {
+        if (!d.ok) return;
+        var plan = d.user.plan || 'basic';
+        var seit = d.user.plan_seit || '';
+        document.getElementById('aboPlanBadge').textContent = plan === 'premium' ? 'Nursy Premium' : 'Nursy Basic';
+        document.getElementById('aboPlanBadge').style.color = plan === 'premium' ? '#10b981' : '#3f6fe8';
+        document.getElementById('aboBetragLabel').textContent = plan === 'premium' ? '€ 65 / Monat' : '€ 50 / Monat';
+        if (seit) document.getElementById('aboPlanSeit').textContent = 'Aktiv seit: ' + seit.substring(0,10);
+        _aboSelectedPlan = plan;
+        updateAboCards(plan);
+      });
+  }
+
+  function updateAboCards(plan) {
+    var bc = document.getElementById('aboBasicCard');
+    var pc = document.getElementById('aboPremiumCard');
+    if (bc) { bc.style.borderColor = plan==='basic' ? '#3f6fe8' : '#e5e7eb'; bc.style.background = plan==='basic' ? 'linear-gradient(135deg,#eff2fd,#fff)' : '#fff'; }
+    if (pc) { pc.style.borderColor = plan==='premium' ? '#10b981' : '#e5e7eb'; pc.style.background = plan==='premium' ? 'linear-gradient(135deg,#ecfdf5,#fff)' : '#fff'; }
+  }
+
+  window.selectAboPlan = function(plan) {
+    _aboSelectedPlan = plan;
+    updateAboCards(plan);
+    var btn = document.getElementById('aboSaveBtn');
+    if (btn) btn.disabled = false;
+    var msg = document.getElementById('aboSaveMsg');
+    if (msg) msg.textContent = '';
+  };
+
+  window.saveAboPlan = function() {
+    if (!_aboSelectedPlan) return;
+    var btn = document.getElementById('aboSaveBtn');
+    var msg = document.getElementById('aboSaveMsg');
+    if (btn) btn.disabled = true;
+    fetch('http://178.105.53.33:5000/api/me/plan', {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({plan: _aboSelectedPlan})
+    }).then(function(r){ return r.json(); }).then(function(d) {
+      if (d.ok) {
+        if (msg) { msg.textContent = 'Plan erfolgreich gespeichert!'; msg.style.color='#10b981'; }
+        loadAboPlan();
+      } else {
+        if (msg) { msg.textContent = d.error || 'Fehler'; msg.style.color='#ef4444'; }
+        if (btn) btn.disabled = false;
+      }
+    }).catch(function() {
+      if (msg) { msg.textContent = 'Verbindungsfehler'; msg.style.color='#ef4444'; }
+      if (btn) btn.disabled = false;
+    });
+  };
 
   /* PLZ → Bezirk */
   var zipEl = document.getElementById('zip');
