@@ -217,7 +217,7 @@
 
   /* ── Status-Zahlen ── */
   function ladeStatus(){
-    fetch('/api/care/matching/status', { credentials: 'include' })
+    fetch('http://178.105.53.33:5000/api/care/matching/status', { credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d.ok) return;
@@ -239,8 +239,8 @@
     setDisplay(loading, true); setDisplay(empty, false); liste.innerHTML = '';
 
     Promise.all([
-      fetch('/api/care/matching/eingehende', { credentials: 'include' }).then(function(r){ return r.json(); }),
-      fetch('/api/care/matching/offene',     { credentials: 'include' }).then(function(r){ return r.json(); })
+      fetch('http://178.105.53.33:5000/api/care/matching/eingehende', { credentials: 'include' }).then(function(r){ return r.json(); }),
+      fetch('http://178.105.53.33:5000/api/care/matching/offene',     { credentials: 'include' }).then(function(r){ return r.json(); })
     ]).then(function(results){
       setDisplay(loading, false);
       var eingehende = (results[0].ok && results[0].anfragen) ? results[0].anfragen : [];
@@ -301,7 +301,7 @@
   /* ── Annehmen ── */
   window.annehmen = function(anfragenId){
     if(!confirm('Diesen Patienten annehmen? Sie werden direkt verbunden und erhalten Zugriff auf alle Patientendaten.')) return;
-    fetch('/api/care/matching/annehmen/' + anfragenId, { method: 'POST', credentials: 'include' })
+    fetch('http://178.105.53.33:5000/api/care/matching/annehmen/' + anfragenId, { method: 'POST', credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.ok){
@@ -317,7 +317,7 @@
   /* ── Ablehnen ── */
   window.ablehnen = function(anfragenId){
     if(!confirm('Anfrage ablehnen? Der Patient kann dann einen anderen Pfleger wählen.')) return;
-    fetch('/api/care/matching/ablehnen/' + anfragenId, { method: 'POST', credentials: 'include' })
+    fetch('http://178.105.53.33:5000/api/care/matching/ablehnen/' + anfragenId, { method: 'POST', credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.ok){
@@ -336,7 +336,7 @@
     var empty   = qs('#verbundenEmpty');
     setDisplay(loading, true); setDisplay(empty, false); liste.innerHTML = '';
 
-    fetch('/api/care/meine-patienten', { credentials: 'include' })
+    fetch('http://178.105.53.33:5000/api/care/meine-patienten', { credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         setDisplay(loading, false);
@@ -371,7 +371,7 @@
 
   /* ── Abmelden + Account löschen ── */
   function doLogoutPfleger(){
-    fetch('/api/logout', {method:'POST', credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/logout', {method:'POST', credentials:'include'})
       .then(function(){ location.href='login-care.html'; })
       .catch(function(){ location.href='login-care.html'; });
   }
@@ -382,7 +382,7 @@
   var bdp = document.getElementById('btnDeletePfleger');
   if(bdp) bdp.addEventListener('click', function(){
     if(!confirm('Account wirklich löschen?\n\nAlle Verbindungen und Patientendaten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) return;
-    fetch('/api/care/account', {method:'DELETE', credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/care/account', {method:'DELETE', credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.ok) location.href='index.html';

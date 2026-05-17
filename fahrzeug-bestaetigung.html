@@ -407,8 +407,8 @@
   /* ── Daten laden ── */
   function loadData() {
     Promise.all([
-      fetch('/api/fahrzeug/aktuell', { credentials: 'include' }),
-      fetch('/api/fahrzeug/check',   { credentials: 'include' })
+      fetch('http://178.105.53.33:5000/api/fahrzeug/aktuell', { credentials: 'include' }),
+      fetch('http://178.105.53.33:5000/api/fahrzeug/check',   { credentials: 'include' })
     ])
     .then(function(rs) {
       if (!rs[0].ok) return Promise.reject(rs[0].status);
@@ -587,7 +587,7 @@
     CB_KEYS.forEach(function(k) { payload[k] = document.getElementById(k).checked ? 1 : 0; });
     payload['agb_akzeptiert'] = _agbAccepted ? 1 : 0;
 
-    fetch('/api/fahrzeug/bestaetigung', {
+    fetch('http://178.105.53.33:5000/api/fahrzeug/bestaetigung', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -602,7 +602,7 @@
         return;
       }
       /* Dienst starten */
-      return fetch('/api/fahrzeug/dienst-starten', {
+      return fetch('http://178.105.53.33:5000/api/fahrzeug/dienst-starten', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         credentials: 'include', body: JSON.stringify({ form_id: d.form_id })
       }).then(function() {
@@ -614,7 +614,7 @@
           'Ihr Dienst wurde erfolgreich gestartet. Das Formular wurde digital gespeichert und ein PDF erstellt.';
         document.getElementById('successId').textContent = 'Formular-ID: ' + d.form_id;
         // Gültigkeits-Box: jetzt sofort neu abrufen um Ablaufzeit zu zeigen
-        fetch('/api/fahrzeug/check', { credentials: 'include' })
+        fetch('http://178.105.53.33:5000/api/fahrzeug/check', { credentials: 'include' })
           .then(function(r2){ return r2.json(); })
           .then(function(chk2){
             if (chk2.signed && chk2.signed_time && chk2.expires_at) {

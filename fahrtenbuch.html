@@ -456,7 +456,7 @@ function editEintrag(id) { openModal(id); }
 
 function delEintrag(id) {
   if (!confirm('Diesen Eintrag wirklich löschen?')) return;
-  fetch('/api/fahrtenbuch/' + id, { method:'DELETE', credentials:'include' })
+  fetch('http://178.105.53.33:5000/api/fahrtenbuch/' + id, { method:'DELETE', credentials:'include' })
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.ok) { _eintraege = _eintraege.filter(function(e){ return e.id!==id; }); renderList(); toast('Eintrag gelöscht'); }
@@ -501,7 +501,7 @@ function saveEintrag() {
 }
 
 function loadEintraege() {
-  fetch('/api/fahrtenbuch', { credentials: 'include' })
+  fetch('http://178.105.53.33:5000/api/fahrtenbuch', { credentials: 'include' })
     .then(function(r){
       if (r.status === 401) { window.location.href = '/auftragslage/login'; return null; }
       return r.json();

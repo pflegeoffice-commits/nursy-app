@@ -419,7 +419,7 @@ function toast(msg, dur=2800){
 let _users = { leitstelle: [], billing: [] };
 
 function loadNutzer(){
-  fetch('/api/admin/nutzer',{credentials:'same-origin'}).then(r=>{
+  fetch('http://178.105.53.33:5000/api/admin/nutzer',{credentials:'same-origin'}).then(r=>{
     if(r.status===403||r.status===401){ window.location.href='admin.html'; return null; }
     return r.json();
   }).then(d=>{
@@ -753,7 +753,7 @@ function renderAppKlListNV(list){
 }
 
 function loadAppKlientenNV(){
-  fetch('/api/admin/app-klienten',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/app-klienten',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     _allAppKlienten = d.klienten||[];
     renderAppKlListNV(_allAppKlienten);
   }).catch(()=>{ document.getElementById('appKlListNV').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
@@ -768,7 +768,7 @@ document.getElementById('appKlSearchNV').addEventListener('input', function(){
 
 function deleteAppKlientNV(id, name){
   if(!confirm('Klient "'+name+'" aus der Pfleger-App entfernen?\nDer Klient wird beim nächsten Sync aus der App ausgeblendet.')) return;
-  fetch('/api/admin/app-klienten/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/app-klienten/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast('Klient entfernt'); loadAppKlientenNV(); }
       else toast('Fehler: '+(d.error||''));
@@ -818,7 +818,7 @@ function renderKlListNV(list){
 }
 
 function loadKlientenNV(){
-  fetch('/api/admin/klienten',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/klienten',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     _allKlienten = d.klienten||[];
     renderKlListNV(_allKlienten);
   }).catch(()=>{ document.getElementById('klListNV').innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; });
@@ -833,7 +833,7 @@ document.getElementById('klSearchNV').addEventListener('input', function(){
 
 function deleteKlientNV(id, name){
   if(!confirm('Klient "'+name+'" vollständig löschen?\nDadurch werden auch alle Pflege-Anfragen und Verbindungen entfernt.\nDiese Aktion ist nicht rückgängig.')) return;
-  fetch('/api/admin/klienten/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/klienten/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast('Klient gelöscht'); loadKlientenNV(); }
       else toast('Fehler: '+(d.error||''));
@@ -844,7 +844,7 @@ function deleteKlientNV(id, name){
 if(!NursyAuth.get('admin')){ window.location.replace('admin-login.html'); }
 else { document.body.style.visibility = 'visible'; }
 
-fetch('/api/admin/me',{credentials:'same-origin'}).then(r=>{
+fetch('http://178.105.53.33:5000/api/admin/me',{credentials:'same-origin'}).then(r=>{
   if(r.status===401||r.status===403){ window.location.href='admin-login.html'; return null; }
   return r.json();
 }).then(d=>{ if(d&&!d.ok){ window.location.href='admin-login.html'; } })

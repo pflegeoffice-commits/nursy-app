@@ -357,7 +357,7 @@
     saveBtn.disabled = true;
     /* 1. Zuerst Server beenden */
     try {
-      await fetch('/api/care/meine-patienten/' + encodeURIComponent(_pid), {
+      await fetch('http://178.105.53.33:5000/api/care/meine-patienten/' + encodeURIComponent(_pid), {
         method: 'DELETE', credentials: 'include'
       });
     } catch(e) {}
@@ -390,7 +390,7 @@
 </script>
 <script>
 document.getElementById('headerAbmeldenBtn').addEventListener('click', function(){
-  fetch('/api/logout', {method:'POST', credentials:'include'})
+  fetch('http://178.105.53.33:5000/api/logout', {method:'POST', credentials:'include'})
     .finally(function(){ window.location.href = 'index.html'; });
 });
 </script>
@@ -515,7 +515,7 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
     render();
 
     /* Profil-Daten vom Server laden → dashName / dashBezirk aktualisieren */
-    fetch('/api/care/profil', {credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/care/profil', {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if (!d || !d.ok || !d.profil) return;
@@ -543,7 +543,7 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
       }).catch(function(){});
 
     /* Patienten-Liste vom Server synchronisieren und neu rendern */
-    fetch('/api/care/meine-patienten', {credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/care/meine-patienten', {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.ok) return;
@@ -638,7 +638,7 @@ document.getElementById('headerAbmeldenBtn').addEventListener('click', function(
         var data = collectBackupData();
         if(!data) return;
         _backupRunning = true;
-        fetch('/api/care/backup', {
+        fetch('http://178.105.53.33:5000/api/care/backup', {
           method:'POST', credentials:'include',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify(data)
@@ -687,7 +687,7 @@ function nursy_exportDaten(){
   btn.disabled = true;
   btn.textContent = '⏳ Wird erstellt…';
   status.textContent = '';
-  fetch('/api/care/export')
+  fetch('http://178.105.53.33:5000/api/care/export')
     .then(function(r){
       if(!r.ok) throw new Error('HTTP ' + r.status);
       var cd = r.headers.get('Content-Disposition') || '';
@@ -742,7 +742,7 @@ function nursy_importDaten(input){
       return;
     }
     status.textContent = '⏳ Wird importiert…';
-    fetch('/api/care/import', {
+    fetch('http://178.105.53.33:5000/api/care/import', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
@@ -859,7 +859,7 @@ function nursy_importDaten(input){
 
   function saveTourLog(log){
     try{ localStorage.setItem(tourLogKey(),JSON.stringify(log)); }catch(e){}
-    fetch('/api/care/tourenlog/' + isoToday(), {
+    fetch('http://178.105.53.33:5000/api/care/tourenlog/' + isoToday(), {
       method:'PUT', credentials:'include',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({log: log})
@@ -908,7 +908,7 @@ function nursy_importDaten(input){
         if(prof.street&&prof.city) homeAddr=(prof.street+', '+(prof.zip?prof.zip+' ':'')+prof.city).trim();
       }catch(e){}
       if(!homeAddr){
-        fetch('/api/care/profil', {credentials:'include'})
+        fetch('http://178.105.53.33:5000/api/care/profil', {credentials:'include'})
           .then(function(r){ return r.ok ? r.json() : null; })
           .then(function(d){
             if(!d||!d.ok||!d.profil) return;
@@ -1222,7 +1222,7 @@ function nursy_importDaten(input){
       doGeocode([(zip+' '+city).trim(), 'Österreich'].join(', '));
     } else {
       /* 2. Profil vom Server nachladen */
-      fetch('/api/care/profil',{credentials:'include'})
+      fetch('http://178.105.53.33:5000/api/care/profil',{credentials:'include'})
         .then(function(r){ return r.ok?r.json():null; })
         .then(function(d){
           if(!d||!d.profil) return;
@@ -1387,8 +1387,8 @@ function nursy_importDaten(input){
 
   function ladeMatchingDash(){
     Promise.all([
-      fetch('/api/care/matching/eingehende', {credentials:'include'}).then(function(r){return r.json();}),
-      fetch('/api/care/matching/offene',     {credentials:'include'}).then(function(r){return r.json();})
+      fetch('http://178.105.53.33:5000/api/care/matching/eingehende', {credentials:'include'}).then(function(r){return r.json();}),
+      fetch('http://178.105.53.33:5000/api/care/matching/offene',     {credentials:'include'}).then(function(r){return r.json();})
     ]).then(function(results){
       setDisplay(qs('#matchingLoading'), false);
       var ein = (results[0].ok && results[0].anfragen) ? results[0].anfragen : [];
@@ -1419,7 +1419,7 @@ function nursy_importDaten(input){
 
   window.careAnnehmen = function(id){
     if(!confirm('Diesen Patienten annehmen?')) return;
-    fetch('/api/care/matching/annehmen/'+id, {method:'POST',credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/care/matching/annehmen/'+id, {method:'POST',credentials:'include'})
       .then(function(r){return r.json();})
       .then(function(d){
         if(d.ok){ alert('✅ Patient angenommen! Unter "Meine Patienten" sichtbar.'); ladeMatchingDash(); }
@@ -1428,7 +1428,7 @@ function nursy_importDaten(input){
   };
   window.careAblehnen = function(id){
     if(!confirm('Anfrage ablehnen?')) return;
-    fetch('/api/care/matching/ablehnen/'+id, {method:'POST',credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/care/matching/ablehnen/'+id, {method:'POST',credentials:'include'})
       .then(function(r){return r.json();})
       .then(function(d){ if(d.ok) ladeMatchingDash(); else alert(d.error||'Fehler'); });
   };

@@ -185,14 +185,14 @@ body.ready { visibility: visible; }
 (function(){
   var tok = sessionStorage.getItem('nursy_tok_admin') || sessionStorage.getItem('nursy_tok_ls');
   if (!tok) { window.location.replace('admin-login.html'); return; }
-  fetch('/api/leitstelle/me', { headers: { 'Authorization': 'Bearer ' + tok } })
+  fetch('http://178.105.53.33:5000/api/leitstelle/me', { headers: { 'Authorization': 'Bearer ' + tok } })
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (!d.ok) { window.location.replace('admin-login.html'); return; }
       var role = d.user && d.user.rolle;
       if (role && role !== 'admiral' && role !== 'disponent') {
         // also allow admin session-based
-        fetch('/api/admin/me').then(function(r2){ return r2.json(); }).then(function(d2){
+        fetch('http://178.105.53.33:5000/api/admin/me').then(function(r2){ return r2.json(); }).then(function(d2){
           if (!d2.ok) window.location.replace('admin-login.html');
           else document.body.classList.add('ready');
         }).catch(function(){ window.location.replace('admin-login.html'); });
@@ -201,7 +201,7 @@ body.ready { visibility: visible; }
       document.body.classList.add('ready');
     })
     .catch(function(){
-      fetch('/api/admin/me').then(function(r){ return r.json(); }).then(function(d){
+      fetch('http://178.105.53.33:5000/api/admin/me').then(function(r){ return r.json(); }).then(function(d){
         if (!d.ok) window.location.replace('admin-login.html');
         else document.body.classList.add('ready');
       }).catch(function(){ window.location.replace('admin-login.html'); });
@@ -213,7 +213,7 @@ var allEinsaetze = [];
 var activeEid = null;
 
 function loadData() {
-  fetch('/api/archiv/einsaetze')
+  fetch('http://178.105.53.33:5000/api/archiv/einsaetze')
     .then(function(r){ return r.json(); })
     .then(function(d){
       allEinsaetze = d.einsaetze || [];
@@ -363,7 +363,7 @@ function field(lbl, val) {
 }
 
 function loadProtokolll(eid) {
-  fetch('/api/einsaetze/' + eid + '/protokoll')
+  fetch('http://178.105.53.33:5000/api/einsaetze/' + eid + '/protokoll')
     .then(function(r){ return r.json(); })
     .then(function(rows) {
       var el = document.getElementById('protoContent');
@@ -424,7 +424,7 @@ function modalSend() {
   btn.textContent = 'Wird angelegt…';
   errEl.style.display = 'none';
 
-  fetch('/api/archiv/einsaetze/' + _modalEid + '/folgeeinsatz', {
+  fetch('http://178.105.53.33:5000/api/archiv/einsaetze/' + _modalEid + '/folgeeinsatz', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

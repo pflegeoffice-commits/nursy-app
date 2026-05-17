@@ -580,7 +580,7 @@
     try{ pendingId = localStorage.getItem('nursy_pending_patient_id') || ''; }catch(e){}
     if(pendingId){
       try{
-        var res = await fetch('/api/requests', {
+        var res = await fetch('http://178.105.53.33:5000/api/requests', {
           method:'POST',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ patient_id: pendingId, anamnese: data })

@@ -127,7 +127,7 @@ function doLogin() {
     ? JSON.stringify({email:'admiral@nursy.at', password: pw})
     : JSON.stringify({email: email, password: pw});
 
-  fetch('/api/billing/login', {
+  fetch('http://178.105.53.33:5000/api/billing/login', {
     method:'POST', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: body

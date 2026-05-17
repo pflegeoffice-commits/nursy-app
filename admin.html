@@ -1061,7 +1061,7 @@
   if(!token){ goLogin(); return; }
 
   // Validate token server-side (non-blocking — page already visible)
-  fetch('/api/admin/me', { credentials: 'same-origin' })
+  fetch('http://178.105.53.33:5000/api/admin/me', { credentials: 'same-origin' })
     .then(function(r){ return r.json(); })
     .then(function(d){ if(!d.ok) goLogin(); })
     .catch(function(){ /* network error — stay on page, API calls will fail individually */ });
@@ -1101,7 +1101,7 @@ function adminBackup(){
 
 /* ── Logout ── */
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-  fetch('/api/admin/logout',{method:'POST',credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/logout',{method:'POST',credentials:'same-origin'})
     .finally(()=>{ NursyAuth.clear('admin'); window.location.replace('admin-login.html?logout=1'); });
 });
 
@@ -1109,7 +1109,7 @@ document.getElementById('logoutBtn').addEventListener('click',()=>{
    DASHBOARD
 ════════════════════════════════ */
 function loadDashboard(){
-  fetch('/api/admin/stats').then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/stats').then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     const s=d.stats;
     document.getElementById('s-cg-total').textContent  = s.cg_total;
@@ -1125,13 +1125,13 @@ function loadDashboard(){
   });
 
   const today=new Date().toISOString().slice(0,10);
-  fetch('/api/admin/dienste?datum='+today).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/dienste?datum='+today).then(r=>r.json()).then(d=>{
     const el=document.getElementById('dash-dienste-today');
     if(!d.ok||!d.dienste.length){ el.innerHTML='<div class="empty-state">Keine Dienste für heute eingetragen.</div>'; return; }
     el.innerHTML=d.dienste.map(di=>dienstItemHtml(di,false)).join('');
   });
 
-  fetch('/api/admin/messages').then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/messages').then(r=>r.json()).then(d=>{
     const el=document.getElementById('dash-messages');
     const aktiv=(d.messages||[]).filter(m=>m.aktiv);
     if(!aktiv.length){ el.innerHTML='<div class="empty-state">Keine aktiven Meldungen.</div>'; return; }
@@ -1176,7 +1176,7 @@ function cgRowHtml(c){
 }
 
 function loadCaregivers(){
-  fetch('/api/admin/caregivers').then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/caregivers').then(r=>r.json()).then(d=>{
     allCG=d.caregivers||[];
     renderCG(allCG);
     populateCgSelect(allCG);
@@ -1223,7 +1223,7 @@ document.getElementById('cgModalCancel').addEventListener('click',()=>{ document
 document.getElementById('cgModalBg').addEventListener('click',      ()=>{ document.getElementById('cgModal').hidden=true; });
 document.getElementById('cgModalSave').addEventListener('click',()=>{
   if(!editCgId) return;
-  fetch('/api/admin/caregivers/'+editCgId+'/status',{
+  fetch('http://178.105.53.33:5000/api/admin/caregivers/'+editCgId+'/status',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -1239,7 +1239,7 @@ document.getElementById('cgModalSave').addEventListener('click',()=>{
 
 function deleteCg(id,name){
   if(!confirm('Pflegekraft "'+name+'" löschen?\nDiese Aktion ist nicht rückgängig.')) return;
-  fetch('/api/admin/caregivers/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/caregivers/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
     if(d.ok){ toast('Gelöscht'); loadCaregivers(); }
     else toast('Fehler: '+(d.error||''));
   });
@@ -1300,7 +1300,7 @@ function renderKL(list) {
 }
 
 function loadKlienten() {
-  fetch('/api/admin/klienten', {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/klienten', {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     allKL = d.klienten || [];
     _klLoaded = true;
     renderKL(allKL);
@@ -1384,7 +1384,7 @@ document.getElementById('klModalBg').addEventListener('click',    ()=>{ document
 
 function deleteKl(id, name) {
   if (!confirm('Klient "'+name+'" und alle zugehörigen Anfragen löschen?\nDiese Aktion ist nicht rückgängig.')) return;
-  fetch('/api/admin/klienten/'+id, {method:'DELETE',credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/klienten/'+id, {method:'DELETE',credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     if (d.ok) { toast('Gelöscht'); loadKlienten(); }
     else toast('Fehler: '+(d.error||''));
   });
@@ -1426,7 +1426,7 @@ function renderAppKL(list) {
 }
 
 function loadAppKLAdmin() {
-  fetch('/api/admin/app-klienten', {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/app-klienten', {credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     _allAppKL = d.klienten || [];
     _appKlLoaded = true;
     renderAppKL(_allAppKL);
@@ -1441,7 +1441,7 @@ document.getElementById('appKlSearch').addEventListener('input', function(){
 
 function deleteAppKlAdmin(id, name) {
   if (!confirm('Klient "'+name+'" aus der Pfleger-App entfernen?')) return;
-  fetch('/api/admin/app-klienten/'+encodeURIComponent(id), {method:'DELETE',credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/app-klienten/'+encodeURIComponent(id), {method:'DELETE',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if (d.ok) { toast('Entfernt'); loadAppKLAdmin(); }
       else toast('Fehler: '+(d.error||''));
@@ -1488,7 +1488,7 @@ function populateCgSelect(list){
 
 function loadCaregiverSelect(){
   if(allCG.length){ populateCgSelect(allCG); return; }
-  fetch('/api/admin/caregivers').then(r=>r.json()).then(d=>{ allCG=d.caregivers||[]; populateCgSelect(allCG); });
+  fetch('http://178.105.53.33:5000/api/admin/caregivers').then(r=>r.json()).then(d=>{ allCG=d.caregivers||[]; populateCgSelect(allCG); });
 }
 
 function loadDienste(datum){
@@ -1516,7 +1516,7 @@ document.getElementById('dienstSaveBtn').addEventListener('click',()=>{
   if(!body.caregiver_id||!body.datum||!body.von||!body.bis){
     toast('Bitte Pflegekraft, Datum und Zeiten angeben'); return;
   }
-  fetch('/api/admin/dienste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  fetch('http://178.105.53.33:5000/api/admin/dienste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(r=>r.json()).then(d=>{
       if(d.ok){
         toast('Dienst gespeichert');
@@ -1533,7 +1533,7 @@ document.getElementById('planAllBtn').addEventListener('click',()=>{ document.ge
 
 function deleteDienst(id){
   if(!confirm('Dienst löschen?')) return;
-  fetch('/api/admin/dienste/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/dienste/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
     if(d.ok){ toast('Entfernt'); loadDienste(document.getElementById('planDate').value||undefined); }
     else toast('Fehler');
   });
@@ -1566,7 +1566,7 @@ function msgItemHtml(m,showDel=true){
 }
 
 function loadMessages(){
-  fetch('/api/admin/messages').then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/messages').then(r=>r.json()).then(d=>{
     const el=document.getElementById('msgList');
     if(!d.ok||!d.messages.length){ el.innerHTML='<div class="empty-state">Keine aktiven Meldungen.</div>'; return; }
     el.innerHTML=d.messages.map(m=>msgItemHtml(m,true)).join('');
@@ -1577,7 +1577,7 @@ document.getElementById('msgSaveBtn').addEventListener('click',()=>{
   const text=document.getElementById('msg-text').value.trim();
   const typ=document.getElementById('msg-typ').value;
   if(!text){ toast('Bitte Text eingeben'); return; }
-  fetch('/api/admin/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,typ})})
+  fetch('http://178.105.53.33:5000/api/admin/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,typ})})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast('Meldung gesendet'); document.getElementById('msg-text').value=''; loadMessages(); }
       else toast('Fehler');
@@ -1585,7 +1585,7 @@ document.getElementById('msgSaveBtn').addEventListener('click',()=>{
 });
 
 function deleteMsg(id){
-  fetch('/api/admin/messages/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/messages/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
     if(d.ok){ toast('Meldung gelöscht'); loadMessages(); }
   });
 }
@@ -1603,7 +1603,7 @@ function showLsCreateForm(){ document.getElementById('lsCreateForm').style.displ
 function hideLsCreateForm(){ document.getElementById('lsCreateForm').style.display='none'; }
 
 function loadLsUsers(){
-  fetch('/api/admin/leitstelle-users').then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/leitstelle-users').then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     const el=document.getElementById('lsUserList');
     if(!d.users.length){
@@ -1641,7 +1641,7 @@ function createLsUser(){
     password:document.getElementById('ls-password').value,
     rolle:document.getElementById('ls-rolle').value
   };
-  fetch('/api/admin/leitstelle-users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  fetch('http://178.105.53.33:5000/api/admin/leitstelle-users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(r=>r.json()).then(d=>{
       if(d.ok){
         toast('Benutzer angelegt');
@@ -1657,7 +1657,7 @@ function createLsUser(){
 
 function deleteLsUser(id,name){
   if(!confirm('Benutzer „'+name+'" wirklich löschen?')) return;
-  fetch('/api/admin/leitstelle-users/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/leitstelle-users/'+id,{method:'DELETE'}).then(r=>r.json()).then(d=>{
     if(d.ok){ toast('Benutzer gelöscht'); loadLsUsers(); }
   });
 }
@@ -1667,7 +1667,7 @@ function showPflegerForm(){ document.getElementById('pflegerCreateForm').style.d
 function hidePflegerForm(){ document.getElementById('pflegerCreateForm').style.display='none'; }
 
 function loadPflegerList(){
-  fetch('/api/admin/caregivers').then(r=>r.json()).then(d=>{
+  fetch('http://178.105.53.33:5000/api/admin/caregivers').then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     const el=document.getElementById('pfUserList');
     if(!d.caregivers.length){
@@ -1700,7 +1700,7 @@ function createPfleger(){
     email:document.getElementById('pf-email').value.trim(),
     password:document.getElementById('pf-password').value
   };
-  fetch('/api/admin/pfleger',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  fetch('http://178.105.53.33:5000/api/admin/pfleger',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(r=>r.json()).then(d=>{
       if(d.ok){
         toast('Pfleger-Konto angelegt');
@@ -1719,7 +1719,7 @@ var fzAdminData = [];
 var fzPflegerList = [];
 
 function fzLoadPfleger(){
-  fetch('/api/admin/fahrzeuge/pfleger', {credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/fahrzeuge/pfleger', {credentials:'same-origin'})
     .then(r=>r.json())
     .then(d=>{ if(d.ok) fzPflegerList = d.pfleger || []; })
     .catch(()=>{});
@@ -1728,7 +1728,7 @@ function fzLoadPfleger(){
 function fzAdminLoad(){
   var el = document.getElementById('fzAdminList');
   if(el) el.innerHTML = '<div class="empty-state">Lade…</div>';
-  fetch('/api/fahrzeuge/alle', {credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/fahrzeuge/alle', {credentials:'same-origin'})
     .then(r=>r.json())
     .then(d=>{
       if(!d.ok){ if(el) el.innerHTML='<div class="empty-state">Fehler beim Laden.</div>'; return; }
@@ -1826,7 +1826,7 @@ function fzAdminSave(name){
   var bz  = (document.getElementById('fzEbz_'+name)||{}).value||'';
   var typ = (document.getElementById('fzEtyp_'+name)||{}).value||'HKP';
   var akt = (document.getElementById('fzEakt_'+name)||{}).checked;
-  fetch('/api/fahrzeuge/'+encodeURIComponent(name), {
+  fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(name), {
     method:'PUT', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({bundesland:bl, bezirk:bz, typ:typ, aktiv:akt})
@@ -1837,7 +1837,7 @@ function fzAdminSave(name){
 }
 function fzAdminDelete(name){
   if(!confirm('Fahrzeug "'+name+'" wirklich löschen?')) return;
-  fetch('/api/fahrzeuge/'+encodeURIComponent(name), {method:'DELETE', credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(name), {method:'DELETE', credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast('Fahrzeug gelöscht'); fzAdminLoad(); }
       else toast(d.error||'Fehler', 'error');
@@ -1849,7 +1849,7 @@ function fzAdminAssignDriver(name){
   var opt  = sel.options[sel.selectedIndex];
   var cname = opt.dataset.name || opt.text;
   var dnr   = opt.dataset.dnr  || '';
-  fetch('/api/fahrzeuge/'+encodeURIComponent(name)+'/fahrer', {
+  fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(name)+'/fahrer', {
     method:'PUT', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({caregiver_id: sel.value, caregiver_name: cname, dienstnummer: dnr})
@@ -1860,7 +1860,7 @@ function fzAdminAssignDriver(name){
 }
 function fzAdminRemoveDriver(name){
   if(!confirm('Fahrer von "'+name+'" abmelden?')) return;
-  fetch('/api/fahrzeuge/'+encodeURIComponent(name)+'/fahrer', {method:'DELETE', credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(name)+'/fahrer', {method:'DELETE', credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast('Fahrer abgemeldet'); fzAdminLoad(); }
       else toast(d.error||'Fehler', 'error');
@@ -1923,7 +1923,7 @@ function fzAdminAdd(){
   var bz   = (document.getElementById('fz-bezirk')||{}).value;
   if(!name){ toast('Bitte Fahrzeugnummer eingeben', 'error'); return; }
   if(!bl){ toast('Bitte Bundesland wählen', 'error'); return; }
-  fetch('/api/fahrzeuge', {
+  fetch('http://178.105.53.33:5000/api/fahrzeuge', {
     method:'POST', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({name:name, typ:typ, bundesland:bl, bezirk:bz})
@@ -1961,7 +1961,7 @@ var sbTypColors = {
 };
 
 function loadStartseiteBlocks(){
-  fetch('/api/admin/startseite-blocks', {credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/startseite-blocks', {credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       sbData = d.blocks || [];
       renderSbList();
@@ -2044,7 +2044,7 @@ document.getElementById('sbModalSave').addEventListener('click', function(){
 });
 
 function sbToggle(id){
-  fetch('/api/admin/startseite-blocks/'+id+'/toggle', {method:'POST', credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/startseite-blocks/'+id+'/toggle', {method:'POST', credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast(d.aktiv?'Block aktiviert':'Block deaktiviert'); loadStartseiteBlocks(); }
     });
@@ -2052,7 +2052,7 @@ function sbToggle(id){
 
 function sbDelete(id, titel){
   if(!confirm('Block "'+titel+'" wirklich löschen?')) return;
-  fetch('/api/admin/startseite-blocks/'+id, {method:'DELETE', credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/admin/startseite-blocks/'+id, {method:'DELETE', credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(d.ok){ toast('Block gelöscht'); loadStartseiteBlocks(); }
       else toast(d.error||'Fehler');
@@ -2062,7 +2062,7 @@ function sbDelete(id, titel){
 function goToBilling(){
   var tok = '';
   try{ tok = NursyAuth.get('admin'); }catch(e){}
-  fetch('/api/admin/billing-zugang', {
+  fetch('http://178.105.53.33:5000/api/admin/billing-zugang', {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', 'X-Nursy-Token': tok }

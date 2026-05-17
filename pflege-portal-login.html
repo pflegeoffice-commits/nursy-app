@@ -89,13 +89,13 @@ async function doLogin() {
   const alertEl = document.getElementById('alertBox');
   if (!email || !pw) { alertEl.innerHTML='<div class="alert alert-err">Bitte E-Mail und Passwort eingeben.</div>'; return; }
   btn.disabled=true; btn.textContent='Wird geprüft…';
-  const r = await fetch('/api/portal/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+  const r = await fetch('http://178.105.53.33:5000/api/portal/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
   const d = await r.json();
   if (d.ok) {
     sessionStorage.setItem('nursy_portal_auth','1');
     // Fahrzeugbestätigung nötig?
     try {
-      const ck  = await fetch('/api/fahrzeug/check', { credentials: 'include' });
+      const ck  = await fetch('http://178.105.53.33:5000/api/fahrzeug/check', { credentials: 'include' });
       const ckd = await ck.json();
       if (ckd.ok && !ckd.signed) {
         location.href = '/fahrzeug-bestaetigung.html';

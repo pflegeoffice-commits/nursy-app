@@ -105,7 +105,7 @@
           overlay.style.display = 'none';
           pw.focus();
         }, 3000);
-        fetch('/api/admin/me', { credentials: 'same-origin' })
+        fetch('http://178.105.53.33:5000/api/admin/me', { credentials: 'same-origin' })
           .then(function(r){ return r.json(); })
           .then(function(d){
             clearTimeout(guard);
@@ -131,7 +131,7 @@
     function doLogin(){
       err.classList.remove('show');
       btn.disabled = true;
-      fetch('/api/admin/login',{
+      fetch('http://178.105.53.33:5000/api/admin/login',{
         method:'POST',
         credentials:'same-origin',
         headers:{'Content-Type':'application/json'},

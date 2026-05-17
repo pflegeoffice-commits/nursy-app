@@ -413,7 +413,7 @@
     var bz   = document.getElementById('gbBezirk').value;
     errEl.style.display = 'none';
     btn.disabled = true; btn.textContent = 'Speichern…';
-    fetch('/api/leitstelle/gebiet', {
+    fetch('http://178.105.53.33:5000/api/leitstelle/gebiet', {
       method: 'PUT', credentials: 'same-origin',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({bundesland: bl, bezirk: bz})
@@ -457,7 +457,7 @@
     errEl.style.display='none'; succ.style.display='none';
     btn.disabled=true; btn.textContent='Senden…';
 
-    fetch('/api/leitstelle/forgot-password',{
+    fetch('http://178.105.53.33:5000/api/leitstelle/forgot-password',{
       method:'POST', credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({email: em})
@@ -489,7 +489,7 @@
     btn.disabled = true; btn.textContent = 'Anmelden…';
     errEl.style.display = 'none';
 
-    fetch('/api/login/leitstelle', {
+    fetch('http://178.105.53.33:5000/api/login/leitstelle', {
       method: 'POST',
       credentials: 'same-origin',
       headers: {'Content-Type':'application/json'},
@@ -543,7 +543,7 @@
 
     btn.disabled = true; btn.textContent = 'Speichern…';
 
-    fetch('/api/leitstelle/change-password', {
+    fetch('http://178.105.53.33:5000/api/leitstelle/change-password', {
       method: 'POST',
       credentials: 'same-origin',
       headers: {'Content-Type':'application/json'},

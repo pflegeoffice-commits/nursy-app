@@ -92,7 +92,7 @@ function getToken(){
 function init(){
   _token = getToken();
   if(!_token){ showError('Kein gültiger Link.','Bitte fragen Sie Ihre Pflegekraft nach einem neuen Signatur-Link.'); return; }
-  fetch('/api/vertrag/info/'+_token)
+  fetch('http://178.105.53.33:5000/api/vertrag/info/'+_token)
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(d.bereits_signiert){
@@ -194,7 +194,7 @@ function submitSig(){
   var data = _sigCanvas.toDataURL('image/png');
   var btn = document.getElementById('signBtn');
   btn.disabled=true; btn.textContent='⏳ Wird gespeichert…';
-  fetch('/api/vertrag/signieren/'+_token,{
+  fetch('http://178.105.53.33:5000/api/vertrag/signieren/'+_token,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({patient_name:name, unterschrift:data})

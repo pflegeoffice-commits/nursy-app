@@ -312,7 +312,7 @@ function loadAll(){
     if(last && BL_CONFIG[last]) selectBl(last);
   }catch(e){}
   // Fetch vehicle data in the background to enable grid selection in step 2
-  fetch('/api/fahrzeuge')
+  fetch('http://178.105.53.33:5000/api/fahrzeuge')
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d) return;
@@ -495,7 +495,7 @@ function doLogin(){
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Anmelden…';
   hideErr();
-  fetch('/api/login/fahrzeug', {
+  fetch('http://178.105.53.33:5000/api/login/fahrzeug', {
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify({dienstnummer:dnr, password:pw, fahrzeug:selFz})
   })
@@ -532,7 +532,7 @@ function showSplash(fzName, userName){
   document.getElementById('splash').classList.add('show');
   setTimeout(function(){
     /* Prüfen ob bereits unterschrieben (selber Dienst / 12h-Fenster) */
-    fetch('/api/fahrzeug/check', {credentials:'include'})
+    fetch('http://178.105.53.33:5000/api/fahrzeug/check', {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(chk){
         if(chk.signed){
@@ -576,7 +576,7 @@ function doDirektLogin(){
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Anmelden…';
   hideDirektErr();
-  fetch('/api/login/pfleger-direkt', {
+  fetch('http://178.105.53.33:5000/api/login/pfleger-direkt', {
     method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
     body: JSON.stringify({dienstnummer:dnr, password:pw})
   })

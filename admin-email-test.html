@@ -181,7 +181,7 @@
 
 <script>
 (function(){
-  fetch('/api/email/status', {credentials:'same-origin'})
+  fetch('http://178.105.53.33:5000/api/email/status', {credentials:'same-origin'})
     .then(r=>r.json())
     .then(d=>{
       if(!d.ok){ document.getElementById('statusGrid').innerHTML='<p style="color:red">Kein Zugriff</p>'; return; }
@@ -209,7 +209,7 @@
     box.style.display='none';
     if(!to){ box.className='result-box result-box--err'; box.textContent='Bitte E-Mail-Adresse eingeben.'; box.style.display='block'; return; }
     btn.disabled=true; btn.textContent='Senden…';
-    fetch('/api/email/test',{
+    fetch('http://178.105.53.33:5000/api/email/test',{
       method:'POST', credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({to:to})
@@ -224,7 +224,7 @@
     }).finally(()=>{ btn.disabled=false; btn.textContent='📨 Testmail senden'; });
   };
 
-  fetch('/api/admin/me',{credentials:'same-origin'}).then(r=>{
+  fetch('http://178.105.53.33:5000/api/admin/me',{credentials:'same-origin'}).then(r=>{
     if(r.status===401||r.status===403) window.location.href='admin-login.html';
   });
 })();

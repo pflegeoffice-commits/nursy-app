@@ -536,7 +536,7 @@ if(!eid){
   document.getElementById('epBody').innerHTML =
     '<div class="ep-loading"><div>⚠️ Kein Einsatz angegeben (Parameter: ?eid=…)</div></div>';
 } else {
-  fetch('/api/einsaetze/'+encodeURIComponent(eid)+'/protokoll-voll', {credentials:'include'})
+  fetch('http://178.105.53.33:5000/api/einsaetze/'+encodeURIComponent(eid)+'/protokoll-voll', {credentials:'include'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(d.error){

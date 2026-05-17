@@ -128,7 +128,7 @@
 
   if(!token){ show('invalidState'); return; }
 
-  fetch('/api/leitstelle/reset-password/validate?token='+encodeURIComponent(token))
+  fetch('http://178.105.53.33:5000/api/leitstelle/reset-password/validate?token='+encodeURIComponent(token))
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(d.ok) show('formState');
@@ -173,7 +173,7 @@
 
     btn.disabled = true; btn.textContent = 'Speichern…';
 
-    fetch('/api/leitstelle/reset-password', {
+    fetch('http://178.105.53.33:5000/api/leitstelle/reset-password', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({token: token, new_password: pw1})

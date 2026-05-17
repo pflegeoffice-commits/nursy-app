@@ -218,7 +218,7 @@
 
   /* ── Baum laden ── */
   function loadTree() {
-    fetch('/api/admin/fahrzeug/struktur', { credentials:'include' })
+    fetch('http://178.105.53.33:5000/api/admin/fahrzeug/struktur', { credentials:'include' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if (!d || !d.ok) { document.getElementById('treeRoot').innerHTML = '<div style="padding:16px;font-size:.8rem;color:#ef4444;">Zugriff verweigert</div>'; return; }
@@ -290,7 +290,7 @@
       if (v) params.append(k.toLowerCase() === 'name' ? 'name' : k.toLowerCase(), v);
     });
     document.getElementById('tblBody').innerHTML = '<tr><td colspan="8" class="empty">⏳ Wird geladen …</td></tr>';
-    fetch('/api/admin/fahrzeug/formulare?' + params.toString(), { credentials:'include' })
+    fetch('http://178.105.53.33:5000/api/admin/fahrzeug/formulare?' + params.toString(), { credentials:'include' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if (!d || !d.ok) { document.getElementById('tblBody').innerHTML = '<tr><td colspan="8" class="empty">Zugriff verweigert</td></tr>'; return; }
@@ -337,7 +337,7 @@
     document.getElementById('modalBody').innerHTML = '<div class="empty">⏳ Wird geladen …</div>';
     document.getElementById('modalTitle').textContent = 'Formular ' + formId;
     document.getElementById('modalBackdrop').classList.remove('hidden');
-    fetch('/api/admin/fahrzeug/formular/' + encodeURIComponent(formId), { credentials:'include' })
+    fetch('http://178.105.53.33:5000/api/admin/fahrzeug/formular/' + encodeURIComponent(formId), { credentials:'include' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if (!d || !d.ok) { document.getElementById('modalBody').innerHTML = '<div class="empty">Fehler beim Laden</div>'; return; }

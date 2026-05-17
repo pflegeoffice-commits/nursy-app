@@ -267,7 +267,7 @@ function _buildMeasuresFromPlaene(plaene, wundPlan, patId){
 
 /* Pflegeplanung (Maßnahmen + Wundplan) asynchron vom Server laden */
 function _fetchPflegeplanungFromApi(patId){
-  fetch('/api/care/pflegeplanung/' + encodeURIComponent(patId||'default'), {credentials:'include'})
+  fetch('http://178.105.53.33:5000/api/care/pflegeplanung/' + encodeURIComponent(patId||'default'), {credentials:'include'})
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d || !d.ok) return;
@@ -287,7 +287,7 @@ let _activeKey = patDayKey(getCurrentPatientId(), TODAY);
 let _dfPatId = getCurrentPatientId();
 function stLoad(){ try{ return JSON.parse(localStorage.getItem(_activeKey)||'{}'); }catch(e){ return {}; } }
 function _dfApiSave(patId, s){
-  fetch('/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, {
+  fetch('http://178.105.53.33:5000/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, {
     method:'POST', credentials:'include',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({state: s})
@@ -374,7 +374,7 @@ function onPatientChange(idx){
   render();
   /* Pflegeplanung + DN-State für neuen Patienten laden */
   _fetchPflegeplanungFromApi(patId);
-  fetch('/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, { credentials:'include' })
+  fetch('http://178.105.53.33:5000/api/care/df/' + encodeURIComponent(patId) + '/' + TODAY, { credentials:'include' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d || !d.ok || !d.state || !Object.keys(d.state).length) return;
@@ -600,7 +600,7 @@ document.getElementById('btnSignAll').addEventListener('click', function(){
 
 /* ── render archive ── */
 function renderArchive(patId){
-  fetch('/api/care/df/' + encodeURIComponent(patId) + '/archive', { credentials:'include' })
+  fetch('http://178.105.53.33:5000/api/care/df/' + encodeURIComponent(patId) + '/archive', { credentials:'include' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       const archive = (d && d.ok && Array.isArray(d.archive)) ? d.archive : loadArchive(patId);
@@ -694,7 +694,7 @@ window.addEventListener('storage', function(e){
 });
 
 /* DN-State des heutigen Tages von der API laden */
-fetch('/api/care/df/' + encodeURIComponent(_initPatId) + '/' + TODAY, { credentials:'include' })
+fetch('http://178.105.53.33:5000/api/care/df/' + encodeURIComponent(_initPatId) + '/' + TODAY, { credentials:'include' })
   .then(function(r){ return r.ok ? r.json() : null; })
   .then(function(d){
     if(!d || !d.ok || !d.state || !Object.keys(d.state).length) return;

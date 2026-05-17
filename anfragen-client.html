@@ -464,7 +464,7 @@
       runMatching();
     }
 
-    fetch('/api/anfragen/client', {
+    fetch('http://178.105.53.33:5000/api/anfragen/client', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify(payload)

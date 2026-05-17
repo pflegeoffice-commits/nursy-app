@@ -154,7 +154,7 @@
     };
     function esc(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
 
-    fetch('/api/startseite/blocks').then(function(r){ return r.json(); }).then(function(d){
+    fetch('http://178.105.53.33:5000/api/startseite/blocks').then(function(r){ return r.json(); }).then(function(d){
       var blocks = d.blocks || [];
       if(!blocks.length) return;
       var wrap = document.getElementById('content-blocks-inner');
@@ -191,7 +191,7 @@
       btn.disabled = true;
       btn.textContent = '…';
 
-      fetch('/api/caregivers')
+      fetch('http://178.105.53.33:5000/api/caregivers')
         .then(function(r){ return r.json(); })
         .then(function(data){
           btn.disabled = false;

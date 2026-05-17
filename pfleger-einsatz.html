@@ -781,7 +781,7 @@ function initPushNotifications(fahrzeug) {
 
   Notification.requestPermission().then(function(permission) {
     if (permission !== 'granted') return;
-    fetch('/api/push/vapid-public-key')
+    fetch('http://178.105.53.33:5000/api/push/vapid-public-key')
       .then(function(r) { return r.json(); })
       .then(function(d) {
         if (!d.key) return;
@@ -789,7 +789,7 @@ function initPushNotifications(fahrzeug) {
           return reg.pushManager.getSubscription().then(function(existing) {
             if (existing) {
               // Re-register with current fahrzeug in case it changed
-              return fetch('/api/push/subscribe', {
+              return fetch('http://178.105.53.33:5000/api/push/subscribe', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
@@ -807,7 +807,7 @@ function initPushNotifications(fahrzeug) {
               applicationServerKey: urlBase64ToUint8Array(d.key)
             }).then(function(sub) {
               var rawSub = sub.toJSON();
-              return fetch('/api/push/subscribe', {
+              return fetch('http://178.105.53.33:5000/api/push/subscribe', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
@@ -831,7 +831,7 @@ function peDoLogin() {
   var pw     = document.getElementById('peLoginPw').value;
   btn.disabled = true; btn.textContent = 'Anmelden…';
   errEl.style.display = 'none';
-  fetch('/api/login/care', {
+  fetch('http://178.105.53.33:5000/api/login/care', {
     method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({email: email, password: pw})
   })
@@ -855,7 +855,7 @@ function peDoLogin() {
   });
 }
 function peDoLogout() {
-  fetch('/api/logout', {method:'POST'}).finally(function(){
+  fetch('http://178.105.53.33:5000/api/logout', {method:'POST'}).finally(function(){
     document.getElementById('peUserName').style.display = 'none';
     document.getElementById('peLogoutBtn').style.display = 'none';
     peShowLogin();
@@ -880,7 +880,7 @@ function initMain() {
 }
 
 function init() {
-  fetch('/api/me')
+  fetch('http://178.105.53.33:5000/api/me')
     .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
     .then(function(res){
       if (res.ok && res.data.ok) {
@@ -1048,7 +1048,7 @@ function loadEinsatzDoks() {
   var eid = state.einsatz && state.einsatz.id;
   if (!eid || String(eid).indexOf('demo') === 0) { card.style.display = 'none'; return; }
   card.style.display = '';
-  fetch('/api/einsaetze/' + encodeURIComponent(eid) + '/dokumente', {credentials: 'include'})
+  fetch('http://178.105.53.33:5000/api/einsaetze/' + encodeURIComponent(eid) + '/dokumente', {credentials: 'include'})
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(d) {
       if (!d || !d.ok || !d.dokumente || !d.dokumente.length) {
@@ -1101,7 +1101,7 @@ function doksUploadFile(input) {
   if (btn) btn.disabled = true;
   var fd = new FormData();
   fd.append('file', file);
-  fetch('/api/einsaetze/' + encodeURIComponent(eid) + '/dokumente', {
+  fetch('http://178.105.53.33:5000/api/einsaetze/' + encodeURIComponent(eid) + '/dokumente', {
     method: 'POST',
     credentials: 'include',
     body: fd
@@ -1356,7 +1356,7 @@ function setStatus(s) {
     var hm = n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
     var eid = state.einsatz.id;
     var cgName = (document.getElementById('peUserName') || {}).textContent || '';
-    fetch('/api/einsaetze/' + eid + '/status', {
+    fetch('http://178.105.53.33:5000/api/einsaetze/' + eid + '/status', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({status: s, zeit: hm, akteur: cgName.trim(), akteur_typ: 'pfleger'})
     }).catch(function(){});
@@ -1393,7 +1393,7 @@ function loadMessages() {
     ]);
     return;
   }
-  fetch('/api/einsaetze/' + state.einsatz.id + '/nachrichten')
+  fetch('http://178.105.53.33:5000/api/einsaetze/' + state.einsatz.id + '/nachrichten')
     .then(function(r){ return r.json(); })
     .then(function(data) { renderMessages(data); })
     .catch(function(){});
@@ -1431,7 +1431,7 @@ function msgSendText(text) {
   state.messages.push(msg);
   renderMessages(state.messages);
   if (state.einsatz && state.einsatz.id && !state.einsatz.id.startsWith('demo')) {
-    fetch('/api/einsaetze/' + state.einsatz.id + '/nachrichten', {
+    fetch('http://178.105.53.33:5000/api/einsaetze/' + state.einsatz.id + '/nachrichten', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ text: text, sender: 'pfleger' })
     }).catch(function(){});
@@ -1444,7 +1444,7 @@ function msgSendText(text) {
 function startPolling() {
   state.pollTimer = setInterval(function() {
     if (!state.einsatz || state.einsatz.id.startsWith('demo')) return;
-    fetch('/api/einsaetze/' + state.einsatz.id + '/nachrichten')
+    fetch('http://178.105.53.33:5000/api/einsaetze/' + state.einsatz.id + '/nachrichten')
       .then(function(r){ return r.json(); })
       .then(function(data) {
         var prev = state.messages.length;
@@ -1497,7 +1497,7 @@ function loadArchiv() {
   var fz = state.einsatz && state.einsatz.fahrzeug;
   var cgName = (document.getElementById('peUserName') || {}).textContent || '';
   // Load completed missions for this vehicle/caregiver
-  fetch('/api/einsaetze?archiv=1')
+  fetch('http://178.105.53.33:5000/api/einsaetze?archiv=1')
     .then(function(r){ return r.ok ? r.json() : []; })
     .then(function(all) {
       var done = all.filter(function(e){
@@ -1547,7 +1547,7 @@ function toggleProto(eid) {
   }
   el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted);font-size:.8rem;">Wird geladen…</div>';
   el.style.display = 'block';
-  fetch('/api/einsaetze/' + eid + '/protokoll')
+  fetch('http://178.105.53.33:5000/api/einsaetze/' + eid + '/protokoll')
     .then(function(r){ return r.json(); })
     .then(function(rows) {
       if (!rows.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:8px;">Kein Protokoll vorhanden.</div>'; return; }
@@ -1709,7 +1709,7 @@ function gpsStart(fahrzeug) {
       var now = Date.now();
       if (now - _gpsLastSent < 20000) return; // max alle 20s senden
       _gpsLastSent = now;
-      fetch('/api/fahrzeuge/position', {
+      fetch('http://178.105.53.33:5000/api/fahrzeuge/position', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

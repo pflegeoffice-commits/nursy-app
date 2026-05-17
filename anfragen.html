@@ -645,7 +645,7 @@
   }
 
   function removeAcceptedPatient(id) {
-    fetch('/api/care/meine-patienten/' + encodeURIComponent(id), {
+    fetch('http://178.105.53.33:5000/api/care/meine-patienten/' + encodeURIComponent(id), {
       method: 'DELETE', credentials: 'include'
     }).catch(function(){});
     try {
@@ -676,7 +676,7 @@
     };
     existing.push(patObj);
     try { localStorage.setItem(ACCEPTED_KEY, JSON.stringify(existing)); } catch(e) {}
-    fetch('/api/care/meine-patienten', {
+    fetch('http://178.105.53.33:5000/api/care/meine-patienten', {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(patObj)
@@ -684,7 +684,7 @@
   }
 
   /* Patienten-Liste beim Start vom Server synchronisieren + UID setzen */
-  fetch('/api/care/meine-patienten', {credentials:'include'})
+  fetch('http://178.105.53.33:5000/api/care/meine-patienten', {credentials:'include'})
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d || !d.ok) return;
@@ -881,7 +881,7 @@
 
   async function loadApiRequests() {
     try {
-      var resp = await fetch('/api/requests/pending');
+      var resp = await fetch('http://178.105.53.33:5000/api/requests/pending');
       var json = await resp.json();
       _apiLoaded = true;
       if(!json.ok || !Array.isArray(json.requests) || json.requests.length === 0) { render(); return; }
@@ -911,7 +911,7 @@
       saveState(state);
       var apiAnf = API_ANFRAGEN.find(function(a) { return a.id === id; });
       if(apiAnf) {
-        fetch('/api/requests/' + id + '/decline', {method:'POST'}).catch(function(){});
+        fetch('http://178.105.53.33:5000/api/requests/' + id + '/decline', {method:'POST'}).catch(function(){});
       }
       location.reload();
       return;
@@ -930,7 +930,7 @@
     if (isApiCard) {
       var apiAnf = API_ANFRAGEN.find(function(a) { return a.id === id; });
       if (action === 'accept' && apiAnf) {
-        fetch('/api/requests/' + id + '/accept', {method:'POST'}).catch(function(){});
+        fetch('http://178.105.53.33:5000/api/requests/' + id + '/accept', {method:'POST'}).catch(function(){});
         saveAcceptedPatient({
           id: apiAnf._patientId || apiAnf.id,
           name: apiAnf.patName,
@@ -951,7 +951,7 @@
           try{ localStorage.setItem('nursy_current_patient_id', apiAnf._patientId); }catch(e){}
         }
       } else if (action === 'decline') {
-        fetch('/api/requests/' + id + '/decline', {method:'POST'}).catch(function(){});
+        fetch('http://178.105.53.33:5000/api/requests/' + id + '/decline', {method:'POST'}).catch(function(){});
       }
       state[id] = action === 'accept' ? 'accepted' : 'declined';
       saveState(state);
@@ -986,7 +986,7 @@
   if(resetBtn){
     resetBtn.addEventListener('click', function(){
       if(!confirm('Anfragen und angenommene Patienten zurücksetzen?')) return;
-      fetch('/api/care/meine-patienten/reset', {method:'POST', credentials:'include'}).catch(function(){});
+      fetch('http://178.105.53.33:5000/api/care/meine-patienten/reset', {method:'POST', credentials:'include'}).catch(function(){});
       try{ localStorage.removeItem('nursy_anfragen_state_v1'); }catch(e){}
       try{ localStorage.removeItem(ACCEPTED_KEY); }catch(e){}
       location.reload();
@@ -1134,7 +1134,7 @@
       newPat.noEmail       = keinEmail;
       newPat.loginEmail    = keinEmail ? '' : (newPat.email || (firstname.toLowerCase()+'.'+lastname.toLowerCase()+'@patient.nursy.at'));
 
-      fetch('/api/care/meine-patienten', {
+      fetch('http://178.105.53.33:5000/api/care/meine-patienten', {
         method:'POST', credentials:'include',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(newPat)
