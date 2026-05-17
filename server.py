@@ -5762,12 +5762,19 @@ def billing_patient_buchungen_rechnung(bid):
             return jsonify({'error': 'SMTP nicht konfiguriert'}), 500
         body = (
             f"Sehr geehrte/r {row['pat_vorname']} {row['pat_nachname']},\n\n"
-            f"für die erfolgreiche Vermittlung Ihrer Pflegeanfrage stellen wir Ihnen folgendes in Rechnung:\n\n"
-            f"Leistung: {row['beschreibung']}\n"
-            f"Ihre Pflegekraft: {row['cg_vorname']} {row['cg_nachname']}\n"
-            f"Betrag: € {row['betrag']:.2f}\n\n"
-            f"Bitte überweisen Sie den Betrag auf unser Konto.\n\n"
-            f"Mit freundlichen Grüßen,\nAkut Plus Pflegedienst – Verrechnungsstelle"
+            f"vielen Dank, dass Sie Akut Plus Pflegedienst – Nursy nutzen.\n\n"
+            f"Ihre Pflegeanfrage wurde erfolgreich vermittelt. Gemäß unseren Nutzungsbedingungen "
+            f"wird eine einmalige Vermittlungsgebühr erhoben, die Sie bitte an uns (die Plattform) entrichten:\n\n"
+            f"  Leistung:       {row['beschreibung']}\n"
+            f"  Pflegekraft:    {row['cg_vorname']} {row['cg_nachname']}\n"
+            f"  Betrag:         € {row['betrag']:.2f}\n\n"
+            f"Bitte überweisen Sie den Betrag auf unser Konto. Unsere Bankdaten entnehmen Sie dem Anhang "
+            f"bzw. teilen wir Ihnen auf Anfrage mit.\n\n"
+            f"Hinweis: Diese Gebühr geht ausschließlich an Akut Plus Pflegedienst (Plattformbetreiber), "
+            f"nicht an Ihre Pflegekraft.\n\n"
+            f"Bei Fragen stehen wir Ihnen gerne unter info@akutplus.at zur Verfügung.\n\n"
+            f"Mit freundlichen Grüßen,\nAkut Plus Pflegedienst – Verrechnungsstelle\n"
+            f"Nursy Pflegevermittlung"
         )
         cfg = _smtp_config()
         try:
