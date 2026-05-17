@@ -526,7 +526,15 @@ html, body { height: 100%; overflow: hidden; font-family: ui-sans-serif, system-
       </div>
       <!-- documents -->
       <div class="pe-card" id="aiDoksCard" style="display:none;">
-        <div class="pe-card__head">📎 Dokumente</div>
+        <div class="pe-card__head" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>📎 Dokumente</span>
+          <button id="doksUploadBtn" onclick="doksPickFile()" title="Dokument hochladen"
+            style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <span style="font-size:1rem;">📤</span> Hochladen
+          </button>
+        </div>
+        <input type="file" id="doksFileInput" accept="image/*,.pdf" style="display:none;" onchange="doksUploadFile(this)">
+        <div id="doksUploadStatus" style="display:none;font-size:.78rem;padding:6px 14px;color:var(--muted);"></div>
         <div id="aiDoksList" style="padding:4px 0;"></div>
       </div>
     </div>
@@ -1039,14 +1047,14 @@ function loadEinsatzDoks() {
   if (!card || !list) return;
   var eid = state.einsatz && state.einsatz.id;
   if (!eid || String(eid).indexOf('demo') === 0) { card.style.display = 'none'; return; }
+  card.style.display = '';
   fetch('/api/einsaetze/' + encodeURIComponent(eid) + '/dokumente', {credentials: 'include'})
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(d) {
       if (!d || !d.ok || !d.dokumente || !d.dokumente.length) {
-        card.style.display = 'none';
+        list.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--muted);">Keine Dokumente vorhanden.</div>';
         return;
       }
-      card.style.display = '';
       list.innerHTML = d.dokumente.map(function(f) {
         var isImg = /\.(png|jpg|jpeg|gif|webp|heic|heif)$/i.test(f.original_name || '');
         var ico = isImg ? '🖼️' : '📄';
@@ -1072,7 +1080,50 @@ function loadEinsatzDoks() {
         '</a>';
       }).join('');
     })
-    .catch(function() { card.style.display = 'none'; });
+    .catch(function() {
+      list.innerHTML = '<div style="padding:10px 14px;font-size:.82rem;color:var(--muted);">Dokumente konnten nicht geladen werden.</div>';
+    });
+}
+
+function doksPickFile() {
+  var input = document.getElementById('doksFileInput');
+  if (input) { input.value = ''; input.click(); }
+}
+
+function doksUploadFile(input) {
+  var file = input && input.files && input.files[0];
+  if (!file) return;
+  var eid = state.einsatz && state.einsatz.id;
+  if (!eid) return;
+  var status = document.getElementById('doksUploadStatus');
+  var btn = document.getElementById('doksUploadBtn');
+  if (status) { status.style.display = ''; status.textContent = '⏳ Wird hochgeladen…'; }
+  if (btn) btn.disabled = true;
+  var fd = new FormData();
+  fd.append('file', file);
+  fetch('/api/einsaetze/' + encodeURIComponent(eid) + '/dokumente', {
+    method: 'POST',
+    credentials: 'include',
+    body: fd
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d && d.ok) {
+        if (status) { status.textContent = '✅ Hochgeladen!'; }
+        setTimeout(function() {
+          if (status) status.style.display = 'none';
+        }, 2000);
+        loadEinsatzDoks();
+      } else {
+        if (status) { status.textContent = '❌ ' + ((d && d.error) || 'Fehler beim Hochladen'); }
+      }
+    })
+    .catch(function() {
+      if (status) { status.textContent = '❌ Netzwerkfehler'; }
+    })
+    .finally(function() {
+      if (btn) btn.disabled = false;
+    });
 }
 
 // ════════════════════════════════════════════════════════
