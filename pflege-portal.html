@@ -445,7 +445,7 @@ const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August',
 
 async function init() {
   if(!sessionStorage.getItem('nursy_portal_auth')){ location.replace('/portal/'); return; }
-  const r = await fetch('http://178.105.53.33:5000/api/portal/me');
+  const r = await fetch('/api/portal/me');
   if (!r.ok) { location.href = '/portal/'; return; }
   const data = await r.json();
   portalUser = data;
@@ -475,7 +475,7 @@ async function init() {
   loadInfo();
   // Fahrzeugbestätigung-Status anzeigen
   try {
-    const ck  = await fetch('http://178.105.53.33:5000/api/fahrzeug/check', { credentials: 'include' });
+    const ck  = await fetch('/api/fahrzeug/check', { credentials: 'include' });
     const ckd = await ck.json();
     if (ckd.ok) {
       if (!ckd.signed) {
@@ -501,7 +501,7 @@ async function init() {
 }
 
 async function loadFahrzeuge() {
-  const r = await fetch('http://178.105.53.33:5000/api/portal/fahrzeuge');
+  const r = await fetch('/api/portal/fahrzeuge');
   if (!r.ok) return;
   const {fahrzeuge} = await r.json();
   const sel = document.getElementById('dienstFahrzeug');
@@ -625,7 +625,7 @@ function renderNextDienst() {
 }
 
 async function loadEvents() {
-  const r = await fetch('http://178.105.53.33:5000/api/portal/events');
+  const r = await fetch('/api/portal/events');
   if (!r.ok) return;
   const {events} = await r.json();
   const el = document.getElementById('eventsList');
@@ -671,7 +671,7 @@ async function abmelden(eid, btn) {
 }
 
 async function loadInfo() {
-  const r = await fetch('http://178.105.53.33:5000/api/portal/info');
+  const r = await fetch('/api/portal/info');
   if (!r.ok) return;
   const {info} = await r.json();
   const el = document.getElementById('infoList');
@@ -729,7 +729,7 @@ async function submitDienst() {
   if (!datum)   { alertEl.innerHTML='<div class="alert alert-err">Datum wählen</div>'; return; }
   if (!fahrzeug){ alertEl.innerHTML='<div class="alert alert-err">Bitte Fahrzeug auswählen</div>'; return; }
 
-  const r = await fetch('http://178.105.53.33:5000/api/portal/dienste', {
+  const r = await fetch('/api/portal/dienste', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({datum, art:selectedArt, bezirk, fahrzeug, notiz})
@@ -758,7 +758,7 @@ function calMove(dir) {
 }
 
 async function doLogout() {
-  await fetch('http://178.105.53.33:5000/api/portal/logout', {method:'POST'});
+  await fetch('/api/portal/logout', {method:'POST'});
   sessionStorage.removeItem('nursy_portal_auth');
   location.href = '/portal/';
 }

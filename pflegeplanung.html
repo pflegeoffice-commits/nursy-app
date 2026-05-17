@@ -409,7 +409,7 @@
       const pid = (typeof getCurrentPatientId==='function') ? getCurrentPatientId() : '';
       if(!pid) return;
       _writeDfMeasuresCache(pid, _ppPlans);
-      fetch('http://178.105.53.33:5000/api/care/pflegeplanung/' + encodeURIComponent(pid), {
+      fetch('/api/care/pflegeplanung/' + encodeURIComponent(pid), {
         method:'PUT', credentials:'include',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({plaene: _ppPlans})
@@ -418,7 +418,7 @@
     function _ppFetchPlans(){
       const pid = (typeof getCurrentPatientId==='function') ? getCurrentPatientId() : '';
       if(!pid){ _ppPlans=[]; renderPlans(); return; }
-      fetch('http://178.105.53.33:5000/api/care/pflegeplanung/' + encodeURIComponent(pid), { credentials:'include' })
+      fetch('/api/care/pflegeplanung/' + encodeURIComponent(pid), { credentials:'include' })
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           _ppPlans = (d && d.ok && Array.isArray(d.plaene)) ? d.plaene : [];

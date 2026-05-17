@@ -542,7 +542,7 @@
     /* Wunddokumentation auch serverseitig speichern */
     var _wdPatId = '';
     try{ _wdPatId = localStorage.getItem('nursy_current_patient_id') || 'default'; }catch(e){}
-    fetch('http://178.105.53.33:5000/api/care/wunddoku/' + encodeURIComponent(_wdPatId), {
+    fetch('/api/care/wunddoku/' + encodeURIComponent(_wdPatId), {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)

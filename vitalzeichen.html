@@ -935,7 +935,7 @@ function extSeed(){
 }
 function _vzFetchForPatient(patId){
   if(!patId) return;
-  fetch('http://178.105.53.33:5000/api/care/vitalzeichen/' + encodeURIComponent(patId), { credentials:'include' })
+  fetch('/api/care/vitalzeichen/' + encodeURIComponent(patId), { credentials:'include' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d || !d.ok || !Array.isArray(d.eintraege) || !d.eintraege.length){
@@ -1041,7 +1041,7 @@ function extRender(){
       extRender();
       /* API-Delete: per ID wenn verfügbar */
       if(entry && entry._id){
-        fetch('http://178.105.53.33:5000/api/care/vitalzeichen/' + encodeURIComponent(entry._id), {
+        fetch('/api/care/vitalzeichen/' + encodeURIComponent(entry._id), {
           method:'DELETE', credentials:'include'
         }).catch(function(){});
       }
@@ -1122,7 +1122,7 @@ document.getElementById('extSave').addEventListener('click', ()=>{
   };
   const _vzNewIdx = _vzExtData.push(entry) - 1;
   const _vzPatId = getCurrentPatientId();
-  fetch('http://178.105.53.33:5000/api/care/vitalzeichen', {
+  fetch('/api/care/vitalzeichen', {
     method:'POST', credentials:'include',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({

@@ -87,7 +87,7 @@
       var list = document.getElementById('cgList');
       var count = document.getElementById('cgCount');
       try {
-        var resp = await fetch('http://178.105.53.33:5000/api/caregivers');
+        var resp = await fetch('/api/caregivers');
         var data = await resp.json();
         if(!data.ok || !Array.isArray(data.caregivers)){
           list.innerHTML = '<div class="cg-empty">Fehler beim Laden.</div>';

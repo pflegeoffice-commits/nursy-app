@@ -146,7 +146,7 @@ function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; 
 function fmt(dt){ if(!dt) return '–'; var d=dt.replace('T',' ').slice(0,16); return d; }
 
 function loadVertraege(){
-  fetch('http://178.105.53.33:5000/api/care/vertraege',{credentials:'include'})
+  fetch('/api/care/vertraege',{credentials:'include'})
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(!d.ok){ document.getElementById('vtListe').innerHTML='<div class="empty-state">Nicht angemeldet.</div>'; return; }
@@ -185,7 +185,7 @@ function vtUpload(){
   var fd=new FormData();
   fd.append('titel',titel);
   fd.append('datei',file);
-  fetch('http://178.105.53.33:5000/api/care/vertraege',{method:'POST',body:fd,credentials:'include'})
+  fetch('/api/care/vertraege',{method:'POST',body:fd,credentials:'include'})
   .then(function(r){ return r.json(); })
   .then(function(d){
     btn.disabled=false; btn.textContent='📤 Vertrag hochladen';
@@ -205,7 +205,7 @@ function vtUpload(){
 }
 
 function genLink(vid){
-  fetch('http://178.105.53.33:5000/api/care/vertraege/'+vid+'/signatur-link',{method:'POST',credentials:'include'})
+  fetch('/api/care/vertraege/'+vid+'/signatur-link',{method:'POST',credentials:'include'})
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(!d.ok){ toast('Fehler: '+(d.error||'')); return; }
@@ -237,7 +237,7 @@ function showSigs(vid, titel){
   document.getElementById('sigModalTitle').textContent='✍️ Signaturen – '+titel;
   document.getElementById('sigModalBody').innerHTML='<div class="empty-state">Lade…</div>';
   document.getElementById('sigOverlay').classList.add('active');
-  fetch('http://178.105.53.33:5000/api/care/vertrag-signaturen/'+vid,{credentials:'include'})
+  fetch('/api/care/vertrag-signaturen/'+vid,{credentials:'include'})
   .then(function(r){ return r.json(); })
   .then(function(d){
     var sigs=(d.signaturen||[]).filter(function(s){ return s.patient_name; });
@@ -264,7 +264,7 @@ function closeSigModal(){
 
 function delVertrag(vid, titel){
   if(!confirm('Vertrag "'+titel+'" wirklich löschen?')) return;
-  fetch('http://178.105.53.33:5000/api/care/vertraege/'+vid,{method:'DELETE',credentials:'include'})
+  fetch('/api/care/vertraege/'+vid,{method:'DELETE',credentials:'include'})
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(d.ok){ toast('Vertrag gelöscht'); loadVertraege(); }

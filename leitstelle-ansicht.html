@@ -3870,7 +3870,7 @@
 
   // ── Live-Besatzung (Fahrzeug-Login-Status) ──
   function loadBesatzung(){
-    fetch('http://178.105.53.33:5000/api/fahrzeuge')
+    fetch('/api/fahrzeuge')
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         var el = document.getElementById('besatzungList');
@@ -3907,7 +3907,7 @@
   // ── Dienstplan heute (Portal-Dienste) ──
   function loadPortalDienste(){
     var today = new Date().toISOString().split('T')[0];
-    fetch('http://178.105.53.33:5000/api/leitstelle/portal-dienste?datum='+today, {credentials:'include'})
+    fetch('/api/leitstelle/portal-dienste?datum='+today, {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         var el = document.getElementById('portalDienstList');
@@ -3952,7 +3952,7 @@
   };
 
   function loadEingang(){
-    fetch('http://178.105.53.33:5000/api/nachrichten?since=0', {credentials:'include'})
+    fetch('/api/nachrichten?since=0', {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d) return;
@@ -4002,7 +4002,7 @@
   }
 
   window.markGelesen = function(nid){
-    fetch('http://178.105.53.33:5000/api/nachrichten/'+nid+'/gelesen', {method:'POST',credentials:'include'})
+    fetch('/api/nachrichten/'+nid+'/gelesen', {method:'POST',credentials:'include'})
       .then(function(){ eingangNachrichten.forEach(function(n){ if(n.id===nid) n.gelesen=1; }); renderEingang(); updateEingangBadge(); })
       .catch(function(){});
   };
@@ -4010,7 +4010,7 @@
   window.markAlleGelesen = function(){
     var unread = eingangNachrichten.filter(function(n){ return !n.gelesen; });
     unread.forEach(function(n){
-      fetch('http://178.105.53.33:5000/api/nachrichten/'+n.id+'/gelesen', {method:'POST',credentials:'include'}).catch(function(){});
+      fetch('/api/nachrichten/'+n.id+'/gelesen', {method:'POST',credentials:'include'}).catch(function(){});
       n.gelesen=1;
     });
     renderEingang(); updateEingangBadge();
@@ -4022,7 +4022,7 @@
   // ── Pfleger-Status Polling (alle 15 Sek.) ──
   // Holt Status-Updates von Pflegern aus DB + lädt neue Einsätze (andere Sitzung/Reload)
   function lsSyncEinsatzStatus() {
-    fetch('http://178.105.53.33:5000/api/einsaetze', { credentials: 'include' })
+    fetch('/api/einsaetze', { credentials: 'include' })
       .then(function(r) { return r.json(); })
       .then(function(list) {
         if (!Array.isArray(list)) return;
@@ -4842,7 +4842,7 @@
     res.classList.add('open');
     res.innerHTML = '<div class="ae-sr-item"><div class="ae-sr-name" style="color:var(--muted);font-weight:500;">🔍 Suche…</div></div>';
 
-    fetch('http://178.105.53.33:5000/api/patienten?name=' + encodeURIComponent(query), {credentials:'include'})
+    fetch('/api/patienten?name=' + encodeURIComponent(query), {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : {ok:false, patients:[], nursy_patients:[]}; })
       .catch(function(){ return {ok:false, patients:[], nursy_patients:[]}; })
       .then(function(data) {
@@ -5018,7 +5018,7 @@
       medikamente:  v('aeMedikamente'),
       wichtig:      v('aeMedWichtig')
     };
-    fetch('http://178.105.53.33:5000/api/register/patient', {
+    fetch('/api/register/patient', {
       method: 'POST',
       credentials: 'include',
       headers: {'Content-Type':'application/json'},
@@ -5060,7 +5060,7 @@
   }
 
   function aeLoadFahrzeuge(selectedVal) {
-    fetch('http://178.105.53.33:5000/api/fahrzeuge', {credentials:'include'}).then(function(r){return r.json();}).then(function(d){
+    fetch('/api/fahrzeuge', {credentials:'include'}).then(function(r){return r.json();}).then(function(d){
       var sel = document.getElementById('aeFz');
       if(!sel) return;
       var fzList = d.fahrzeuge || d || [];
@@ -5336,7 +5336,7 @@
 
   /* ── Einsätze beim Seitenstart aus DB laden ── */
   function lsLoadEinsaetzeFromDB() {
-    fetch('http://178.105.53.33:5000/api/einsaetze', {credentials:'include'})
+    fetch('/api/einsaetze', {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : []; })
       .then(function(list){
         if (!Array.isArray(list)) return;
@@ -5423,7 +5423,7 @@
     var newNotiz = (document.getElementById('aeeNotiz').value || '').trim();
     // Inhaltliche Änderungen (Notiz, Fahrzeug) → per API speichern
     // → Backend setzt ls_geaendert-Flag → Auftragslage zeigt Goldmarkierung
-    fetch('http://178.105.53.33:5000/api/einsaetze/' + encodeURIComponent(aeEditId), {
+    fetch('/api/einsaetze/' + encodeURIComponent(aeEditId), {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -5464,7 +5464,7 @@
       lsToast('⚠️ Kein Patient mit diesem Einsatz verknüpft.');
       return;
     }
-    fetch('http://178.105.53.33:5000/api/patienten/'+encodeURIComponent(_aeLinkedPatientId),{credentials:'include'})
+    fetch('/api/patienten/'+encodeURIComponent(_aeLinkedPatientId),{credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d.ok||!d.patient){ lsToast('⚠️ Patient nicht gefunden.'); return; }
@@ -5531,7 +5531,7 @@
     if (!wrap || !liste) return;
     liste.innerHTML = '<div style="padding:12px;text-align:center;color:#64748b;font-size:.78rem;">⏳ Wird geladen…</div>';
     wrap.style.display = '';
-    fetch('http://178.105.53.33:5000/api/patienten/' + encodeURIComponent(dbPatientId) + '/einsaetze', {credentials:'include'})
+    fetch('/api/patienten/' + encodeURIComponent(dbPatientId) + '/einsaetze', {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d) {
         if (!d.ok || !d.einsaetze || !d.einsaetze.length) {
@@ -5593,7 +5593,7 @@
   /* ── Lagebild / Dokumentation aus letztem Einsatz übernehmen ── */
   function aeUebernehmeLagebild(eid, artLabel, datum) {
     if (!confirm('Dokumentation aus Einsatz ' + datum + ' (' + artLabel + ') in das aktuelle Formular übernehmen?\n\nDie bestehenden Lagebild-Felder werden überschrieben.')) return;
-    fetch('http://178.105.53.33:5000/api/einsaetze/' + encodeURIComponent(eid), {credentials:'include'})
+    fetch('/api/einsaetze/' + encodeURIComponent(eid), {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(e) {
         if (!e || e.error) { lsToast('⚠️ Einsatz nicht gefunden.'); return; }
@@ -5772,7 +5772,7 @@
       {id:'ck_infektion', l:'Infektionsrisiko'}
     ];
     riskChips.forEach(function(r){ var el=document.getElementById(r.id); if(el&&el.checked) risiken.push(r.l); });
-    fetch('http://178.105.53.33:5000/api/einsaetze', {
+    fetch('/api/einsaetze', {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -6248,7 +6248,7 @@
   }
 
   function lsLoadFahrzeugeFromApi(){
-    fetch('http://178.105.53.33:5000/api/fahrzeuge', {credentials:'include'})
+    fetch('/api/fahrzeuge', {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
       .then(function(d){
         if(!d || !d.fahrzeuge) {
@@ -6304,7 +6304,7 @@
     lsFahrzeuge.forEach(function(f,i){ info += '  ' + i + ': ' + f.id + ' (' + f.status + ')\n'; });
     info += '\nAPI-Test läuft…';
     alert(info);
-    fetch('http://178.105.53.33:5000/api/fahrzeuge', {credentials:'include'})
+    fetch('/api/fahrzeuge', {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         alert('API antwortet: ' + (d.fahrzeuge ? d.fahrzeuge.length : 0) + ' Fahrzeuge\n'
@@ -6320,7 +6320,7 @@
   });
   // Faster position refresh every 20s (updates map markers with GPS coords)
   setInterval(function(){
-    fetch('http://178.105.53.33:5000/api/fahrzeuge', {credentials:'include'})
+    fetch('/api/fahrzeuge', {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.fahrzeuge) return;
@@ -6476,7 +6476,7 @@
     if (fz) {
       fz.status = newStatus;
       renderDashFahrzeuge();
-      fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(fz.id)+'/status', {
+      fetch('/api/fahrzeuge/'+encodeURIComponent(fz.id)+'/status', {
         method:'PUT', credentials:'include',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({status: newStatus})
@@ -6506,7 +6506,7 @@
     if (!id) { alert('Bitte Kürzel / Name eingeben.'); return; }
     var btn = document.querySelector('.fz-add-save');
     if (btn) { btn.disabled = true; btn.textContent = 'Speichern…'; }
-    fetch('http://178.105.53.33:5000/api/fahrzeuge', {
+    fetch('/api/fahrzeuge', {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({name: id, typ: typ, bundesland: bl, bezirk: bz})
@@ -6553,7 +6553,7 @@
     var fz = fzFindBySid(fzId);
     if (!fz) return;
     if (!confirm('Fahrzeug "'+fz.name+'" wirklich löschen?')) return;
-    fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(fz.id), {
+    fetch('/api/fahrzeuge/'+encodeURIComponent(fz.id), {
       method:'DELETE', credentials:'include'
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d.ok) {
@@ -6575,7 +6575,7 @@
     var name = inp ? inp.value.trim() : '';
     if (!fz) return;
     if (!name) { fzDelFahrer(fzId); return; }
-    fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(fz.id)+'/fahrer', {
+    fetch('/api/fahrzeuge/'+encodeURIComponent(fz.id)+'/fahrer', {
       method:'PUT', credentials:'include',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({caregiver_name: name})
@@ -6591,7 +6591,7 @@
     var fz = fzFindBySid(fzId);
     if (!fz) return;
     if (!confirm('Fahrer vom Fahrzeug abmelden?')) return;
-    fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(fz.id)+'/fahrer', {
+    fetch('/api/fahrzeuge/'+encodeURIComponent(fz.id)+'/fahrer', {
       method:'DELETE', credentials:'include'
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d.ok) {
@@ -6720,7 +6720,7 @@
   }
 
   function fzLoadChat(fzId, silent) {
-    fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(fzId)+'/nachrichten', {credentials:'include'})
+    fetch('/api/fahrzeuge/'+encodeURIComponent(fzId)+'/nachrichten', {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         fzCurrentEinsatzId = d.einsatz_id || null;
@@ -6758,7 +6758,7 @@
     // Broadcast to all vehicles
     if (fzMsgCurrentTarget === null) {
       lsFahrzeuge.forEach(function(f){
-        fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(f.id)+'/nachrichten', {
+        fetch('/api/fahrzeuge/'+encodeURIComponent(f.id)+'/nachrichten', {
           method:'POST', headers:{'Content-Type':'application/json'},
           credentials:'include', body: JSON.stringify({text: text})
         }).catch(function(){});
@@ -6770,7 +6770,7 @@
 
     // Send to specific vehicle's active einsatz
     if(inp) inp.value = '';
-    fetch('http://178.105.53.33:5000/api/fahrzeuge/'+encodeURIComponent(fzMsgCurrentTarget)+'/nachrichten', {
+    fetch('/api/fahrzeuge/'+encodeURIComponent(fzMsgCurrentTarget)+'/nachrichten', {
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'include', body: JSON.stringify({text: text})
     }).then(function(r){ return r.json(); })
@@ -7030,7 +7030,7 @@
     /* In DB speichern */
     var dbStatus = lsLocalToDbStatus(newStatus);
     if (dbStatus) {
-      fetch('http://178.105.53.33:5000/api/einsaetze/' + id + '/status', {
+      fetch('/api/einsaetze/' + id + '/status', {
         method: 'POST', credentials: 'include',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({status: dbStatus, akteur_typ: 'leitstelle'})
@@ -7043,7 +7043,7 @@
     aeEinsaetze = aeEinsaetze.filter(function(e){ return e.id !== id; });
     renderDashboard();
     /* In DB als storniert markieren */
-    fetch('http://178.105.53.33:5000/api/einsaetze/' + id + '/status', {
+    fetch('/api/einsaetze/' + id + '/status', {
       method: 'POST', credentials: 'include',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({status: 'storniert', akteur_typ: 'leitstelle'})
@@ -7165,7 +7165,7 @@
       // ── Immer per PUT speichern — kein Status-Override, kein Fehlalarm ──
       var dringChanged = newDring !== (localE._prevDring || '');
       var artChanged   = newArt   !== (localE._prevArt   || '');
-      fetch('http://178.105.53.33:5000/api/einsaetze/' + encodeURIComponent(savedId), {
+      fetch('/api/einsaetze/' + encodeURIComponent(savedId), {
         method: 'PUT', credentials: 'include',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -7408,7 +7408,7 @@
       generated++;
 
       /* ── Server-Persistenz ── */
-      fetch('http://178.105.53.33:5000/api/einsaetze', {
+      fetch('/api/einsaetze', {
         method: 'POST', credentials: 'include',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -7548,7 +7548,7 @@
   var _lsArchivGeladen = false;
   function lsLadeArchiv(btn) {
     if (btn) { btn.disabled = true; btn.textContent = '…'; }
-    fetch('http://178.105.53.33:5000/api/archiv/einsaetze', {credentials:'include'})
+    fetch('/api/archiv/einsaetze', {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         _lsArchivGeladen = true;
@@ -8879,7 +8879,7 @@
     var bz   = document.getElementById('lsGbBezirk').value;
     if (errEl) errEl.style.display = 'none';
     btn.disabled = true; btn.textContent = 'Speichern…';
-    fetch('http://178.105.53.33:5000/api/leitstelle/gebiet', {
+    fetch('/api/leitstelle/gebiet', {
       method: 'PUT', credentials: 'same-origin',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({bundesland: bl, bezirk: bz})
@@ -8934,7 +8934,7 @@
   };
 
   window.lsDoLogout = function() {
-    fetch('http://178.105.53.33:5000/api/leitstelle/logout', {method:'POST', credentials:'same-origin'}).finally(function(){
+    fetch('/api/leitstelle/logout', {method:'POST', credentials:'same-origin'}).finally(function(){
       NursyAuth.clear('leitstelle');
       window.location.replace('leitstelle-login.html?logout=1');
     });
@@ -8966,7 +8966,7 @@
     var el = document.getElementById('lsPreislisteOverlay');
     el.style.display = 'flex';
     if (_preislisteLoaded) return;
-    fetch('http://178.105.53.33:5000/api/preisliste', {credentials:'same-origin'})
+    fetch('/api/preisliste', {credentials:'same-origin'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         if (!d.ok) return;
@@ -9016,7 +9016,7 @@
 
   if(!NursyAuth.get('leitstelle') && !NursyAuth.get('admin')){ window.location.replace('leitstelle-login.html'); }
   else {
-  fetch('http://178.105.53.33:5000/api/leitstelle/me', {credentials:'same-origin'})
+  fetch('/api/leitstelle/me', {credentials:'same-origin'})
     .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
     .then(function(res){
       if (res.ok && res.data.ok) {
@@ -9143,7 +9143,7 @@
       _renderAkteEinsaetze(aeEinsaetze);
     } else {
       /* Noch nicht geladen – direkt aus API holen */
-      fetch('http://178.105.53.33:5000/api/einsaetze', {credentials:'include'})
+      fetch('/api/einsaetze', {credentials:'include'})
         .then(function(r){ return r.ok ? r.json() : []; })
         .then(function(list){ _renderAkteEinsaetze(Array.isArray(list) ? list.map(lsDbToLocal) : []); })
         .catch(function(){ einsatzEl.innerHTML = '<span style="font-size:.8rem;color:var(--muted);">Fehler beim Laden</span>'; });

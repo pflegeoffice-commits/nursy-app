@@ -733,7 +733,7 @@ function closeBeendenModal(){
       saveBtn.disabled = true;
       /* 1. Zuerst Server beenden – dann kann kein Reload mehr wiederherstellen */
       try {
-        await fetch('http://178.105.53.33:5000/api/care/meine-patienten/' + encodeURIComponent(_beendenPatId), {
+        await fetch('/api/care/meine-patienten/' + encodeURIComponent(_beendenPatId), {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -756,7 +756,7 @@ function closeBeendenModal(){
 /* Async: eigene Klienten vom Server laden (isoliert per Pfleger via caregiver_id) */
 (async function(){
   try{
-    const resp = await fetch('http://178.105.53.33:5000/api/care/meine-patienten', {credentials:'include'});
+    const resp = await fetch('/api/care/meine-patienten', {credentials:'include'});
     if(!resp.ok) return;
     const data = await resp.json();
     if(!data.ok || !Array.isArray(data.patients)) return;

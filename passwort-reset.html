@@ -156,7 +156,7 @@
       if (!email) { showMsg('reqMsg','err','Bitte E-Mail eingeben.'); return; }
       hideMsg('reqMsg');
       setLoading('reqBtn', true);
-      fetch('http://178.105.53.33:5000/api/client/passwort-vergessen', {
+      fetch('/api/client/passwort-vergessen', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ email: email })
@@ -186,7 +186,7 @@
       if (pw !== pw2)    { showMsg('resetMsg','err','Passwörter stimmen nicht überein.'); return; }
       if (!_token)       { showMsg('resetMsg','err','Kein gültiger Reset-Token. Bitte Link erneut anfordern.'); return; }
       setLoading('resetBtn', true);
-      fetch('http://178.105.53.33:5000/api/client/passwort-reset', {
+      fetch('/api/client/passwort-reset', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ token: _token, password: pw })

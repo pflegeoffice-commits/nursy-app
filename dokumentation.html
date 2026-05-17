@@ -704,7 +704,7 @@
 
       /* Patienten- und Wunddoku-Listen beim Start vom Server synchronisieren */
       (function syncFromApi(){
-        fetch('http://178.105.53.33:5000/api/care/meine-patienten', {credentials:'include'})
+        fetch('/api/care/meine-patienten', {credentials:'include'})
           .then(function(r){ return r.ok ? r.json() : null; })
           .then(function(d){
             if(!d || !d.ok || !Array.isArray(d.patients)) return;
@@ -813,7 +813,7 @@
       }
 
       function _apiDokSave(entry){
-        fetch('http://178.105.53.33:5000/api/care/dokumentation', {
+        fetch('/api/care/dokumentation', {
           method:'POST', credentials:'include',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify(entry)
@@ -821,7 +821,7 @@
       }
 
       function _apiDokUpdate(entry){
-        fetch('http://178.105.53.33:5000/api/care/dokumentation/' + encodeURIComponent(entry.id), {
+        fetch('/api/care/dokumentation/' + encodeURIComponent(entry.id), {
           method:'PUT', credentials:'include',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify(entry)
@@ -829,7 +829,7 @@
       }
 
       function _apiDokDelete(id){
-        fetch('http://178.105.53.33:5000/api/care/dokumentation/' + encodeURIComponent(id), {
+        fetch('/api/care/dokumentation/' + encodeURIComponent(id), {
           method:'DELETE', credentials:'include'
         }).catch(function(){});
       }
@@ -1211,7 +1211,7 @@
           try{ return JSON.parse(localStorage.getItem('nursy_wunddoku_v1')||'null'); }catch(e){ return null; }
         }
         function loadWdFromApi(patId, cb){
-          fetch('http://178.105.53.33:5000/api/care/wunddoku/' + encodeURIComponent(patId||'default'), {credentials:'include'})
+          fetch('/api/care/wunddoku/' + encodeURIComponent(patId||'default'), {credentials:'include'})
             .then(function(r){ return r.ok ? r.json() : null; })
             .then(function(d){
               if(d && d.ok && d.data){

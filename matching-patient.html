@@ -421,7 +421,7 @@
 
   /* ── Auth ── */
   function init(){
-    fetch('http://178.105.53.33:5000/api/client/me', { credentials: 'include' })
+    fetch('/api/client/me', { credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d.ok){ setDisplay(qs('#loginGate'), true); return; }
@@ -431,20 +431,20 @@
         /* Logout-Link in Nav */
         qs('#navLogout').addEventListener('click', function(e){
           e.preventDefault();
-          fetch('http://178.105.53.33:5000/api/logout/client', {method:'POST', credentials:'include'})
+          fetch('/api/logout/client', {method:'POST', credentials:'include'})
             .then(function(){ location.href='login-client.html'; })
             .catch(function(){ location.href='login-client.html'; });
         });
         /* Abmelden-Button */
         qs('#btnLogoutKlient').addEventListener('click', function(){
-          fetch('http://178.105.53.33:5000/api/logout/client', {method:'POST', credentials:'include'})
+          fetch('/api/logout/client', {method:'POST', credentials:'include'})
             .then(function(){ location.href='login-client.html'; })
             .catch(function(){ location.href='login-client.html'; });
         });
         /* Account löschen */
         qs('#btnDeleteKlient').addEventListener('click', function(){
           if(!confirm('Account wirklich löschen?\n\nAlle Ihre Anfragen und Verbindungen werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) return;
-          fetch('http://178.105.53.33:5000/api/client/account', {method:'DELETE', credentials:'include'})
+          fetch('/api/client/account', {method:'DELETE', credentials:'include'})
             .then(function(r){ return r.json(); })
             .then(function(d){
               if(d.ok) location.href='index.html';
@@ -464,7 +464,7 @@
 
   /* ── Status laden ── */
   function ladeStatus(){
-    fetch('http://178.105.53.33:5000/api/matching/status', { credentials: 'include' })
+    fetch('/api/matching/status', { credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d.ok) return;
@@ -547,7 +547,7 @@
     var pf = qs('#anfPflegebedarf').value.trim();
     var bz = qs('#anfBezirk').value.trim();
     if(!pf){ showAlert(alert, 'Bitte beschreiben Sie Ihren Pflegebedarf.'); return; }
-    fetch('http://178.105.53.33:5000/api/matching/anfrage', {
+    fetch('/api/matching/anfrage', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pflegebedarf: pf, leistungen: _leistungen, bezirk: bz, schicht_wunsch: _schichten })
@@ -562,7 +562,7 @@
   /* ── Freistellen ── */
   qs('#btnFreistellen').addEventListener('click', function(){
     if(!confirm('Möchten Sie Ihre Anfrage für alle Pflegekräfte freistellen? (Datenschutz: Ihr Name bleibt verborgen)')) return;
-    fetch('http://178.105.53.33:5000/api/matching/anfrage/freistellen', { method: 'POST', credentials: 'include' })
+    fetch('/api/matching/anfrage/freistellen', { method: 'POST', credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){ if(d.ok) ladeStatus(); });
   });
@@ -570,7 +570,7 @@
   /* ── Zurückziehen ── */
   qs('#btnZurueckziehen').addEventListener('click', function(){
     if(!confirm('Anfrage wirklich zurückziehen?')) return;
-    fetch('http://178.105.53.33:5000/api/matching/anfrage', { method: 'DELETE', credentials: 'include' })
+    fetch('/api/matching/anfrage', { method: 'DELETE', credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){ if(d.ok) ladeStatus(); });
   });
@@ -647,7 +647,7 @@
       return;
     }
     if(!confirm('Anfrage an ' + name + ' senden?')) return;
-    fetch('http://178.105.53.33:5000/api/matching/anfrage/ziel/' + cgId, { method: 'POST', credentials: 'include' })
+    fetch('/api/matching/anfrage/ziel/' + cgId, { method: 'POST', credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.ok){ ladeStatus(); }
@@ -662,7 +662,7 @@
     var profil  = qs('#verbindungProfil');
     setDisplay(loading, true); setDisplay(kein, false); setDisplay(profil, false);
 
-    fetch('http://178.105.53.33:5000/api/matching/verbindung/pfleger', { credentials: 'include' })
+    fetch('/api/matching/verbindung/pfleger', { credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         setDisplay(loading, false);

@@ -280,7 +280,7 @@
   /* ── Pflegeplan vom Server laden → lokale Map + dfMeasures-Cache befüllen → neu rendern ── */
   function fetchAndCachePflegeplan(patId, onDone){
     if(!patId) return onDone && onDone();
-    fetch('http://178.105.53.33:5000/api/care/pflegeplanung/' + encodeURIComponent(patId), {credentials:'include'})
+    fetch('/api/care/pflegeplanung/' + encodeURIComponent(patId), {credentials:'include'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.ok || !Array.isArray(d.plaene)) return;

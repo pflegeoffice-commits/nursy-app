@@ -41,7 +41,7 @@
   }
 
   function fetchServerInvoices(){
-    fetch('http://178.105.53.33:5000/api/my/rechnungen', { credentials: 'include' })
+    fetch('/api/my/rechnungen', { credentials: 'include' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.ok || !Array.isArray(d.rechnungen)) return;

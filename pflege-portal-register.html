@@ -297,7 +297,7 @@ async function doSubmit() {
   };
 
   try {
-    const r = await fetch('http://178.105.53.33:5000/api/portal/registrieren', {
+    const r = await fetch('/api/portal/registrieren', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -328,7 +328,7 @@ function prevStep() {
 
 async function loadFahrzeuge() {
   try {
-    const r = await fetch('http://178.105.53.33:5000/api/portal/fahrzeuge');
+    const r = await fetch('/api/portal/fahrzeuge');
     const d = await r.json();
     if (d.ok && d.fahrzeuge) {
       const sel = document.getElementById('fahrzeugPref');

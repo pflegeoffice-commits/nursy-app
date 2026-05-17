@@ -1321,7 +1321,7 @@ function _doStatusUpdate(eid, newStatus, a, isUndo){
   toast(isUndo ? '↩ Zurückgesetzt auf: '+(labels[newStatus]||newStatus) : (labels[newStatus]||newStatus));
 
   /* Server-Call */
-  fetch('http://178.105.53.33:5000/api/einsaetze/'+encodeURIComponent(eid)+'/status', {
+  fetch('/api/einsaetze/'+encodeURIComponent(eid)+'/status', {
     method:'POST', credentials:'include',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({status: newStatus, zeit: nowHM})
@@ -1353,8 +1353,8 @@ function alBackup(){
 function doLogout(){
   if(!confirm('Wirklich abmelden?')) return;
   Promise.all([
-    fetch('http://178.105.53.33:5000/api/fahrzeuge/abmelden', {method:'POST', credentials:'include'}),
-    fetch('http://178.105.53.33:5000/api/logout', {method:'POST', credentials:'include'})
+    fetch('/api/fahrzeuge/abmelden', {method:'POST', credentials:'include'}),
+    fetch('/api/logout', {method:'POST', credentials:'include'})
   ]).finally(function(){
     window.location.href = '/auftragslage/login';
   });

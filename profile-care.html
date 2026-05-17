@@ -454,7 +454,7 @@
   var _aboSelectedPlan = null;
 
   function loadAboPlan() {
-    fetch('http://178.105.53.33:5000/api/me', {credentials:'include'})
+    fetch('/api/me', {credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d) {
         if (!d.ok) return;
@@ -490,7 +490,7 @@
     var btn = document.getElementById('aboSaveBtn');
     var msg = document.getElementById('aboSaveMsg');
     if (btn) btn.disabled = true;
-    fetch('http://178.105.53.33:5000/api/me/plan', {
+    fetch('/api/me/plan', {
       method: 'PUT',
       headers: {'Content-Type':'application/json'},
       credentials: 'include',
@@ -784,7 +784,7 @@
   async function saveProfilToAPI(showBtn) {
     var data = collectProfilData();
     try {
-      var r = await fetch('http://178.105.53.33:5000/api/care/profil', {
+      var r = await fetch('/api/care/profil', {
         method: 'PUT', credentials: 'include',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(data)
@@ -799,7 +799,7 @@
   }
 
   // API laden, Fallback auf localStorage
-  fetch('http://178.105.53.33:5000/api/care/profil', {credentials:'include'})
+  fetch('/api/care/profil', {credentials:'include'})
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d) {
       if (d && d.ok && d.profil && (d.profil.firstName || d.profil.lastName)) {
@@ -861,7 +861,7 @@
   /* ── Abmelden ── */
   var btnLogoutProfile = document.getElementById('btnLogoutProfile');
   if(btnLogoutProfile) btnLogoutProfile.addEventListener('click', function(){
-    fetch('http://178.105.53.33:5000/api/logout', {method:'POST', credentials:'include'})
+    fetch('/api/logout', {method:'POST', credentials:'include'})
       .then(function(){ location.href='login-care.html'; })
       .catch(function(){ location.href='login-care.html'; });
   });
@@ -870,7 +870,7 @@
   var btnDeleteAccount = document.getElementById('btnDeleteAccount');
   if(btnDeleteAccount) btnDeleteAccount.addEventListener('click', function(){
     if(!confirm('Account wirklich löschen?\n\nIhr Profil, alle Verbindungen und Patientendaten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.')) return;
-    fetch('http://178.105.53.33:5000/api/care/account', {method:'DELETE', credentials:'include'})
+    fetch('/api/care/account', {method:'DELETE', credentials:'include'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.ok) location.href='index.html';

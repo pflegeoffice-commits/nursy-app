@@ -961,7 +961,7 @@ function toast(msg,dur=2500){
 /* ── Auth guard ── */
 if(!sessionStorage.getItem('nursy_billing_auth')){ window.location.replace('billing-login.html'); }
 else { document.body.style.visibility = 'visible'; }
-fetch('http://178.105.53.33:5000/api/billing/me',{credentials:'same-origin'}).then(r=>{
+fetch('/api/billing/me',{credentials:'same-origin'}).then(r=>{
   if(r.status===401) { window.location.href='billing-login.html'; return; }
   return r.json();
 }).then(d=>{
@@ -977,7 +977,7 @@ fetch('http://178.105.53.33:5000/api/billing/me',{credentials:'same-origin'}).th
 }).catch(()=>{});
 
 function doLogout(){
-  fetch('http://178.105.53.33:5000/api/billing/logout',{method:'POST',credentials:'same-origin'})
+  fetch('/api/billing/logout',{method:'POST',credentials:'same-origin'})
     .finally(()=>{ sessionStorage.removeItem('nursy_billing_auth'); window.location.href='billing-login.html'; });
 }
 
@@ -1003,7 +1003,7 @@ document.querySelectorAll('.b-tab').forEach(b=>b.addEventListener('click',()=>sw
    DASHBOARD
 ══════════════════════ */
 function loadDashboard(){
-  fetch('http://178.105.53.33:5000/api/billing/stats',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/stats',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     const s=d.stats;
     document.getElementById('s-ap').textContent     = s.total_ap;
@@ -1011,7 +1011,7 @@ function loadDashboard(){
     document.getElementById('s-offen').textContent  = '€ '+fmt(s.offen_ap+s.offen_nu);
     document.getElementById('s-bezahlt').textContent= '€ '+fmt(s.bezahlt);
   });
-  fetch('http://178.105.53.33:5000/api/billing/rechnungen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/rechnungen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     const list=(d.rechnungen||[]).slice(0,6);
     const el=document.getElementById('dashRecentList');
     if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-state__ico">🧾</div>Noch keine Rechnungen.</div>'; return; }
@@ -1026,7 +1026,7 @@ loadDashboard();
 let allLK=[];
 
 function loadLeistungskatalog(){
-  fetch('http://178.105.53.33:5000/api/billing/leistungskatalog',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/leistungskatalog',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     allLK=d.leistungen||[];
     renderLK();
     populateLkDropdown();
@@ -1122,7 +1122,7 @@ function saveLkModal(){
 }
 function deleteLk(id,name){
   if(!confirm('Leistung "'+name+'" löschen?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/leistungskatalog/'+id,{method:'DELETE',credentials:'same-origin'})
+  fetch('/api/billing/leistungskatalog/'+id,{method:'DELETE',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ toast('Gelöscht'); loadLeistungskatalog(); } });
 }
 
@@ -1160,7 +1160,7 @@ function reRowHtml(r,showActions=true){
 }
 
 function loadRechnungen(layout){
-  fetch('http://178.105.53.33:5000/api/billing/rechnungen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/rechnungen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     const all=d.rechnungen||[];
     allRE.akutplus=all.filter(r=>r.layout==='akutplus');
     allRE.nursy   =all.filter(r=>r.layout==='nursy');
@@ -1351,7 +1351,7 @@ function saveReModal(){
 }
 
 function markStatus(id,status){
-  fetch('http://178.105.53.33:5000/api/billing/rechnungen/'+id+'/status',{
+  fetch('/api/billing/rechnungen/'+id+'/status',{
     method:'POST',credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({status})
@@ -1362,7 +1362,7 @@ function markStatus(id,status){
 
 function deleteRechnung(id){
   if(!confirm('Rechnung löschen?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/rechnungen/'+id,{method:'DELETE',credentials:'same-origin'})
+  fetch('/api/billing/rechnungen/'+id,{method:'DELETE',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ toast('Gelöscht'); loadRechnungen(); loadDashboard(); } });
 }
 
@@ -1370,7 +1370,7 @@ function deleteRechnung(id){
 let _einsaetzeMap = {}; // id → einsatz object
 
 function loadEinsaetzeDropdown(){
-  fetch('http://178.105.53.33:5000/api/billing/einsaetze-abgeschlossen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/einsaetze-abgeschlossen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     const sel=document.getElementById('reEinsatz');
     const rows=d.einsaetze||[];
     _einsaetzeMap={};
@@ -1418,7 +1418,7 @@ function printRechnung(id){
   let r=all.find(x=>x.id===id);
   if(!r){
     /* Fetch from API if not in local cache */
-    fetch('http://178.105.53.33:5000/api/billing/rechnungen/'+id,{credentials:'same-origin'}).then(res=>res.json()).then(d=>{
+    fetch('/api/billing/rechnungen/'+id,{credentials:'same-origin'}).then(res=>res.json()).then(d=>{
       if(d.ok) renderAndPrint(d.rechnung);
     });
     return;
@@ -1576,7 +1576,7 @@ function _footerHtml(prefix){
 }
 
 function loadBillingSettings(){
-  fetch('http://178.105.53.33:5000/api/billing/settings',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/settings',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     _bSettings = d.settings||{};
     _populateSettingsFields();
@@ -1626,7 +1626,7 @@ function saveFooterSettings(prefix){
   });
   const ftEl = document.getElementById(prefix+'FreitextDefault');
   if(ftEl) body[prefix+'_freitext_default'] = ftEl.value;
-  fetch('http://178.105.53.33:5000/api/billing/settings',{
+  fetch('/api/billing/settings',{
     method:'PUT', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify(body)
@@ -1667,7 +1667,7 @@ loadBillingSettings();
 ══════════════════════════════════════════════ */
 
 function loadVorlagen(){
-  fetch('http://178.105.53.33:5000/api/billing/vorlagen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/vorlagen',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     _allVorlagen=d.vorlagen||[];
     renderVorlagenList();
@@ -1757,7 +1757,7 @@ function saveVlModal(){
 
 function deleteVorlage(id){
   if(!confirm('Vorlage löschen?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/vorlagen/'+id,{method:'DELETE',credentials:'same-origin'})
+  fetch('/api/billing/vorlagen/'+id,{method:'DELETE',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ toast('Vorlage gelöscht'); loadVorlagen(); } });
 }
 
@@ -1775,7 +1775,7 @@ function initPflegerpersonal(){
     mi.value = now.toISOString().slice(0,7);
   }
   // load rates
-  fetch('http://178.105.53.33:5000/api/billing/pflegerpersonal/saetze',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
+  fetch('/api/billing/pflegerpersonal/saetze',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{
     if(!d.ok) return;
     d.saetze.forEach(s=>{
       if(s.art==='Frühdienst')  document.getElementById('satzFrueh').value = s.satz_eur;
@@ -1792,7 +1792,7 @@ function savePpSaetze(){
     'Spätdienst':  parseFloat(document.getElementById('satzSpaet').value)||0,
     'Nachtdienst': parseFloat(document.getElementById('satzNacht').value)||0,
   };
-  fetch('http://178.105.53.33:5000/api/billing/pflegerpersonal/saetze',{
+  fetch('/api/billing/pflegerpersonal/saetze',{
     method:'PUT',credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(body)
@@ -1945,7 +1945,7 @@ function initHonorar(){
 }
 
 function loadHonorarPersonal(){
-  fetch('http://178.105.53.33:5000/api/billing/honorar/personal',{credentials:'same-origin'})
+  fetch('/api/billing/honorar/personal',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       _hnPersonal = d.personal || [];
@@ -2098,7 +2098,7 @@ function saveHonorarNote(){
     referenz:   document.getElementById('hnDatum').value,
     freitext:   _hnVorschauData ? ('Fahrzeug: '+(_hnVorschauData.fahrzeug||'–')+' | Bezirk: '+(_hnVorschauData.bezirk||'–')+' | '+(_hnVorschauData.diensttyp||'')) : '',
   };
-  fetch('http://178.105.53.33:5000/api/billing/honorarnoten',{
+  fetch('/api/billing/honorarnoten',{
     method:'POST', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify(payload)
@@ -2119,7 +2119,7 @@ function saveHonorarNote(){
 }
 
 function loadHonorarnoten(){
-  fetch('http://178.105.53.33:5000/api/billing/honorarnoten',{credentials:'same-origin'})
+  fetch('/api/billing/honorarnoten',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       var list = d.honorarnoten || [];
@@ -2168,7 +2168,7 @@ function loadHonorarnoten(){
 }
 
 function hnChangeStatus(id, status){
-  fetch('http://178.105.53.33:5000/api/billing/honorarnoten/'+id+'/status',{
+  fetch('/api/billing/honorarnoten/'+id+'/status',{
     method:'POST', credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({status:status})
@@ -2177,7 +2177,7 @@ function hnChangeStatus(id, status){
 
 function hnDelete(id){
   if(!confirm('Honorarnote wirklich löschen?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/honorarnoten/'+id,{method:'DELETE',credentials:'same-origin'})
+  fetch('/api/billing/honorarnoten/'+id,{method:'DELETE',credentials:'same-origin'})
     .then(function(){ loadHonorarnoten(); });
 }
 
@@ -2193,7 +2193,7 @@ function printHonorarVorschau(){
 }
 
 function printHonorarNote(id){
-  fetch('http://178.105.53.33:5000/api/billing/honorarnoten',{credentials:'same-origin'})
+  fetch('/api/billing/honorarnoten',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       var h = (d.honorarnoten||[]).find(function(x){ return x.id===id; });
@@ -2291,7 +2291,7 @@ function billingBackup(){
 function loadAbonnements(){
   var st = (document.getElementById('aboFilterStatus')||{}).value||'';
   var pl = (document.getElementById('aboFilterPlan')||{}).value||'';
-  fetch('http://178.105.53.33:5000/api/billing/abonnements',{credentials:'same-origin'})
+  fetch('/api/billing/abonnements',{credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(!d.ok) return;
       var rows = d.abonnements.filter(a=>(!st||a.status===st)&&(!pl||a.plan===pl));
@@ -2318,19 +2318,19 @@ function loadAbonnements(){
 }
 
 function aboSetStatus(id,status){
-  fetch('http://178.105.53.33:5000/api/billing/abonnements/'+id+'/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})
+  fetch('/api/billing/abonnements/'+id+'/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})
     .then(r=>r.json()).then(d=>{ if(d.ok) loadAbonnements(); else alert(d.error||'Fehler'); });
 }
 
 function aboRechnung(id){
   if(!confirm('Rechnung per E-Mail senden?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/abonnements/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
+  fetch('/api/billing/abonnements/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Rechnung gesendet!'); loadAbonnements(); } else alert(d.error||'Fehler'); });
 }
 
 function genAboMonat(){
   if(!confirm('Abonnements für den aktuellen Monat generieren?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/abonnements/generieren',{method:'POST',credentials:'same-origin'})
+  fetch('/api/billing/abonnements/generieren',{method:'POST',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ alert(d.erstellt+' neue Einträge für '+d.monat+' erstellt.'); loadAbonnements(); } else alert(d.error||'Fehler'); });
 }
 
@@ -2339,7 +2339,7 @@ function genAboMonat(){
 ══════════════════════ */
 function loadPatBuchungen(){
   var st = (document.getElementById('patbFilterStatus')||{}).value||'';
-  fetch('http://178.105.53.33:5000/api/billing/patient-buchungen',{credentials:'same-origin'})
+  fetch('/api/billing/patient-buchungen',{credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{
       if(!d.ok) return;
       var rows = d.buchungen.filter(b=>!st||b.status===st);
@@ -2365,13 +2365,13 @@ function loadPatBuchungen(){
 }
 
 function patbSetStatus(id,status){
-  fetch('http://178.105.53.33:5000/api/billing/patient-buchungen/'+id+'/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})
+  fetch('/api/billing/patient-buchungen/'+id+'/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})})
     .then(r=>r.json()).then(d=>{ if(d.ok) loadPatBuchungen(); else alert(d.error||'Fehler'); });
 }
 
 function patbRechnung(id){
   if(!confirm('Rechnung per E-Mail an den Patienten senden?')) return;
-  fetch('http://178.105.53.33:5000/api/billing/patient-buchungen/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
+  fetch('/api/billing/patient-buchungen/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Rechnung gesendet!'); loadPatBuchungen(); } else alert(d.error||'Fehler'); });
 }
 </script>

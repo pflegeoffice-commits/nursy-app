@@ -100,7 +100,7 @@
     try{ profile = JSON.parse(localStorage.getItem('nursy_profile_client_v1') || '{}'); }catch(e){ profile = {}; }
     var email = (profile.email || '').trim().toLowerCase();
     if(!email) return;
-    fetch('http://178.105.53.33:5000/api/nursy/rechnungen-by-email?email=' + encodeURIComponent(email), { credentials: 'include' })
+    fetch('/api/nursy/rechnungen-by-email?email=' + encodeURIComponent(email), { credentials: 'include' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.ok || !Array.isArray(d.rechnungen)) return;
@@ -275,8 +275,8 @@
 
   function _resolveUserId(){
     return Promise.all([
-      fetch('http://178.105.53.33:5000/api/me', {credentials:'include'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
-      fetch('http://178.105.53.33:5000/api/billing/me', {credentials:'include'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+      fetch('/api/me', {credentials:'include'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+      fetch('/api/billing/me', {credentials:'include'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
     ]).then(function(results){
       var me = results[0], bme = results[1];
       if(me && me.id) return me.id;

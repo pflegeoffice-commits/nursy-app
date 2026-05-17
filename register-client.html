@@ -423,7 +423,7 @@
     var bezEl2 = document.getElementById('c-bezirk');
     if(bezEl2 && bezEl2.value) bezEl2.style.color = '#111827';
     /* Auch vom Server laden (frische Daten) */
-    fetch('http://178.105.53.33:5000/api/patient/data/' + existingId)
+    fetch('/api/patient/data/' + existingId)
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if(!d || !d.ok || !d.patient) return;
@@ -526,7 +526,7 @@
       /* ── Edit-Modus: PUT an Server + localStorage ── */
       if(isEditMode){
         try{
-          await fetch('http://178.105.53.33:5000/api/patient/data/' + existingId, {
+          await fetch('/api/patient/data/' + existingId, {
             method: 'PUT',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify(formPayload)
@@ -545,7 +545,7 @@
 
       /* ── Neuregistrierung: POST ── */
       try{
-        var resp = await fetch('http://178.105.53.33:5000/api/register/patient', {
+        var resp = await fetch('/api/register/patient', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify(formPayload)

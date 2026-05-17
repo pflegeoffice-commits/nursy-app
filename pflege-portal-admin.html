@@ -318,7 +318,7 @@ let bewerbungen = [];
 let selectedBew = null;
 
 async function loadStats() {
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/stats');
+  const r = await fetch('/api/admin/portal/stats');
   if (!r.ok) return;
   const d = await r.json();
   document.getElementById('statOffen').textContent   = d.offen;
@@ -330,7 +330,7 @@ async function loadStats() {
 }
 
 async function loadBewerbungen() {
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/bewerbungen');
+  const r = await fetch('/api/admin/portal/bewerbungen');
   if (!r.ok) { document.getElementById('bewList').innerHTML='<div class="empty">Kein Zugriff</div>'; return; }
   bewerbungen = (await r.json()).bewerbungen || [];
   const list = document.getElementById('bewList');
@@ -484,7 +484,7 @@ async function deleteDienst(id) {
 
 // ── Events ────────────────────────────────────────────────────────────────────
 async function loadEvents() {
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/events');
+  const r = await fetch('/api/admin/portal/events');
   if (!r.ok) return;
   const {events} = await r.json();
   const tbody = document.getElementById('eventsTbody');
@@ -514,7 +514,7 @@ async function createEvent() {
     beschreibung: document.getElementById('evBeschr').value.trim(),
   };
   if (!body.titel || !body.datum) { showAlert('eventAlert','Titel und Datum sind Pflichtfelder.','err'); return; }
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/events', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const r = await fetch('/api/admin/portal/events', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
   const d = await r.json();
   if (d.ok) {
     showAlert('eventAlert','Event erfolgreich angelegt.','ok');
@@ -530,7 +530,7 @@ async function deleteEvent(id) {
 
 // ── Info ──────────────────────────────────────────────────────────────────────
 async function loadInfo() {
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/info');
+  const r = await fetch('/api/admin/portal/info');
   if (!r.ok) return;
   const {info} = await r.json();
   const tbody = document.getElementById('infoTbody');
@@ -552,7 +552,7 @@ async function createInfo() {
     typ:   document.getElementById('infoTyp').value,
   };
   if (!body.titel || !body.text) { showAlert('infoAlert','Titel und Text sind Pflichtfelder.','err'); return; }
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/info', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const r = await fetch('/api/admin/portal/info', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
   const d = await r.json();
   if (d.ok) {
     showAlert('infoAlert','Information veröffentlicht.','ok');
@@ -606,7 +606,7 @@ async function saveNeuPfleger() {
   }
   const btn = document.getElementById('neuSaveBtn');
   btn.disabled=true; btn.textContent='Wird angelegt…';
-  const r = await fetch('http://178.105.53.33:5000/api/admin/portal/pfleger-anlegen', {
+  const r = await fetch('/api/admin/portal/pfleger-anlegen', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       vorname: vor, nachname: nach, email: em, password: pw,

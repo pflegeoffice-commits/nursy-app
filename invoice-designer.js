@@ -50,11 +50,11 @@
 
   async function _resolveUserId() {
     try {
-      const r = await fetch('http://178.105.53.33:5000/api/billing/me', { credentials: 'include' });
+      const r = await fetch('/api/billing/me', { credentials: 'include' });
       if (r.ok) { const d = await r.json(); if (d.ok && d.user && d.user.id) return d.user.id; }
     } catch(e) {}
     try {
-      const r2 = await fetch('http://178.105.53.33:5000/api/me', { credentials: 'include' });
+      const r2 = await fetch('/api/me', { credentials: 'include' });
       if (r2.ok) { const d2 = await r2.json(); if (d2.id) return d2.id; }
     } catch(e) {}
     return 'default';

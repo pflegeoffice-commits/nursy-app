@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded',()=>{});
       if (submitEl) submitEl.disabled = true;
 
       try {
-        const resp = await fetch('http://178.105.53.33:5000/api/login', {
+        const resp = await fetch('/api/login', {
           method:      'POST',
           headers:     { 'Content-Type': 'application/json' },
           credentials: 'include',

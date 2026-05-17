@@ -216,7 +216,7 @@
       }
       if(btn) btn.disabled = true;
       try{
-        var resp = await fetch('http://178.105.53.33:5000/api/register/care', {
+        var resp = await fetch('/api/register/care', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({

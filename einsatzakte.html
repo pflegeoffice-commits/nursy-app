@@ -1437,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', function(){
 /* ── Schicht beenden ── */
 window.schichtBeenden = function(){
   if(!confirm('Schicht beenden und Fahrzeug abmelden?')) return;
-  fetch('http://178.105.53.33:5000/api/fahrzeuge/abmelden', {method:'POST',credentials:'include'})
+  fetch('/api/fahrzeuge/abmelden', {method:'POST',credentials:'include'})
     .catch(function(){})
     .finally(function(){
       try{ localStorage.removeItem('nursy_me'); localStorage.removeItem('nursy_token'); }catch(e){}
@@ -1447,7 +1447,7 @@ window.schichtBeenden = function(){
 
 /* ── Auth & Mission Load ── */
 function initMission(){
-  fetch('http://178.105.53.33:5000/api/me',{credentials:'include'})
+  fetch('/api/me',{credentials:'include'})
     .then(function(r){ if(!r.ok) throw new Error('401'); return r.json(); })
     .then(function(meData){
       // Access guard: only fahrzeug crew, leitstelle and admin may view this page
@@ -1613,7 +1613,7 @@ window.setStatus=function(s){
   if(EID&&EID!=='demo'){
     var _n=new Date();
     var _hm=_n.getHours().toString().padStart(2,'0')+':'+_n.getMinutes().toString().padStart(2,'0');
-    fetch('http://178.105.53.33:5000/api/einsaetze/'+EID+'/status',{
+    fetch('/api/einsaetze/'+EID+'/status',{
       method:'POST',credentials:'include',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({status:s, zeit:_hm})
@@ -1646,7 +1646,7 @@ window.setStatus=function(s){
 
 function pollStatus(){
   if(!EID||EID==='demo') return;
-  fetch('http://178.105.53.33:5000/api/einsaetze/'+EID,{credentials:'include'}).then(function(r){ return r.ok?r.json():null; })
+  fetch('/api/einsaetze/'+EID,{credentials:'include'}).then(function(r){ return r.ok?r.json():null; })
     .then(function(d){
       if(!d) return;
       // Status-Änderung
@@ -2307,7 +2307,7 @@ window.handleFiles=function(input){
 
 function loadEinsatzDokumente(){
   if(!EID||EID==='demo') return;
-  fetch('http://178.105.53.33:5000/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente',{credentials:'include'})
+  fetch('/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente',{credentials:'include'})
     .then(function(r){ return r.ok?r.json():null; })
     .then(function(d){
       if(!d||!d.ok) return;
@@ -2321,7 +2321,7 @@ function loadEinsatzDokumente(){
 function deleteFile(docId){
   if(!EID||EID==='demo') return;
   if(!confirm('Datei wirklich löschen?')) return;
-  fetch('http://178.105.53.33:5000/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente/'+encodeURIComponent(docId),
+  fetch('/api/einsaetze/'+encodeURIComponent(EID)+'/dokumente/'+encodeURIComponent(docId),
     {method:'DELETE',credentials:'include'})
     .then(function(r){ return r.json(); })
     .then(function(d){
@@ -2657,7 +2657,7 @@ window.completeEinsatz=function(){
     var btn = document.getElementById('chatSendBtn');
     btn.disabled=true;btn.textContent='Senden…';
     var me={};try{me=JSON.parse(localStorage.getItem('nursy_me')||'{}');}catch(e){}
-    fetch('http://178.105.53.33:5000/api/nachrichten',{
+    fetch('/api/nachrichten',{
       method:'POST',credentials:'include',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
