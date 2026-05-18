@@ -165,6 +165,57 @@
         </div>
       </div>
 
+      <!-- Schritt 3: SV / ELDA-Daten -->
+      <div class="step-content" id="sc3">
+        <p style="font-size:.75rem;color:#6b7280;margin:0 0 14px;background:#f0f4fb;border-radius:9px;padding:10px 13px;">
+          Diese Daten werden für die Sozialversicherungsmeldung (ELDA) benötigt und sind vertraulich.
+        </p>
+        <div class="form-row2">
+          <div class="form-group">
+            <label class="form-label">Geburtsdatum <span class="req">*</span></label>
+            <input type="date" class="form-inp" id="geburtsdatum"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SV-Nummer (10-stellig)</label>
+            <input type="text" class="form-inp" id="sv_nummer" placeholder="z. B. 1234010185" maxlength="10" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="form-row2">
+          <div class="form-group">
+            <label class="form-label">Staatsbürgerschaft</label>
+            <select class="form-sel" id="staatsbuergerschaft">
+              <option value="AT">Österreich</option>
+              <option value="DE">Deutschland</option>
+              <option value="CH">Schweiz</option>
+              <option value="RO">Rumänien</option>
+              <option value="HR">Kroatien</option>
+              <option value="SK">Slowakei</option>
+              <option value="HU">Ungarn</option>
+              <option value="PL">Polen</option>
+              <option value="RS">Serbien</option>
+              <option value="BA">Bosnien</option>
+              <option value="sonstige">Sonstige</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Beschäftigungsart <span class="req">*</span></label>
+            <select class="form-sel" id="beschaeftigungsart">
+              <option value="">– bitte wählen –</option>
+              <option value="Angestellte/r">Angestellte/r</option>
+              <option value="Arbeiter/in">Arbeiter/in</option>
+              <option value="Lehrling">Lehrling</option>
+              <option value="Freie/r DN">Freie/r Dienstnehmer/in</option>
+              <option value="Geringfügig">Geringfügig Beschäftigte/r</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bruttogehalt monatlich (€)</label>
+          <input type="number" class="form-inp" id="bruttolohn" placeholder="z. B. 2200" min="0" step="0.01"/>
+          <p style="font-size:.68rem;color:#9ca3af;margin:4px 0 0;">Wird für die ELDA Beitragsgrundlagenmeldung verwendet.</p>
+        </div>
+      </div>
+
       <!-- Schritt Abschluss -->
       <div class="step-content" id="scDone">
         <div class="success-wrap">
@@ -192,11 +243,12 @@
 
 <script>
 // Nur Pflegepersonen können sich registrieren
-let currentStep = 0;  // 0=PersönlicheDaten, 1=Qualifikation, 2=Abschluss
+let currentStep = 0;  // 0=PersönlicheDaten, 1=Qualifikation, 2=SV-Daten, 3=Abschluss
 
 const STEPS = [
   { id:'sc1',    label:'Persönliche Daten' },
   { id:'sc2',    label:'Qualifikation' },
+  { id:'sc3',    label:'SV-Daten' },
   { id:'scDone', label:'Abschluss' },
 ];
 
@@ -213,9 +265,10 @@ function renderStepper() {
 
 function updateHead() {
   const heads = {
-    0: { h:'Persönliche Daten',              p:'Schritt 1 von 2 – Basisinformationen' },
-    1: { h:'Qualifikation & Dienstpräferenzen', p:'Schritt 2 von 2 – Fachliche Daten' },
-    2: { h:'Registrierung abgeschlossen',    p:'' },
+    0: { h:'Persönliche Daten',              p:'Schritt 1 von 3 – Basisinformationen' },
+    1: { h:'Qualifikation & Dienstpräferenzen', p:'Schritt 2 von 3 – Fachliche Daten' },
+    2: { h:'Sozialversicherungsdaten',       p:'Schritt 3 von 3 – ELDA / SV-Daten' },
+    3: { h:'Registrierung abgeschlossen',    p:'' },
   };
   const d = heads[currentStep] || { h:'', p:'' };
   document.getElementById('regCardHead').innerHTML = '<h2>'+d.h+'</h2><p>'+d.p+'</p>';
@@ -233,7 +286,7 @@ function updateNextBtn() {
 }
 
 function showStep(idx) {
-  ['sc1','sc2','scDone'].forEach(function(id){
+  ['sc1','sc2','sc3','scDone'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.classList.remove('active');
   });
@@ -266,6 +319,13 @@ async function nextStep() {
     const bezirk = document.getElementById('bezirk').value.trim();
     if (!qual)   { alertEl.innerHTML = '<div class="alert alert-err">Qualifikation wählen.</div>'; return; }
     if (!bezirk) { alertEl.innerHTML = '<div class="alert alert-err">Bezirk eingeben.</div>'; return; }
+  }
+
+  if (STEPS[currentStep].id === 'sc3') {
+    const geb  = document.getElementById('geburtsdatum').value;
+    const besch = document.getElementById('beschaeftigungsart').value;
+    if (!geb)   { alertEl.innerHTML = '<div class="alert alert-err">Geburtsdatum eingeben.</div>'; return; }
+    if (!besch) { alertEl.innerHTML = '<div class="alert alert-err">Beschäftigungsart wählen.</div>'; return; }
     await doSubmit();
     return;
   }
@@ -282,18 +342,23 @@ async function doSubmit() {
 
   const dienst_arten = [...document.querySelectorAll('[name="da"]:checked')].map(function(c){ return c.value; });
   const body = {
-    rolle:           'pfleger',
-    vorname:         document.getElementById('vorname').value.trim(),
-    nachname:        document.getElementById('nachname').value.trim(),
-    email:           document.getElementById('email').value.trim(),
-    telefon:         document.getElementById('telefon').value.trim(),
-    adresse:         document.getElementById('adresse').value.trim(),
-    password:        document.getElementById('password').value,
-    qualifikation:   document.getElementById('qualifikation').value,
-    erfahrung_jahre: parseInt(document.getElementById('erfahrung').value) || 0,
-    bezirk:          document.getElementById('bezirk').value.trim(),
-    fahrzeug_pref:   document.getElementById('fahrzeugPref').value,
-    dienst_arten:    dienst_arten,
+    rolle:              'pfleger',
+    vorname:            document.getElementById('vorname').value.trim(),
+    nachname:           document.getElementById('nachname').value.trim(),
+    email:              document.getElementById('email').value.trim(),
+    telefon:            document.getElementById('telefon').value.trim(),
+    adresse:            document.getElementById('adresse').value.trim(),
+    password:           document.getElementById('password').value,
+    qualifikation:      document.getElementById('qualifikation').value,
+    erfahrung_jahre:    parseInt(document.getElementById('erfahrung').value) || 0,
+    bezirk:             document.getElementById('bezirk').value.trim(),
+    fahrzeug_pref:      document.getElementById('fahrzeugPref').value,
+    dienst_arten:       dienst_arten,
+    geburtsdatum:       document.getElementById('geburtsdatum').value,
+    sv_nummer:          document.getElementById('sv_nummer').value.trim(),
+    staatsbuergerschaft: document.getElementById('staatsbuergerschaft').value,
+    beschaeftigungsart: document.getElementById('beschaeftigungsart').value,
+    bruttolohn:         parseFloat(document.getElementById('bruttolohn').value) || 0,
   };
 
   try {

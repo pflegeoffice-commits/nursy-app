@@ -742,6 +742,11 @@ def init_db():
             "ALTER TABLE portal_bewerbungen ADD COLUMN rolle TEXT DEFAULT 'pfleger'",
             "ALTER TABLE portal_bewerbungen ADD COLUMN dienstnummer TEXT DEFAULT ''",
             "ALTER TABLE portal_bewerbungen ADD COLUMN caregiver_id TEXT DEFAULT ''",
+            "ALTER TABLE portal_bewerbungen ADD COLUMN geburtsdatum TEXT DEFAULT ''",
+            "ALTER TABLE portal_bewerbungen ADD COLUMN sv_nummer TEXT DEFAULT ''",
+            "ALTER TABLE portal_bewerbungen ADD COLUMN staatsbuergerschaft TEXT DEFAULT 'AT'",
+            "ALTER TABLE portal_bewerbungen ADD COLUMN beschaeftigungsart TEXT DEFAULT ''",
+            "ALTER TABLE portal_bewerbungen ADD COLUMN bruttolohn REAL DEFAULT 0.0",
         ]:
             db.execute_safe(_pb_migration)
         db.commit()
@@ -4749,15 +4754,19 @@ def portal_registrieren():
         db.execute(
             '''INSERT INTO portal_bewerbungen
                (id,vorname,nachname,email,telefon,password_hash,qualifikation,erfahrung_jahre,
-                bezirk,fahrzeug_pref,dienst_arten,adresse,status,token,rolle)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                bezirk,fahrzeug_pref,dienst_arten,adresse,status,token,rolle,
+                geburtsdatum,sv_nummer,staatsbuergerschaft,beschaeftigungsart,bruttolohn)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
             [bid, data['vorname'].strip(), data['nachname'].strip(),
              data['email'].strip().lower(), data.get('telefon', ''),
              hash_pw(data['password']), data.get('qualifikation', ''),
              int(data.get('erfahrung_jahre', 0)),
              data.get('bezirk', ''), data.get('fahrzeug_pref', ''),
              json.dumps(data.get('dienst_arten', [])),
-             data.get('adresse', ''), 'freigegeben', token, rolle]
+             data.get('adresse', ''), 'freigegeben', token, rolle,
+             data.get('geburtsdatum', ''), data.get('sv_nummer', ''),
+             data.get('staatsbuergerschaft', 'AT'), data.get('beschaeftigungsart', ''),
+             float(data.get('bruttolohn', 0) or 0)]
         )
         db.commit()
         if rolle == 'pfleger':
@@ -5798,6 +5807,115 @@ def billing_patient_buchungen_rechnung(bid):
         )
         db.commit()
     return jsonify({'ok': True})
+
+
+# ── ELDA Export ──────────────────────────────────────────────────────────────
+
+@app.route('/api/billing/elda/mitarbeiter')
+def billing_elda_mitarbeiter():
+    err = require_billing()
+    if err: return err
+    monat = request.args.get('monat', datetime.now().strftime('%Y-%m'))
+    with get_db() as db:
+        # All portal users who had at least one shift this month
+        dienste_user_ids = db.execute(
+            'SELECT DISTINCT user_id FROM portal_dienste WHERE datum LIKE ?',
+            [f'{monat}%']
+        ).fetchall()
+        uid_set = {r['user_id'] for r in dienste_user_ids}
+        if not uid_set:
+            return jsonify({'ok': True, 'mitarbeiter': []})
+        placeholders = ','.join(['?' for _ in uid_set])
+        rows = db.execute(
+            f'''SELECT id, vorname, nachname, dienstnummer,
+                       geburtsdatum, sv_nummer, staatsbuergerschaft,
+                       beschaeftigungsart, bruttolohn
+                FROM portal_bewerbungen
+                WHERE id IN ({placeholders}) AND status='freigegeben'
+                ORDER BY nachname, vorname''',
+            list(uid_set)
+        ).fetchall()
+        result = []
+        for r in rows:
+            result.append({
+                'id':                r['id'],
+                'vorname':           r['vorname'] or '',
+                'nachname':          r['nachname'] or '',
+                'dienstnummer':      r['dienstnummer'] or '',
+                'geburtsdatum':      r['geburtsdatum'] or '',
+                'sv_nummer':         r['sv_nummer'] or '',
+                'staatsbuergerschaft': r['staatsbuergerschaft'] or 'AT',
+                'beschaeftigungsart': r['beschaeftigungsart'] or '',
+                'bruttolohn':        float(r['bruttolohn'] or 0),
+            })
+    return jsonify({'ok': True, 'mitarbeiter': result})
+
+
+@app.route('/api/billing/elda/export')
+def billing_elda_export():
+    err = require_billing()
+    if err: return err
+    monat = request.args.get('monat', datetime.now().strftime('%Y-%m'))
+    bkn   = request.args.get('bkn', '000000000').strip()
+    # Parse year/month for ELDA
+    try:
+        jahr, mon = monat.split('-')
+    except Exception:
+        return jsonify({'error': 'Ungültiger Monat'}), 400
+
+    with get_db() as db:
+        dienste_user_ids = db.execute(
+            'SELECT DISTINCT user_id FROM portal_dienste WHERE datum LIKE ?',
+            [f'{monat}%']
+        ).fetchall()
+        uid_set = {r['user_id'] for r in dienste_user_ids}
+        if not uid_set:
+            lines = ['00;mBrA;' + bkn + ';' + jahr + mon + ';;;Akut Plus Pflegedienst',
+                     '99;0;0.00']
+            content = '\r\n'.join(lines) + '\r\n'
+            resp = make_response(content)
+            resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+            resp.headers['Content-Disposition'] = f'attachment; filename="ELDA_mBrA_{monat}.txt"'
+            return resp
+        placeholders = ','.join(['?' for _ in uid_set])
+        rows = db.execute(
+            f'''SELECT id, vorname, nachname, geburtsdatum, sv_nummer,
+                       staatsbuergerschaft, beschaeftigungsart, bruttolohn
+                FROM portal_bewerbungen
+                WHERE id IN ({placeholders}) AND status='freigegeben'
+                ORDER BY nachname, vorname''',
+            list(uid_set)
+        ).fetchall()
+
+    # Build ELDA mBrA flat-file
+    # Format (simplified, semicolon-delimited):
+    #   00 = Kopfsatz (header)  · 01 = DN-Datensatz  · 99 = Schlusssatz
+    lines = []
+    # Header
+    lines.append(f'00;mBrA;{bkn};{jahr}{mon};;;Akut Plus Pflegedienst GmbH')
+    dn_count = 0
+    sum_brutto = 0.0
+    for r in rows:
+        sv  = (r['sv_nummer'] or '').strip()
+        geb = (r['geburtsdatum'] or '').replace('-', '')   # YYYYMMDD → YYYYMMDD
+        ba  = (r['beschaeftigungsart'] or '').strip()
+        brutto = float(r['bruttolohn'] or 0)
+        staat  = (r['staatsbuergerschaft'] or 'AT').strip()
+        vorname = (r['vorname'] or '').strip()
+        nachname = (r['nachname'] or '').strip()
+        lines.append(
+            f'01;{sv};{nachname};{vorname};{geb};{staat};{ba};{brutto:.2f};{monat}'
+        )
+        dn_count += 1
+        sum_brutto += brutto
+    # Footer
+    lines.append(f'99;{dn_count};{sum_brutto:.2f}')
+
+    content = '\r\n'.join(lines) + '\r\n'
+    resp = make_response(content)
+    resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    resp.headers['Content-Disposition'] = f'attachment; filename="ELDA_mBrA_{monat}.txt"'
+    return resp
 
 
 # ── Care: Dokumentation ──────────────────────────────────────────────────────

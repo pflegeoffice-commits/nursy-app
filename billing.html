@@ -336,6 +336,7 @@ input[type="date"].f-inp::-webkit-date-and-time-value,input[type="time"].f-inp::
     <button class="b-tab" data-tab="honorar">📄 Honorarnoten</button>
     <button class="b-tab" data-tab="abonnements">📋 Abonnements</button>
     <button class="b-tab" data-tab="patbuchungen">🧾 Patienten</button>
+    <button class="b-tab" data-tab="elda">🇦🇹 ELDA Export</button>
     <button class="b-tab" data-tab="vorlagen" id="bTabVorlagen" style="display:none;">📝 Vorlagen</button>
   </div>
 </header>
@@ -772,6 +773,49 @@ input[type="date"].f-inp::-webkit-date-and-time-value,input[type="time"].f-inp::
     </div>
   </div><!-- /page-patbuchungen -->
 
+  <!-- ══════ ELDA EXPORT ══════ -->
+  <div class="b-page" id="page-elda">
+    <div style="max-width:820px;margin:0 auto;">
+      <h2 style="font-size:1.1rem;font-weight:700;color:#1e293b;margin:0 0 6px;">ELDA mBrA – Monatliche Beitragsgrundlagenmeldung</h2>
+      <p style="font-size:.76rem;color:#64748b;margin:0 0 18px;">Erstellt eine ELDA-kompatible Exportdatei für die Sozialversicherungsmeldung (Fälligkeit: 15. des Folgemonats).</p>
+
+      <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:.72rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Meldezeitraum</label>
+          <input type="month" id="eldaMonat" style="padding:7px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.85rem;background:#fff;"/>
+        </div>
+        <div>
+          <label style="font-size:.72rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Beitragskontonummer</label>
+          <input type="text" id="eldaBKN" placeholder="z. B. 12-345-6789" style="padding:7px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.85rem;width:180px;"/>
+        </div>
+        <button onclick="loadEldaVorschau()" style="padding:8px 18px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem;">Vorschau laden</button>
+        <button onclick="downloadEldaExport()" id="eldaDownloadBtn" style="padding:8px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem;display:none;">⬇ ELDA-Datei herunterladen</button>
+      </div>
+
+      <div id="eldaAlert" style="margin-bottom:12px;"></div>
+
+      <div id="eldaVorschau" style="display:none;">
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:.76rem;color:#166534;">
+          <strong>Hinweis:</strong> Prüfen Sie alle Daten vor dem Export. Fehlende SV-Nummern oder Geburtsdaten sind rot markiert – bitte über die Mitarbeiterverwaltung ergänzen.
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+          <thead>
+            <tr style="background:#f8faff;">
+              <th style="padding:8px 10px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb;">Name</th>
+              <th style="padding:8px 10px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb;">SV-Nummer</th>
+              <th style="padding:8px 10px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb;">Geburtsdatum</th>
+              <th style="padding:8px 10px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb;">Beschäftigungsart</th>
+              <th style="padding:8px 10px;text-align:right;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb;">Bruttolohn €</th>
+              <th style="padding:8px 10px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="eldaTbody"></tbody>
+        </table>
+        <div id="eldaSumme" style="text-align:right;font-size:.8rem;font-weight:700;color:#1e293b;margin-top:10px;padding-top:8px;border-top:2px solid #e5e7eb;"></div>
+      </div>
+    </div>
+  </div><!-- /page-elda -->
+
 </div><!-- /b-body -->
 
 <!-- ══════ LEISTUNG MODAL ══════ -->
@@ -995,6 +1039,7 @@ function switchTab(tab){
   if(tab==='honorar')         initHonorar();
   if(tab==='abonnements')     loadAbonnements();
   if(tab==='patbuchungen')    loadPatBuchungen();
+  if(tab==='elda')            initElda();
   if(tab==='vorlagen')        loadVorlagen();
 }
 document.querySelectorAll('.b-tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
@@ -2373,6 +2418,67 @@ function patbRechnung(id){
   if(!confirm('Rechnung per E-Mail an den Patienten senden?')) return;
   fetch('/api/billing/patient-buchungen/'+id+'/rechnung',{method:'POST',credentials:'same-origin'})
     .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Rechnung gesendet!'); loadPatBuchungen(); } else alert(d.error||'Fehler'); });
+}
+
+/* ══════════════════════
+   ELDA EXPORT
+══════════════════════ */
+let _eldaData = [];
+
+function initElda(){
+  const mo = document.getElementById('eldaMonat');
+  if (!mo.value){
+    const now = new Date();
+    mo.value = now.toISOString().substring(0,7);
+  }
+}
+
+async function loadEldaVorschau(){
+  const monat = document.getElementById('eldaMonat').value;
+  const alertEl = document.getElementById('eldaAlert');
+  alertEl.innerHTML = '';
+  if(!monat){ alertEl.innerHTML='<div style="color:#dc2626;font-size:.78rem;padding:8px;background:#fef2f2;border-radius:8px;margin-bottom:8px;">Bitte Meldezeitraum auswählen.</div>'; return; }
+
+  const r = await fetch('/api/billing/elda/mitarbeiter?monat='+monat, {credentials:'same-origin'});
+  const d = await r.json();
+  if(!d.ok){ alertEl.innerHTML='<div style="color:#dc2626;font-size:.78rem;padding:8px;background:#fef2f2;border-radius:8px;">Fehler: '+(d.error||'Unbekannt')+'</div>'; return; }
+
+  _eldaData = d.mitarbeiter;
+  const tbody = document.getElementById('eldaTbody');
+  if(!_eldaData.length){
+    tbody.innerHTML='<tr><td colspan="6" style="padding:20px;text-align:center;color:#9ca3af;">Keine Mitarbeiter mit Diensten in diesem Monat gefunden.</td></tr>';
+    document.getElementById('eldaVorschau').style.display='block';
+    document.getElementById('eldaDownloadBtn').style.display='none';
+    return;
+  }
+
+  let totalBrutto = 0;
+  tbody.innerHTML = _eldaData.map(m=>{
+    const svOk = m.sv_nummer && m.sv_nummer.length===10;
+    const gebOk = !!m.geburtsdatum;
+    const brutto = parseFloat(m.bruttolohn)||0;
+    totalBrutto += brutto;
+    const warn = (!svOk||!gebOk||!m.beschaeftigungsart) ? '⚠' : '✓';
+    const warnColor = (!svOk||!gebOk||!m.beschaeftigungsart) ? '#dc2626' : '#16a34a';
+    return '<tr style="border-bottom:1px solid #f1f5f9;'+((!svOk||!gebOk)?'background:#fff5f5;':'')+'">'
+      +'<td style="padding:7px 10px;font-weight:600;">'+(m.vorname||'')+' '+(m.nachname||'')+'<br><span style="font-size:.67rem;color:#9ca3af;">'+(m.dienstnummer||'')+'</span></td>'
+      +'<td style="padding:7px 10px;'+(svOk?'':'color:#dc2626;font-weight:700;')+'">'+(m.sv_nummer||'<em>fehlt</em>')+'</td>'
+      +'<td style="padding:7px 10px;'+(gebOk?'':'color:#dc2626;font-weight:700;')+'">'+(m.geburtsdatum||'<em>fehlt</em>')+'</td>'
+      +'<td style="padding:7px 10px;">'+(m.beschaeftigungsart||'<em style="color:#d97706;">fehlt</em>')+'</td>'
+      +'<td style="padding:7px 10px;text-align:right;font-weight:700;">€ '+brutto.toFixed(2)+'</td>'
+      +'<td style="padding:7px 10px;font-weight:700;color:'+warnColor+';">'+warn+'</td>'
+      +'</tr>';
+  }).join('');
+  document.getElementById('eldaSumme').textContent = 'Summe Bruttolohn: € ' + totalBrutto.toFixed(2) + ' · ' + _eldaData.length + ' Mitarbeiter';
+  document.getElementById('eldaVorschau').style.display = 'block';
+  document.getElementById('eldaDownloadBtn').style.display = 'inline-block';
+}
+
+function downloadEldaExport(){
+  const monat = document.getElementById('eldaMonat').value;
+  const bkn   = document.getElementById('eldaBKN').value.trim() || '000000000';
+  if(!monat) return;
+  window.location.href = '/api/billing/elda/export?monat='+monat+'&bkn='+encodeURIComponent(bkn);
 }
 </script>
 </body>
