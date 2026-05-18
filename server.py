@@ -5811,6 +5811,64 @@ def billing_patient_buchungen_rechnung(bid):
 
 # ── ELDA Export ──────────────────────────────────────────────────────────────
 
+@app.route('/api/billing/elda/alle-mitarbeiter')
+def billing_elda_alle_mitarbeiter():
+    err = require_billing()
+    if err: return err
+    with get_db() as db:
+        rows = db.execute(
+            '''SELECT id, vorname, nachname, dienstnummer,
+                      geburtsdatum, sv_nummer, staatsbuergerschaft,
+                      beschaeftigungsart, bruttolohn
+               FROM portal_bewerbungen
+               WHERE status='freigegeben'
+               ORDER BY nachname, vorname'''
+        ).fetchall()
+        result = []
+        for r in rows:
+            result.append({
+                'id':                  r['id'],
+                'vorname':             r['vorname'] or '',
+                'nachname':            r['nachname'] or '',
+                'dienstnummer':        r['dienstnummer'] or '',
+                'geburtsdatum':        r['geburtsdatum'] or '',
+                'sv_nummer':           r['sv_nummer'] or '',
+                'staatsbuergerschaft': r['staatsbuergerschaft'] or 'AT',
+                'beschaeftigungsart':  r['beschaeftigungsart'] or '',
+                'bruttolohn':          float(r['bruttolohn'] or 0),
+            })
+    return jsonify({'ok': True, 'mitarbeiter': result})
+
+
+@app.route('/api/billing/elda/mitarbeiter/<pb_id>', methods=['PUT'])
+def billing_elda_mitarbeiter_update(pb_id):
+    err = require_billing()
+    if err: return err
+    data = request.get_json(silent=True) or {}
+    geb   = data.get('geburtsdatum', '').strip()
+    sv    = data.get('sv_nummer', '').strip()
+    staat = data.get('staatsbuergerschaft', 'AT').strip()
+    besch = data.get('beschaeftigungsart', '').strip()
+    brutto = float(data.get('bruttolohn', 0) or 0)
+    if not geb:
+        return jsonify({'ok': False, 'error': 'Geburtsdatum fehlt'}), 400
+    if not besch:
+        return jsonify({'ok': False, 'error': 'Beschäftigungsart fehlt'}), 400
+    with get_db() as db:
+        row = db.execute("SELECT id FROM portal_bewerbungen WHERE id=?", [pb_id]).fetchone()
+        if not row:
+            return jsonify({'ok': False, 'error': 'Mitarbeiter nicht gefunden'}), 404
+        db.execute(
+            '''UPDATE portal_bewerbungen
+               SET geburtsdatum=?, sv_nummer=?, staatsbuergerschaft=?,
+                   beschaeftigungsart=?, bruttolohn=?
+               WHERE id=?''',
+            [geb, sv, staat, besch, brutto, pb_id]
+        )
+        db.commit()
+    return jsonify({'ok': True})
+
+
 @app.route('/api/billing/elda/mitarbeiter')
 def billing_elda_mitarbeiter():
     err = require_billing()
