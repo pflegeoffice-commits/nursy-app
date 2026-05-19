@@ -1010,13 +1010,21 @@ def register_care():
     try:
         with get_db() as db:
             db.execute(
-                'INSERT INTO caregivers (id,vorname,nachname,email,password_hash,gender,address,plz,ort,bezirk,plan,plan_seit) '
-                'VALUES (?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)',
+                'INSERT INTO caregivers (id,vorname,nachname,email,password_hash,gender,address,plz,ort,bezirk,plan,plan_seit,qualifikation) '
+                'VALUES (?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,?)',
                 [uid, data['vorname'].strip(), data['nachname'].strip(),
                  data['email'].strip().lower(), hash_pw(data['password']),
                  data.get('gender',''), data.get('address',''),
-                 data.get('plz',''), data.get('ort',''), data.get('bezirk',''), _plan]
+                 data.get('plz',''), data.get('ort',''), data.get('bezirk',''), _plan,
+                 data.get('qualifikation','')]
             )
+            # Verfügbarkeit in profil_extra speichern
+            verfuegbarkeit = data.get('verfuegbarkeit', [])
+            if verfuegbarkeit:
+                db.execute_safe(
+                    "UPDATE caregivers SET profil_extra=? WHERE id=?",
+                    [json.dumps({'verfuegbarkeit': verfuegbarkeit}), uid]
+                )
             db.commit()
     except Exception:
         return jsonify({'error': 'Diese E-Mail-Adresse ist bereits registriert'}), 409
@@ -7363,6 +7371,31 @@ def care_matching_annehmen(anfrage_id):
                     [row_id, cg_id, pat['id'], pat_json]
                 )
         db.commit()
+        # Patientenbenachrichtigung per E-Mail
+        cg_row = db.execute("SELECT vorname, nachname FROM caregivers WHERE id=?", [cg_id]).fetchone()
+        pat_row = db.execute("SELECT vorname, email FROM patients WHERE id=?", [anfrage['patient_id']]).fetchone()
+        if pat_row and pat_row['email'] and smtp_configured():
+            cg_name = (cg_row['vorname'] + ' ' + cg_row['nachname']) if cg_row else 'Eine Pflegekraft'
+            pat_name = pat_row['vorname'] or 'Hallo'
+            text_body = (
+                f"Hallo {pat_name},\n\n"
+                f"gute Nachricht! {cg_name} hat Ihre Pflegeanfrage angenommen "
+                f"und wird sich in Kürze bei Ihnen melden.\n\n"
+                f"Sie können die Verbindung jederzeit unter 'Meine Verbindung' auf der Nursy-Plattform einsehen.\n\n"
+                f"Mit freundlichen Grüßen,\nIhr Nursy-Team"
+            )
+            html_body = (
+                f"<p>Hallo {pat_name},</p>"
+                f"<p><strong>Gute Nachricht!</strong> <strong>{cg_name}</strong> hat Ihre Pflegeanfrage angenommen "
+                f"und wird sich in Kürze bei Ihnen melden.</p>"
+                f"<p>Sie können die Verbindung jederzeit unter "
+                f"<a href='https://nursy.at/matching-patient.html'>Meine Verbindung</a> einsehen.</p>"
+                f"<p>Mit freundlichen Grüßen,<br>Ihr Nursy-Team</p>"
+            )
+            try:
+                send_email(pat_row['email'], 'Nursy – Pflegekraft hat Ihre Anfrage angenommen', text_body, html_body)
+            except Exception:
+                pass  # E-Mail-Fehler darf Annahme nicht blockieren
     return jsonify({'ok': True})
 
 
