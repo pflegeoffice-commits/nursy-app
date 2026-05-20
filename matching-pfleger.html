@@ -288,7 +288,7 @@
       : '<button class="btn primary" style="font-size:.82rem;" onclick="annehmen(\'' + a.id + '\')">✅ Annehmen</button>';
     var cardClass = typ === 'eingehend' ? 'anf-card anf-card--gezielt' : 'anf-card';
 
-    return '<div class="' + cardClass + '">' +
+    return '<div class="' + cardClass + '" data-anfrage-id="' + a.id + '">' +
       '<div class="anf-card__head">' +
       '<p class="anf-card__pflegebedarf">' + (a.pflegebedarf||'Kein Pflegebedarf angegeben') + '</p>' +
       '</div>' +
@@ -298,19 +298,46 @@
       '</div>';
   }
 
+  /* ── Toast-Notification ── */
+  function showToast(msg, type){
+    var t = document.getElementById('mpToast');
+    if(!t){ t = document.createElement('div'); t.id='mpToast'; document.body.appendChild(t);
+      Object.assign(t.style, {position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
+        zIndex:'9999',padding:'12px 22px',borderRadius:'10px',fontWeight:'600',fontSize:'.88rem',
+        boxShadow:'0 4px 16px rgba(0,0,0,.18)',transition:'opacity .3s',pointerEvents:'none'}); }
+    t.textContent = msg;
+    t.style.background = type==='error' ? '#dc2626' : '#16a34a';
+    t.style.color = '#fff';
+    t.style.opacity = '1';
+    clearTimeout(t._tid);
+    t._tid = setTimeout(function(){ t.style.opacity='0'; }, 3500);
+  }
+
   /* ── Annehmen ── */
   window.annehmen = function(anfragenId){
     if(!confirm('Diesen Patienten annehmen? Sie werden direkt verbunden und erhalten Zugriff auf alle Patientendaten.')) return;
+    var card = document.querySelector('[data-anfrage-id="' + anfragenId + '"]');
+    if(card){ card.style.opacity='.4'; card.style.pointerEvents='none'; }
     fetch('/api/care/matching/annehmen/' + anfragenId, { method: 'POST', credentials: 'include' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.ok){
-          alert('✅ Patient erfolgreich angenommen! Sie finden ihn unter "Meine Patienten".');
+          showToast('✅ Patient angenommen! Sie finden ihn unter „Meine Patienten".', 'success');
+          if(card) card.remove();
           ladeStatus();
-          document.querySelector('.mp-tab[data-tab="verbunden"]').click();
+          ladeAnfragen();
+          setTimeout(function(){
+            var tab = document.querySelector('.mp-tab[data-tab="verbunden"]');
+            if(tab) tab.click();
+          }, 1200);
         } else {
-          alert(d.error || 'Fehler beim Annehmen');
+          if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
+          showToast(d.error || 'Fehler beim Annehmen', 'error');
         }
+      })
+      .catch(function(){
+        if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
+        showToast('Verbindungsfehler – bitte erneut versuchen.', 'error');
       });
   };
 

@@ -7419,6 +7419,32 @@ def care_matching_ablehnen(anfrage_id):
     return jsonify({'ok': True})
 
 
+# ── Alias-Endpunkte (vereinfachte Namen für externe Aufrufe) ──────────────────
+
+@app.route('/api/request/create', methods=['POST'])
+def request_create_alias():
+    """Alias für POST /api/matching/anfrage – Patient erstellt Anfrage."""
+    return matching_anfrage_erstellen()
+
+
+@app.route('/api/requests/open', methods=['GET'])
+def requests_open_alias():
+    """Alias für GET /api/care/matching/offene – Pfleger sieht offene Anfragen."""
+    return care_matching_offene()
+
+
+@app.route('/api/request/accept', methods=['POST'])
+def request_accept_alias():
+    """Alias für POST /api/care/matching/annehmen/<id> – Pfleger nimmt Anfrage an.
+    Body: { "anfrage_id": "<id>" }
+    """
+    data = request.get_json(silent=True) or {}
+    anfrage_id = data.get('anfrage_id', '').strip()
+    if not anfrage_id:
+        return jsonify({'ok': False, 'error': 'anfrage_id fehlt'}), 400
+    return care_matching_annehmen(anfrage_id)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # ── Fahrzeug-Bestätigung (internes Modul) ─────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════════════

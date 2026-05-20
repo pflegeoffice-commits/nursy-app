@@ -1,0 +1,77 @@
+Ziel: Pflege-Workflow und Matching-Logik vollständig korrigieren und vereinfachen.
+
+1. PFLEGEREGISTRIERUNG FIXEN
+- Aktuell wird der Step-Flow übersprungen und direkt zum Profil weitergeleitet.
+- Implementiere einen vollständigen Multi-Step Registrierungsprozess:
+  Schritte:
+  1. Persönliche Daten (Vorname, Nachname, Email, Passwort)
+  2. Qualifikation / Rolle
+  3. Verfügbarkeit
+  4. Einsatzgebiet / PLZ
+  5. Bestätigung
+
+- Speichere Daten zwischen (localStorage oder state)
+- Erst nach Abschluss aller Schritte:
+  → POST an /api/register/care
+  → danach Weiterleitung zum Dashboard
+
+2. PATIENT → PFLEGER MATCHING DIREKT (OHNE LEITSTELLE)
+- Entferne jegliche Leitstellen-Freigabe Logik
+- Wenn ein Patient eine Anfrage erstellt:
+  → sofort in Datenbank speichern
+  → Status = "offen"
+
+- Alle passenden Pfleger (PLZ + Verfügbarkeit):
+  → sehen die Anfrage sofort im Dashboard
+
+3. ANFRAGE ANNEHMEN (REALTIME LOGIK)
+- Wenn ein Pfleger auf "Annehmen" klickt:
+  → POST /api/request/accept
+
+Backend Logik:
+- Setze Status der Anfrage auf:
+  → "angenommen"
+- Speichere:
+  → caregiver_id
+
+- Danach:
+  → Anfrage darf NICHT mehr für andere sichtbar sein
+
+4. AUTOMATISCHE ENTFERNUNG BEI ANDEREN PFLEGERN
+- Alle offenen Listen aktualisieren:
+  → entferne angenommene Anfrage sofort
+
+5. PATIENT BENACHRICHTIGEN
+Nach Annahme:
+- Sende Nachricht an Patient:
+  → "Ein Pfleger hat deine Anfrage angenommen und wird dich kontaktieren"
+
+- Optional:
+  → UI Notification im Frontend anzeigen
+
+6. FRONTEND ANPASSEN
+- Dashboard für Pfleger:
+  → Liste offener Anfragen
+  → Button "Annehmen"
+
+- Nach Annahme:
+  → sofort aus Liste entfernen
+
+7. API ENDPOINTS SICHERSTELLEN
+- POST /api/request/create
+- GET /api/requests/open
+- POST /api/request/accept
+
+8. WICHTIG
+- Keine Testdaten verwenden
+- Bestehende fetch() Struktur beibehalten
+- Nur Logik ergänzen/ersetzen
+- Alle API Calls müssen auf:
+  http://178.105.53.33:5000/api/... zeigen
+
+Am Ende:
+- Liste aller geänderten Dateien ausgeben
+- Kurz bestätigen:
+  → Registrierung funktioniert
+  → Matching funktioniert
+  → Annahme-Logik funktioniert
